@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Loader2 } from 'lucide-react';
+import { RotateCcw, Loader2, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS, DEFAULT_SETTINGS_BN } from '../../services/dataService';
 
@@ -19,7 +20,8 @@ const DEFAULT_EN: UserSettings = {
 };
 
 const Settings: React.FC = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, logout } = useAuth();
+    const navigate = useNavigate();
     const [settings, setSettings] = useState<UserSettings | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -89,6 +91,23 @@ const Settings: React.FC = () => {
                 <CategorySection key={cat} category={cat} items={settings[cat]} config={config[cat]} t={t} editingItem={editingItem} newItem={newItem} onStartEdit={(c, i, v) => setEditingItem({ category: c, index: i, value: v })} onSaveEdit={handleRename} onCancelEdit={() => setEditingItem(null)} onEditChange={v => editingItem && setEditingItem({ ...editingItem, value: v })} onStartNew={c => setNewItem({ category: c, value: '' })} onSaveNew={handleAdd} onCancelNew={() => setNewItem(null)} onNewChange={v => newItem && setNewItem({ ...newItem, value: v })} onDelete={handleDelete} />
             ))}
             <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 text-sm text-slate-300"><strong className="text-indigo-400">💡 {t.tip}</strong> {t.tipText}</div>
+
+            {/* Logout Button - Visible on Mobile */}
+            <button
+                onClick={async () => {
+                    try {
+                        await logout();
+                        navigate('/auth');
+                    } catch (error) {
+                        console.error('Logout failed:', error);
+                    }
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+            >
+                <LogOut size={18} />
+                <span className="font-medium">{lang === 'en' ? 'Logout' : 'লগআউট'}</span>
+            </button>
+
             <ConfirmModal isOpen={showResetConfirm} title={t.resetConfirmTitle} message={t.resetConfirmMsg} confirmText={t.reset} cancelText={t.cancel} confirmColor="indigo" onConfirm={handleReset} onCancel={() => setShowResetConfirm(false)} />
         </div>
     );
