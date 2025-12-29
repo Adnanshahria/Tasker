@@ -53,7 +53,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
     };
 
     const hourOptions = Array.from({ length: 12 }, (_, i) => i + 1);
-    const minOptions = Array.from({ length: 12 }, (_, i) => i * 5);
+    const minOptions = Array.from({ length: 60 }, (_, i) => i); // All 60 minutes
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -96,8 +96,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                     data-hour={h}
                                     onClick={() => setHours(h)}
                                     className={`w-full py-3 text-center text-lg font-medium transition-all ${hours === h
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'text-slate-300 hover:bg-slate-700/50'
+                                        ? 'bg-indigo-500 text-white'
+                                        : 'text-slate-300 hover:bg-slate-700/50'
                                         }`}
                                 >
                                     {h.toString().padStart(2, '0')}
@@ -116,8 +116,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                     data-min={m}
                                     onClick={() => setMinutes(m)}
                                     className={`w-full py-3 text-center text-lg font-medium transition-all ${minutes === m
-                                            ? 'bg-indigo-500 text-white'
-                                            : 'text-slate-300 hover:bg-slate-700/50'
+                                        ? 'bg-indigo-500 text-white'
+                                        : 'text-slate-300 hover:bg-slate-700/50'
                                         }`}
                                 >
                                     {m.toString().padStart(2, '0')}
@@ -133,8 +133,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                             <button
                                 onClick={() => setIsPM(false)}
                                 className={`flex-1 rounded-xl text-lg font-bold transition-all ${!isPM
-                                        ? 'bg-indigo-500 text-white'
-                                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
+                                    ? 'bg-indigo-500 text-white'
+                                    : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
                                     }`}
                             >
                                 AM
@@ -142,8 +142,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                             <button
                                 onClick={() => setIsPM(true)}
                                 className={`flex-1 rounded-xl text-lg font-bold transition-all ${isPM
-                                        ? 'bg-indigo-500 text-white'
-                                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
+                                    ? 'bg-indigo-500 text-white'
+                                    : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
                                     }`}
                             >
                                 PM
