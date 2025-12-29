@@ -61,21 +61,27 @@ const HabitTracker: React.FC = () => {
     };
 
     const handleToggle = async (habit: LocalHabit, date: Date) => {
+        const newCompletedDates = toggleHabitDate(habit, date);
+        // Optimistic update - update UI immediately
+        setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, completedDates: newCompletedDates } : h));
         try {
-            await updateHabit(habit.id, { completedDates: toggleHabitDate(habit, date) });
-            await loadData();
+            await updateHabit(habit.id, { completedDates: newCompletedDates });
         } catch (error) {
             console.error('Error toggling habit:', error);
+            // Revert on error
+            setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, completedDates: habit.completedDates } : h));
         }
     };
 
     const handleDelete = async (id: string) => {
+        const deletedItem = habits.find(h => h.id === id);
+        setHabits(prev => prev.filter(h => h.id !== id));
+        setDeleteConfirm(null);
         try {
             await deleteHabit(id);
-            await loadData();
-            setDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting habit:', error);
+            if (deletedItem) setHabits(prev => [...prev, deletedItem]);
         }
     };
 

@@ -31,35 +31,34 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                 key={item.id}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className={`p-3 border-b border-slate-700 ${ps.rowBg || ''}`}
+                                className={`p-3 border-b border-slate-700/50 ${ps.rowBg || ''}`}
                             >
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="text-white font-medium text-sm">{item.title}</span>
+                                            <span className="text-white font-semibold text-sm">{item.title}</span>
                                             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${urgency.color}`}>{urgency.label}</span>
+                                            {item.priority && <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${ps.pillBg} ${ps.text}`}>{item.priority}</span>}
                                         </div>
-                                        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-400 flex-wrap">
-                                            <span>{item.subject}</span>
-                                            {item.type && <><span>•</span><span className={`${getTypeColor(item.type)}`}>{item.type}</span></>}
+                                        <div className="flex items-center gap-1.5 mt-1.5 text-[11px] flex-wrap">
+                                            <span className="text-indigo-400 font-medium">{item.subject}</span>
+                                            {item.type && <><span className="text-slate-600">•</span><span className={`font-medium ${getTypeColor(item.type)}`}>{item.type}</span></>}
                                         </div>
-                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-500 flex-wrap">
-                                            <span className="font-mono">{format(new Date(item.dueDate), 'dd MMM')}</span>
+                                        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-500 flex-wrap">
+                                            <span className="font-mono bg-slate-800 px-1.5 py-0.5 rounded">{format(new Date(item.dueDate), 'dd MMM')}</span>
                                             {item.startTime && item.endTime && <>
-                                                <span>•</span>
-                                                <span>⏰ {item.startTime} - {item.endTime}</span>
-                                                <span>({duration})</span>
+                                                <span className="text-cyan-500">⏰ {item.startTime} - {item.endTime}</span>
+                                                <span className="text-emerald-500">({duration})</span>
                                             </>}
-                                            {item.priority && <><span>•</span><span className={`font-semibold ${ps.text || 'text-slate-400'}`}>{item.priority}</span></>}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                        <button onClick={() => onEdit(item)} className="p-1.5 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 rounded-lg"><Edit2 size={14} /></button>
-                                        <button onClick={() => onDelete(item.id)} className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg"><Trash2 size={14} /></button>
+                                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                                        <button onClick={() => onEdit(item)} className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition-colors"><Edit2 size={14} /></button>
+                                        <button onClick={() => onDelete(item.id)} className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"><Trash2 size={14} /></button>
                                     </div>
                                 </div>
                                 <div className="mt-2">
-                                    <button onClick={() => onToggleStatus(item)} className={`px-2.5 py-1 text-[10px] font-semibold rounded-lg border ${getStatusStyle(item.status)}`}>{item.status}</button>
+                                    <button onClick={() => onToggleStatus(item)} className={`px-3 py-1.5 text-[10px] font-bold rounded-lg border-2 ${getStatusStyle(item.status)} transition-all active:scale-95`}>{item.status}</button>
                                 </div>
                             </motion.div>
                         );

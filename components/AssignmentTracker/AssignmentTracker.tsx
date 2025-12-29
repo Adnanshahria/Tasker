@@ -59,22 +59,30 @@ const AssignmentTracker: React.FC = () => {
     };
 
     const handleDelete = async (id: string) => {
+        // Optimistic update - remove from UI immediately
+        const deletedItem = assignments.find(a => a.id === id);
+        setAssignments(prev => prev.filter(a => a.id !== id));
+        setDeleteConfirm(null);
         try {
             await deleteAssignment(id);
-            await loadData();
-            setDeleteConfirm(null);
         } catch (error) {
             console.error('Error deleting:', error);
+            // Revert on error
+            if (deletedItem) setAssignments(prev => [...prev, deletedItem]);
         }
     };
 
     const toggleStatus = async (item: LocalAssignment) => {
         const idx = settings.statuses.indexOf(item.status);
+        const newStatus = settings.statuses[(idx + 1) % settings.statuses.length];
+        // Optimistic update - update UI immediately
+        setAssignments(prev => prev.map(a => a.id === item.id ? { ...a, status: newStatus } : a));
         try {
-            await updateAssignment(item.id, { status: settings.statuses[(idx + 1) % settings.statuses.length] });
-            await loadData();
+            await updateAssignment(item.id, { status: newStatus });
         } catch (error) {
             console.error('Error toggling status:', error);
+            // Revert on error
+            setAssignments(prev => prev.map(a => a.id === item.id ? { ...a, status: item.status } : a));
         }
     };
 
