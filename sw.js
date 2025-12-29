@@ -1,9 +1,9 @@
 // Enhanced Service Worker for Offline-First PWA
 // Caches static assets and provides offline fallback
 
-const CACHE_NAME = 'agrogoti-v2';
-const STATIC_CACHE = 'agrogoti-static-v2';
-const DYNAMIC_CACHE = 'agrogoti-dynamic-v2';
+const CACHE_NAME = 'ogrogoti-v2';
+const STATIC_CACHE = 'ogrogoti-static-v2';
+const DYNAMIC_CACHE = 'ogrogoti-dynamic-v2';
 
 // Static assets to cache on install
 const urlsToCache = [

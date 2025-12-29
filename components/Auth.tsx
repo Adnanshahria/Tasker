@@ -46,7 +46,7 @@ const Auth: React.FC = () => {
       >
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">অগ্রগতি</h1>
-          <p className="text-lg font-medium text-white mb-1">Agrogoti</p>
+          <p className="text-lg font-medium text-white mb-1">Ogrogoti</p>
           <p className="text-slate-400 text-sm">Track your progress with style</p>
         </div>
 

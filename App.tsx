@@ -10,6 +10,10 @@ import Settings from './components/Settings';
 import Auth from './components/Auth';
 import NetworkStatus from './components/ui/NetworkStatus';
 import { AnimatePresence, motion } from 'framer-motion';
+import { migrateLocalStorageData } from './services/migrationService';
+
+// Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
+migrateLocalStorageData();
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();

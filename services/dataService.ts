@@ -236,13 +236,13 @@ export const updateAssignment = async (id: string, data: Partial<LocalAssignment
 
 export const deleteAssignment = async (id: string): Promise<void> => {
     // Find which user this belongs to
-    const allKeys = Object.keys(localStorage).filter(k => k.startsWith('agrogoti_assignments_'));
+    const allKeys = Object.keys(localStorage).filter(k => k.startsWith('ogrogoti_assignments_'));
     let userId = '';
 
     for (const key of allKeys) {
         const data = JSON.parse(localStorage.getItem(key) || '[]');
         if (data.some((a: any) => a.id === id)) {
-            userId = key.replace('agrogoti_assignments_', '');
+            userId = key.replace('ogrogoti_assignments_', '');
             break;
         }
     }
@@ -390,13 +390,13 @@ export const updateHabit = async (id: string, data: Partial<LocalHabit>): Promis
 
 export const deleteHabit = async (id: string): Promise<void> => {
     // Find which user this belongs to
-    const allKeys = Object.keys(localStorage).filter(k => k.startsWith('agrogoti_habits_'));
+    const allKeys = Object.keys(localStorage).filter(k => k.startsWith('ogrogoti_habits_'));
     let userId = '';
 
     for (const key of allKeys) {
         const data = JSON.parse(localStorage.getItem(key) || '[]');
         if (data.some((h: any) => h.id === id)) {
-            userId = key.replace('agrogoti_habits_', '');
+            userId = key.replace('ogrogoti_habits_', '');
             break;
         }
     }

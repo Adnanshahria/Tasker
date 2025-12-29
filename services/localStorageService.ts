@@ -5,12 +5,12 @@ import { LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS_BN } from '
 
 // Storage Keys
 const KEYS = {
-    assignments: (userId: string) => `agrogoti_assignments_${userId}`,
-    habits: (userId: string) => `agrogoti_habits_${userId}`,
-    settings: (userId: string) => `agrogoti_settings_${userId}`,
-    pendingOps: 'agrogoti_pending_ops',
-    cachedUser: 'agrogoti_cached_user',
-    lastSync: (userId: string) => `agrogoti_last_sync_${userId}`,
+    assignments: (userId: string) => `ogrogoti_assignments_${userId}`,
+    habits: (userId: string) => `ogrogoti_habits_${userId}`,
+    settings: (userId: string) => `ogrogoti_settings_${userId}`,
+    pendingOps: 'ogrogoti_pending_ops',
+    cachedUser: 'ogrogoti_cached_user',
+    lastSync: (userId: string) => `ogrogoti_last_sync_${userId}`,
 };
 
 // ==================== GENERIC HELPERS ====================

@@ -1,25 +1,35 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <!-- White background -->
+  <!-- Background -->
   <rect width="512" height="512" fill="#ffffff"/>
   
   <!-- Gradient definition -->
   <defs>
-    <linearGradient id="agrogotiGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="ogrogotiGrad" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#6366f1"/>
       <stop offset="100%" style="stop-color:#a855f7"/>
+    </linearGradient>
+    <linearGradient id="goldenBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#4ECDC4"/>
     </linearGradient>
   </defs>
   
   <!-- Rounded square background -->
-  <rect x="80" y="80" width="352" height="352" rx="72" fill="url(#agrogotiGrad)"/>
+  <rect x="64" y="64" width="384" height="384" rx="80" fill="url(#ogrogotiGrad)"/>
   
-  <!-- Rising Arrow / Progress Symbol - stylized "A" shape -->
-  <g fill="none" stroke="white" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Upward arrow forming A shape -->
-    <path d="M180 340 L256 140 L332 340"/>
-    <!-- Cross bar -->
-    <path d="M200 280 L312 280"/>
-    <!-- Arrow head at top -->
-    <path d="M220 180 L256 140 L292 180"/>
-  </g>
+  <!-- Stylized "O" with upward arrow - symbolizing Ogrogoti (Progress) -->
+  <!-- Outer circle forming the "O" -->
+  <circle cx="256" cy="270" r="100" fill="none" stroke="white" stroke-width="32"/>
+  
+  <!-- Golden Blue Checkmark inside the O -->
+  <path d="M205 270 L240 305 L310 235" fill="none" stroke="url(#goldenBlueGrad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Upward arrow breaking through the top of O -->
+  <path d="M256 130 L256 200" stroke="white" stroke-width="32" stroke-linecap="round"/>
+  <path d="M210 175 L256 130 L302 175" fill="none" stroke="white" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Small progress dots at the bottom -->
+  <circle cx="200" cy="400" r="12" fill="white" opacity="0.6"/>
+  <circle cx="256" cy="400" r="12" fill="white" opacity="0.8"/>
+  <circle cx="312" cy="400" r="12" fill="white"/>
 </svg>
