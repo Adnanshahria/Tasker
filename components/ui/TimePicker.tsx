@@ -76,12 +76,37 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                     </button>
                 </div>
 
-                {/* Time Display */}
-                <div className="text-center mb-4">
-                    <span className="text-4xl font-bold text-white">
-                        {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}
-                    </span>
-                    <span className="ml-2 text-xl text-indigo-400 font-bold">{isPM ? 'PM' : 'AM'}</span>
+                {/* Time Display - Editable */}
+                <div className="flex items-center justify-center gap-1 mb-4">
+                    <input
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={hours}
+                        onChange={e => {
+                            const val = parseInt(e.target.value) || 1;
+                            setHours(Math.min(12, Math.max(1, val)));
+                        }}
+                        className="w-16 text-4xl font-bold text-white bg-slate-700/50 border border-slate-600 rounded-lg text-center py-1 focus:border-indigo-500 focus:outline-none"
+                    />
+                    <span className="text-4xl font-bold text-slate-500">:</span>
+                    <input
+                        type="number"
+                        min="0"
+                        max="59"
+                        value={minutes.toString().padStart(2, '0')}
+                        onChange={e => {
+                            const val = parseInt(e.target.value) || 0;
+                            setMinutes(Math.min(59, Math.max(0, val)));
+                        }}
+                        className="w-16 text-4xl font-bold text-white bg-slate-700/50 border border-slate-600 rounded-lg text-center py-1 focus:border-indigo-500 focus:outline-none"
+                    />
+                    <button
+                        onClick={() => setIsPM(!isPM)}
+                        className="ml-2 px-3 py-2 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 text-xl font-bold transition-colors"
+                    >
+                        {isPM ? 'PM' : 'AM'}
+                    </button>
                 </div>
 
                 {/* Scroll Picker */}
