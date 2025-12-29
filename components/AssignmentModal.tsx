@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Calendar, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, Clock, Timer } from 'lucide-react';
 import DatePicker from './ui/DatePicker';
 import TimePicker from './ui/TimePicker';
+import DurationPicker from './ui/DurationPicker';
 
 interface AssignmentModalProps {
     isOpen: boolean;
@@ -34,18 +35,50 @@ interface AssignmentModalProps {
 }
 
 const T = {
-    en: { title: 'Title', description: 'Description', subject: 'Subject', dueDate: 'Due', type: 'Type', priority: 'Priority', status: 'Status', startTime: 'Start (opt)', endTime: 'End (opt)', duration: 'Duration', cancel: 'Cancel', save: 'Save', editTitle: 'Edit Task', newTitle: 'New Task', placeholder: 'Task name', descPlaceholder: 'Description (optional)', select: 'Select...', selectDate: 'Select date', selectTime: 'Select time' },
-    bn: { title: 'শিরোনাম', description: 'বিবরণ', subject: 'বিষয়', dueDate: 'তারিখ', type: 'ধরন', priority: 'গুরুত্ব', status: 'স্ট্যাটাস', startTime: 'শুরু (ঐচ্ছিক)', endTime: 'শেষ (ঐচ্ছিক)', duration: 'সময়কাল', cancel: 'বাতিল', save: 'সংরক্ষণ', editTitle: 'সম্পাদনা', newTitle: 'নতুন টাস্ক', placeholder: 'টাস্কের নাম', descPlaceholder: 'বিবরণ (ঐচ্ছিক)', select: 'নির্বাচন...', selectDate: 'তারিখ নির্বাচন', selectTime: 'সময় নির্বাচন' }
+    en: { title: 'Title', description: 'Description', subject: 'Subject', dueDate: 'Due', type: 'Type', priority: 'Priority', status: 'Status', startTime: 'Start', endTime: 'End', duration: 'Duration', cancel: 'Cancel', save: 'Save', editTitle: 'Edit Task', newTitle: 'New Task', placeholder: 'Task name', descPlaceholder: 'Description (optional)', select: 'Select...', selectDate: 'Select date', selectTime: 'Select time' },
+    bn: { title: 'শিরোনাম', description: 'বিবরণ', subject: 'বিষয়', dueDate: 'তারিখ', type: 'ধরন', priority: 'গুরুত্ব', status: 'স্ট্যাটাস', startTime: 'শুরু', endTime: 'শেষ', duration: 'সময়কাল', cancel: 'বাতিল', save: 'সংরক্ষণ', editTitle: 'সম্পাদনা', newTitle: 'নতুন টাস্ক', placeholder: 'টাস্কের নাম', descPlaceholder: 'বিবরণ (ঐচ্ছিক)', select: 'নির্বাচন...', selectDate: 'তারিখ নির্বাচন', selectTime: 'সময় নির্বাচন' }
 };
 
-const calcDur = (s: string, e: string) => {
-    if (!s || !e) return '-';
-    const [sh, sm] = s.split(':').map(Number);
-    const [eh, em] = e.split(':').map(Number);
-    let m = (eh * 60 + em) - (sh * 60 + sm);
-    if (m < 0) m += 24 * 60;
-    const h = Math.floor(m / 60);
-    return h ? (m % 60 ? `${h}h ${m % 60}m` : `${h}h`) : `${m}m`;
+// Helper: Calculate duration in minutes from start and end times
+const calcDurationMinutes = (start: string, end: string): number => {
+    if (!start || !end) return 0;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    let mins = (eh * 60 + em) - (sh * 60 + sm);
+    if (mins < 0) mins += 24 * 60; // Handle overnight
+    return mins;
+};
+
+// Helper: Format minutes to display string
+const formatDuration = (mins: number): string => {
+    if (mins <= 0) return '--';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+};
+
+// Helper: Add minutes to a time string
+const addMinutesToTime = (time: string, mins: number): string => {
+    if (!time || mins <= 0) return '';
+    const [h, m] = time.split(':').map(Number);
+    let totalMins = h * 60 + m + mins;
+    totalMins = totalMins % (24 * 60); // Wrap around midnight
+    const newH = Math.floor(totalMins / 60);
+    const newM = totalMins % 60;
+    return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
+};
+
+// Helper: Subtract minutes from a time string
+const subtractMinutesFromTime = (time: string, mins: number): string => {
+    if (!time || mins <= 0) return '';
+    const [h, m] = time.split(':').map(Number);
+    let totalMins = h * 60 + m - mins;
+    if (totalMins < 0) totalMins += 24 * 60; // Wrap around midnight
+    const newH = Math.floor(totalMins / 60);
+    const newM = totalMins % 60;
+    return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
 };
 
 const formatDate = (dateStr: string) => {
@@ -70,6 +103,15 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showStartTimePicker, setShowStartTimePicker] = useState(false);
     const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+    const [showDurationPicker, setShowDurationPicker] = useState(false);
+    const [durationMinutes, setDurationMinutes] = useState(0);
+
+    // Calculate duration whenever start/end times change
+    useEffect(() => {
+        if (startTime && endTime) {
+            setDurationMinutes(calcDurationMinutes(startTime, endTime));
+        }
+    }, [startTime, endTime]);
 
     if (!isOpen) return null;
     const t = T[lang];
@@ -77,6 +119,39 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
     const inputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
     const labelCls = "block text-xs uppercase font-bold text-slate-400 mb-1";
     const clickableInputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm cursor-pointer hover:border-indigo-500/50 transition-all flex items-center justify-between gap-2";
+
+    // Handle start time change with auto-calculation
+    const handleStartTimeChange = (newStart: string) => {
+        setStartTime(newStart);
+        // If we have a duration but no end, calculate end
+        if (durationMinutes > 0 && !endTime) {
+            setEndTime(addMinutesToTime(newStart, durationMinutes));
+        }
+        // If we have end time, duration will be recalculated by useEffect
+    };
+
+    // Handle end time change with auto-calculation
+    const handleEndTimeChange = (newEnd: string) => {
+        setEndTime(newEnd);
+        // If we have a duration but no start, calculate start
+        if (durationMinutes > 0 && !startTime) {
+            setStartTime(subtractMinutesFromTime(newEnd, durationMinutes));
+        }
+        // If we have start time, duration will be recalculated by useEffect
+    };
+
+    // Handle duration change with auto-calculation
+    const handleDurationChange = (mins: number) => {
+        setDurationMinutes(mins);
+        if (mins <= 0) return;
+
+        // Priority: If start exists, calculate end. Else if end exists, calculate start.
+        if (startTime) {
+            setEndTime(addMinutesToTime(startTime, mins));
+        } else if (endTime) {
+            setStartTime(subtractMinutesFromTime(endTime, mins));
+        }
+    };
 
     return (
         <>
@@ -120,7 +195,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Start Time + End Time + Duration */}
+                        {/* Start Time + End Time + Duration - All Editable */}
                         <div className="grid grid-cols-3 gap-2">
                             <div>
                                 <label className={labelCls}>{t.startTime}</label>
@@ -150,9 +225,16 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                             </div>
                             <div>
                                 <label className={labelCls}>{t.duration}</label>
-                                <div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-indigo-400 text-sm font-mono text-center">
-                                    {calcDur(startTime, endTime)}
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDurationPicker(true)}
+                                    className={clickableInputCls}
+                                >
+                                    <span className={durationMinutes > 0 ? 'text-indigo-400 font-mono' : 'text-slate-500'}>
+                                        {formatDuration(durationMinutes)}
+                                    </span>
+                                    <Timer size={14} className="text-indigo-400" />
+                                </button>
                             </div>
                         </div>
 
@@ -203,17 +285,26 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
             <TimePicker
                 isOpen={showStartTimePicker}
                 value={startTime}
-                onChange={setStartTime}
+                onChange={handleStartTimeChange}
                 onClose={() => setShowStartTimePicker(false)}
-                label="Start Time"
+                label={lang === 'en' ? 'Start Time' : 'শুরুর সময়'}
             />
 
             <TimePicker
                 isOpen={showEndTimePicker}
                 value={endTime}
-                onChange={setEndTime}
+                onChange={handleEndTimeChange}
                 onClose={() => setShowEndTimePicker(false)}
-                label="End Time"
+                label={lang === 'en' ? 'End Time' : 'শেষ সময়'}
+            />
+
+            {/* Duration Picker */}
+            <DurationPicker
+                isOpen={showDurationPicker}
+                value={durationMinutes}
+                onChange={handleDurationChange}
+                onClose={() => setShowDurationPicker(false)}
+                label={lang === 'en' ? 'Duration' : 'সময়কাল'}
             />
         </>
     );
