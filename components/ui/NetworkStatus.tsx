@@ -2,7 +2,7 @@
 // Shows sync status: online/synced, syncing, pending, offline
 
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, RefreshCw, Cloud, CloudOff, Check } from 'lucide-react';
+import { Wifi, WifiOff, RefreshCw, Cloud, CloudOff, Check, X } from 'lucide-react';
 import {
     isOnline,
     addNetworkListener,
@@ -11,13 +11,56 @@ import {
     SyncState,
     processPendingOperations
 } from '../../services/syncService';
-import { getPendingOperations } from '../../services/localStorageService';
+import { getPendingOperations, getLocalSettings } from '../../services/localStorageService';
+import { useAuth } from '../../contexts/AuthContext';
+
+// Translations
+const T = {
+    en: {
+        offline: 'Offline',
+        online: 'Online',
+        syncing: 'Syncing...',
+        pending: 'pending',
+        syncError: 'Sync Error',
+        synced: 'Synced',
+        status: 'Status:',
+        pendingLabel: 'Pending:',
+        items: 'items',
+        retrySync: 'Retry Sync',
+        autoSyncOnline: 'Will auto-sync when online'
+    },
+    bn: {
+        offline: 'অফলাইন',
+        online: 'অনলাইন',
+        syncing: 'সিঙ্ক হচ্ছে...',
+        pending: 'পেন্ডিং',
+        syncError: 'সিঙ্ক এরর',
+        synced: 'সিঙ্কড',
+        status: 'স্ট্যাটাস:',
+        pendingLabel: 'পেন্ডিং:',
+        items: 'আইটেম',
+        retrySync: 'পুনরায় সিঙ্ক করুন',
+        autoSyncOnline: 'অনলাইনে আসলে অটো সিঙ্ক হবে'
+    }
+};
 
 const NetworkStatus: React.FC = () => {
+    const { currentUser } = useAuth();
     const [online, setOnline] = useState(isOnline());
     const [syncState, setSyncState] = useState<SyncState>(getSyncState());
     const [pendingCount, setPendingCount] = useState(0);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [lang, setLang] = useState<'en' | 'bn'>('en');
+
+    useEffect(() => {
+        // Get language from settings
+        if (currentUser) {
+            const settings = getLocalSettings(currentUser.uid);
+            if (settings?.language) {
+                setLang(settings.language);
+            }
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         // Listen for network changes
@@ -34,6 +77,13 @@ const NetworkStatus: React.FC = () => {
         // Update pending count periodically
         const interval = setInterval(() => {
             setPendingCount(getPendingOperations().length);
+            // Also refresh language
+            if (currentUser) {
+                const settings = getLocalSettings(currentUser.uid);
+                if (settings?.language) {
+                    setLang(settings.language);
+                }
+            }
         }, 5000);
 
         return () => {
@@ -41,13 +91,15 @@ const NetworkStatus: React.FC = () => {
             removeSyncListener();
             clearInterval(interval);
         };
-    }, []);
+    }, [currentUser]);
 
     const handleRetrySync = () => {
         if (online) {
             processPendingOperations();
         }
     };
+
+    const t = T[lang];
 
     const getStatusConfig = () => {
         if (!online) {
@@ -56,8 +108,7 @@ const NetworkStatus: React.FC = () => {
                 color: 'text-rose-400',
                 bgColor: 'bg-rose-500/20',
                 borderColor: 'border-rose-500/30',
-                label: 'অফলাইন',
-                labelEn: 'Offline',
+                label: t.offline,
             };
         }
 
@@ -68,8 +119,7 @@ const NetworkStatus: React.FC = () => {
                     color: 'text-amber-400',
                     bgColor: 'bg-amber-500/20',
                     borderColor: 'border-amber-500/30',
-                    label: 'সিঙ্ক হচ্ছে...',
-                    labelEn: 'Syncing...',
+                    label: t.syncing,
                     animate: true,
                 };
             case 'pending':
@@ -78,8 +128,7 @@ const NetworkStatus: React.FC = () => {
                     color: 'text-amber-400',
                     bgColor: 'bg-amber-500/20',
                     borderColor: 'border-amber-500/30',
-                    label: `${pendingCount} পেন্ডিং`,
-                    labelEn: `${pendingCount} pending`,
+                    label: `${pendingCount} ${t.pending}`,
                 };
             case 'error':
                 return {
@@ -87,8 +136,7 @@ const NetworkStatus: React.FC = () => {
                     color: 'text-rose-400',
                     bgColor: 'bg-rose-500/20',
                     borderColor: 'border-rose-500/30',
-                    label: 'সিঙ্ক এরর',
-                    labelEn: 'Sync Error',
+                    label: t.syncError,
                 };
             case 'synced':
             default:
@@ -97,8 +145,7 @@ const NetworkStatus: React.FC = () => {
                     color: 'text-emerald-400',
                     bgColor: 'bg-emerald-500/20',
                     borderColor: 'border-emerald-500/30',
-                    label: 'সিঙ্কড',
-                    labelEn: 'Synced',
+                    label: t.synced,
                 };
         }
     };
@@ -139,24 +186,24 @@ const NetworkStatus: React.FC = () => {
                 <div className={`absolute bottom-full right-0 mb-2 p-4 rounded-xl ${config.bgColor} border ${config.borderColor} backdrop-blur-md shadow-xl min-w-[200px]`}>
                     <div className="flex items-center justify-between mb-3">
                         <span className={`text-sm font-semibold ${config.color}`}>
-                            {online ? '🟢 অনলাইন' : '🔴 অফলাইন'}
+                            {online ? `🟢 ${t.online}` : `🔴 ${t.offline}`}
                         </span>
                         <button
                             onClick={() => setIsExpanded(false)}
-                            className="text-slate-400 hover:text-white text-xs"
+                            className="text-slate-400 hover:text-white"
                         >
-                            ✕
+                            <X size={14} />
                         </button>
                     </div>
 
                     <div className="space-y-2 text-xs text-slate-300">
                         <div className="flex justify-between">
-                            <span>স্ট্যাটাস:</span>
+                            <span>{t.status}</span>
                             <span className={config.color}>{config.label}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span>পেন্ডিং:</span>
-                            <span>{pendingCount} আইটেম</span>
+                            <span>{t.pendingLabel}</span>
+                            <span>{pendingCount} {t.items}</span>
                         </div>
                     </div>
 
@@ -166,13 +213,13 @@ const NetworkStatus: React.FC = () => {
                             className="mt-3 w-full py-2 rounded-lg bg-indigo-500/30 border border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/40 text-xs font-medium flex items-center justify-center gap-2"
                         >
                             <RefreshCw size={12} />
-                            পুনরায় সিঙ্ক করুন
+                            {t.retrySync}
                         </button>
                     )}
 
                     {!online && (
                         <p className="mt-3 text-xs text-slate-400 text-center">
-                            অনলাইনে আসলে অটো সিঙ্ক হবে
+                            {t.autoSyncOnline}
                         </p>
                     )}
                 </div>
