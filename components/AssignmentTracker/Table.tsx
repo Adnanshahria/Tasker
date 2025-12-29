@@ -21,11 +21,11 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
         <div className="flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-xl">
             {/* Single Table View for all screens with horizontal scroll */}
             <div className="overflow-x-auto flex-1 custom-scrollbar">
-                <table className="w-full text-left border-collapse text-xs md:text-sm min-w-[700px]">
+                <table className="w-full text-left border-separate border-spacing-0 text-xs md:text-sm min-w-[700px]">
                     <thead className="sticky top-0 z-10">
-                        <tr className="bg-slate-800 text-slate-400 font-semibold border-b border-slate-700">
-                            <th className="p-2 md:p-3 w-8 text-center border-r border-slate-700 bg-slate-800">#</th>
-                            <th className="p-2 md:p-3 border-r border-slate-700 min-w-[120px] bg-slate-800">{t.taskName}</th>
+                        <tr className="bg-slate-800 text-slate-400 font-semibold">
+                            <th className="p-2 md:p-3 w-8 text-center border-b border-r border-slate-700 bg-slate-800 sticky left-0 z-20">#</th>
+                            <th className="p-2 md:p-3 border-b border-r border-slate-700 min-w-[120px] bg-slate-800 sticky left-8 z-20">{t.taskName}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.subject}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.type}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.dueDate}</th>
@@ -44,8 +44,8 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                 const duration = calcDuration(item.startTime, item.endTime);
                                 return (
                                     <motion.tr key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`group hover:bg-white/5 transition-colors border-b border-slate-700 ${ps.rowBg || ''}`}>
-                                        <td className="p-2 md:p-3 text-center text-slate-500 font-mono border-r border-slate-700 bg-slate-900">{idx + 1}</td>
-                                        <td className="p-2 md:p-3 border-r border-slate-700 bg-slate-900">
+                                        <td className="p-2 md:p-3 text-center text-slate-500 font-mono border-b border-r border-slate-700 bg-slate-900 sticky left-0 z-10">{idx + 1}</td>
+                                        <td className="p-2 md:p-3 border-b border-r border-slate-700 bg-slate-900 sticky left-8 z-10">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-white font-medium">{item.title}</span>
                                                 <span className={`text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full ${urgency.color}`}>{urgency.label}</span>
