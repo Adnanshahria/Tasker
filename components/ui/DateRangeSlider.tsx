@@ -69,7 +69,7 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
         ? `${format(customStart, 'MMM d')} - ${format(customEnd, 'MMM d')}`
         : 'Custom';
 
-    const modalContent = showCustomPicker && (
+    const modalContent = (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 bg-black/80 backdrop-blur-lg" onClick={() => setShowCustomPicker(false)}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
