@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { HelpCircle, X } from 'lucide-react';
 import { HELP_CONTENT } from '../../constants/helpContent';
 
@@ -16,9 +17,9 @@ const HelpModal: React.FC<HelpModalProps> = ({ helpKey, lang, onClose }) => {
 
     const buttonText = lang === 'en' ? 'Got it!' : 'বুঝেছি!';
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+    const modalContent = (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 bg-black/80 backdrop-blur-lg" onClick={onClose}>
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-md shadow-2xl mx-2" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <div className="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center">
@@ -37,6 +38,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ helpKey, lang, onClose }) => {
             </div>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default HelpModal;

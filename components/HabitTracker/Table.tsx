@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 import { format, isSameDay, isSameMonth, isPast, startOfDay } from 'date-fns';
 import { Trash2, Check, X, HelpCircle, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +15,7 @@ interface TableProps {
     onDelete: (id: string) => void;
 }
 
-// Description Modal Component
+// Description Modal Component with Portal
 const DescriptionModal: React.FC<{
     isOpen: boolean;
     title: string;
@@ -23,9 +24,9 @@ const DescriptionModal: React.FC<{
 }> = ({ isOpen, title, description, onClose }) => {
     if (!isOpen) return null;
 
-    return (
+    const modalContent = (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-3 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 bg-black/80 backdrop-blur-lg"
             onClick={onClose}
         >
             <motion.div
@@ -63,6 +64,8 @@ const DescriptionModal: React.FC<{
             </motion.div>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };
 
 const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, onDelete }) => {
