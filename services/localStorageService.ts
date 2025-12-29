@@ -240,39 +240,47 @@ export const mergeAssignments = (
 ): StoredAssignment[] => {
     const merged = new Map<string, StoredAssignment>();
 
-    // Add all local items
-    local.forEach(item => {
-        merged.set(item.id, item);
+    // First, add all remote items (they are the source of truth for synced data)
+    remote.forEach(item => {
+        const remoteUpdatedAt = (item as any).updatedAt || (item as any).createdAt || 0;
+        merged.set(item.id, {
+            ...item,
+            updatedAt: remoteUpdatedAt,
+            syncStatus: 'synced',
+        });
     });
 
-    // Merge remote items (they come with createdAt which we use as updatedAt if not present)
-    remote.forEach(item => {
-        const localItem = merged.get(item.id);
-        const remoteUpdatedAt = (item as any).updatedAt || (item as any).createdAt || 0;
-
-        if (!localItem) {
-            // New remote item
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
-        } else if (localItem.syncStatus === 'synced') {
-            // Local is synced, take remote version
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
-        } else if (remoteUpdatedAt > localItem.updatedAt) {
-            // Remote is newer, take remote (last-write-wins)
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
+    // Then process local items
+    local.forEach(item => {
+        // Skip temp IDs if a matching remote item exists (by title + userId + similar timestamp)
+        // This prevents duplicates when temp items get synced
+        if (isTempId(item.id)) {
+            // Check if this temp item was synced (exists in remote with same title/userId)
+            const matchingRemote = remote.find(r =>
+                r.title === item.title &&
+                r.userId === item.userId &&
+                Math.abs(((r as any).createdAt || 0) - (item.createdAt || 0)) < 60000 // within 1 minute
+            );
+            if (matchingRemote) {
+                // This temp item was synced, skip it
+                console.log('[Merge] Skipping synced temp item:', item.id, '-> Real ID:', matchingRemote.id);
+                return;
+            }
+            // Temp item not yet synced, keep it
+            merged.set(item.id, item);
+        } else if (!merged.has(item.id)) {
+            // Local item not in remote - might be locally deleted remotely
+            // Keep if pending, otherwise skip
+            if (item.syncStatus === 'pending') {
+                merged.set(item.id, item);
+            }
+        } else if (item.syncStatus === 'pending') {
+            // Local pending changes should override remote for this item
+            const remoteItem = merged.get(item.id);
+            if (remoteItem && item.updatedAt > (remoteItem.updatedAt || 0)) {
+                merged.set(item.id, item);
+            }
         }
-        // else: keep local pending changes (they will be synced)
     });
 
     return Array.from(merged.values());
@@ -284,32 +292,39 @@ export const mergeHabits = (
 ): StoredHabit[] => {
     const merged = new Map<string, StoredHabit>();
 
-    local.forEach(item => {
-        merged.set(item.id, item);
+    // First, add all remote items
+    remote.forEach(item => {
+        const remoteUpdatedAt = (item as any).updatedAt || (item as any).createdAt || 0;
+        merged.set(item.id, {
+            ...item,
+            updatedAt: remoteUpdatedAt,
+            syncStatus: 'synced',
+        });
     });
 
-    remote.forEach(item => {
-        const localItem = merged.get(item.id);
-        const remoteUpdatedAt = (item as any).updatedAt || (item as any).createdAt || 0;
-
-        if (!localItem) {
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
-        } else if (localItem.syncStatus === 'synced') {
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
-        } else if (remoteUpdatedAt > localItem.updatedAt) {
-            merged.set(item.id, {
-                ...item,
-                updatedAt: remoteUpdatedAt,
-                syncStatus: 'synced',
-            });
+    // Then process local items
+    local.forEach(item => {
+        if (isTempId(item.id)) {
+            // Check if this temp item was synced
+            const matchingRemote = remote.find(r =>
+                r.title === item.title &&
+                r.userId === item.userId &&
+                Math.abs(((r as any).createdAt || 0) - (item.createdAt || 0)) < 60000
+            );
+            if (matchingRemote) {
+                console.log('[Merge] Skipping synced temp habit:', item.id);
+                return;
+            }
+            merged.set(item.id, item);
+        } else if (!merged.has(item.id)) {
+            if (item.syncStatus === 'pending') {
+                merged.set(item.id, item);
+            }
+        } else if (item.syncStatus === 'pending') {
+            const remoteItem = merged.get(item.id);
+            if (remoteItem && item.updatedAt > (remoteItem.updatedAt || 0)) {
+                merged.set(item.id, item);
+            }
         }
     });
 
