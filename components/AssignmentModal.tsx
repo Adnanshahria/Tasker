@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Clock, Timer } from 'lucide-react';
+import { motion } from 'framer-motion';
 import DatePicker from './ui/DatePicker';
 import TimePicker from './ui/TimePicker';
 import DurationPicker from './ui/DurationPicker';
+import AnimatedTimeDisplay from './ui/AnimatedTimeDisplay';
 
 interface AssignmentModalProps {
     isOpen: boolean;
@@ -45,7 +47,7 @@ const calcDurationMinutes = (start: string, end: string): number => {
     const [sh, sm] = start.split(':').map(Number);
     const [eh, em] = end.split(':').map(Number);
     let mins = (eh * 60 + em) - (sh * 60 + sm);
-    if (mins < 0) mins += 24 * 60; // Handle overnight
+    if (mins < 0) mins += 24 * 60;
     return mins;
 };
 
@@ -64,7 +66,7 @@ const addMinutesToTime = (time: string, mins: number): string => {
     if (!time || mins <= 0) return '';
     const [h, m] = time.split(':').map(Number);
     let totalMins = h * 60 + m + mins;
-    totalMins = totalMins % (24 * 60); // Wrap around midnight
+    totalMins = totalMins % (24 * 60);
     const newH = Math.floor(totalMins / 60);
     const newM = totalMins % 60;
     return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
@@ -75,7 +77,7 @@ const subtractMinutesFromTime = (time: string, mins: number): string => {
     if (!time || mins <= 0) return '';
     const [h, m] = time.split(':').map(Number);
     let totalMins = h * 60 + m - mins;
-    if (totalMins < 0) totalMins += 24 * 60; // Wrap around midnight
+    if (totalMins < 0) totalMins += 24 * 60;
     const newH = Math.floor(totalMins / 60);
     const newM = totalMins % 60;
     return `${newH.toString().padStart(2, '0')}:${newM.toString().padStart(2, '0')}`;
@@ -85,14 +87,6 @@ const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-};
-
-const formatTime = (timeStr: string) => {
-    if (!timeStr) return '';
-    const [h, m] = timeStr.split(':').map(Number);
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    const hour12 = h % 12 || 12;
-    return `${hour12}:${m.toString().padStart(2, '0')} ${ampm}`;
 };
 
 const AssignmentModal: React.FC<AssignmentModalProps> = ({
@@ -106,6 +100,11 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
     const [showDurationPicker, setShowDurationPicker] = useState(false);
     const [durationMinutes, setDurationMinutes] = useState(0);
 
+    // Track which field was auto-calculated
+    const [autoCalcField, setAutoCalcField] = useState<'start' | 'end' | 'duration' | null>(null);
+    const prevStartRef = useRef(startTime);
+    const prevEndRef = useRef(endTime);
+
     // Calculate duration whenever start/end times change
     useEffect(() => {
         if (startTime && endTime) {
@@ -118,26 +117,32 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
 
     const inputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
     const labelCls = "block text-xs uppercase font-bold text-slate-400 mb-1";
-    const clickableInputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm cursor-pointer hover:border-indigo-500/50 transition-all flex items-center justify-between gap-2";
+    const clickableInputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm cursor-pointer hover:border-indigo-500/50 transition-all flex items-center justify-between gap-2 min-h-[42px]";
 
     // Handle start time change with auto-calculation
     const handleStartTimeChange = (newStart: string) => {
+        prevStartRef.current = startTime;
         setStartTime(newStart);
+        setAutoCalcField(null);
+
         // If we have a duration but no end, calculate end
         if (durationMinutes > 0 && !endTime) {
+            setAutoCalcField('end');
             setEndTime(addMinutesToTime(newStart, durationMinutes));
         }
-        // If we have end time, duration will be recalculated by useEffect
     };
 
     // Handle end time change with auto-calculation
     const handleEndTimeChange = (newEnd: string) => {
+        prevEndRef.current = endTime;
         setEndTime(newEnd);
+        setAutoCalcField(null);
+
         // If we have a duration but no start, calculate start
         if (durationMinutes > 0 && !startTime) {
+            setAutoCalcField('start');
             setStartTime(subtractMinutesFromTime(newEnd, durationMinutes));
         }
-        // If we have start time, duration will be recalculated by useEffect
     };
 
     // Handle duration change with auto-calculation
@@ -147,8 +152,12 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
 
         // Priority: If start exists, calculate end. Else if end exists, calculate start.
         if (startTime) {
+            prevEndRef.current = endTime;
+            setAutoCalcField('end');
             setEndTime(addMinutesToTime(startTime, mins));
         } else if (endTime) {
+            prevStartRef.current = startTime;
+            setAutoCalcField('start');
             setStartTime(subtractMinutesFromTime(endTime, mins));
         }
     };
@@ -156,7 +165,13 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
     return (
         <>
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]"
+                    onClick={e => e.stopPropagation()}
+                >
                     <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-4">{editingId ? t.editTitle : t.newTitle}</h3>
                     <form onSubmit={onSubmit} className="space-y-4">
                         {/* Title */}
@@ -195,8 +210,9 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Start Time + End Time + Duration - All Editable */}
+                        {/* Start Time + End Time + Duration - All Editable with Animations */}
                         <div className="grid grid-cols-3 gap-2">
+                            {/* Start Time */}
                             <div>
                                 <label className={labelCls}>{t.startTime}</label>
                                 <button
@@ -204,12 +220,20 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                                     onClick={() => setShowStartTimePicker(true)}
                                     className={clickableInputCls}
                                 >
-                                    <span className={startTime ? 'text-white' : 'text-slate-500'}>
-                                        {startTime ? formatTime(startTime) : '--:--'}
-                                    </span>
-                                    <Clock size={14} className="text-indigo-400" />
+                                    {startTime ? (
+                                        <AnimatedTimeDisplay
+                                            time={startTime}
+                                            isAutoCalculated={autoCalcField === 'start'}
+                                            className="text-white"
+                                        />
+                                    ) : (
+                                        <span className="text-slate-500">--:--</span>
+                                    )}
+                                    <Clock size={14} className="text-indigo-400 flex-shrink-0" />
                                 </button>
                             </div>
+
+                            {/* End Time */}
                             <div>
                                 <label className={labelCls}>{t.endTime}</label>
                                 <button
@@ -217,12 +241,20 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                                     onClick={() => setShowEndTimePicker(true)}
                                     className={clickableInputCls}
                                 >
-                                    <span className={endTime ? 'text-white' : 'text-slate-500'}>
-                                        {endTime ? formatTime(endTime) : '--:--'}
-                                    </span>
-                                    <Clock size={14} className="text-indigo-400" />
+                                    {endTime ? (
+                                        <AnimatedTimeDisplay
+                                            time={endTime}
+                                            isAutoCalculated={autoCalcField === 'end'}
+                                            className="text-white"
+                                        />
+                                    ) : (
+                                        <span className="text-slate-500">--:--</span>
+                                    )}
+                                    <Clock size={14} className="text-indigo-400 flex-shrink-0" />
                                 </button>
                             </div>
+
+                            {/* Duration */}
                             <div>
                                 <label className={labelCls}>{t.duration}</label>
                                 <button
@@ -230,10 +262,16 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                                     onClick={() => setShowDurationPicker(true)}
                                     className={clickableInputCls}
                                 >
-                                    <span className={durationMinutes > 0 ? 'text-indigo-400 font-mono' : 'text-slate-500'}>
+                                    <motion.span
+                                        key={durationMinutes}
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ type: 'spring', stiffness: 300 }}
+                                        className={durationMinutes > 0 ? 'text-indigo-400 font-mono' : 'text-slate-500'}
+                                    >
                                         {formatDuration(durationMinutes)}
-                                    </span>
-                                    <Timer size={14} className="text-indigo-400" />
+                                    </motion.span>
+                                    <Timer size={14} className="text-indigo-400 flex-shrink-0" />
                                 </button>
                             </div>
                         </div>
@@ -270,7 +308,7 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                             </button>
                         </div>
                     </form>
-                </div>
+                </motion.div>
             </div>
 
             {/* Custom Date Picker */}
