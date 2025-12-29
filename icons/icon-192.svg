@@ -1,11 +1,15 @@
 <svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
   <rect width="192" height="192" fill="#ffffff"/>
   <defs>
-    <linearGradient id="grad192" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="agrogotiGrad192" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#6366f1"/>
       <stop offset="100%" style="stop-color:#a855f7"/>
     </linearGradient>
   </defs>
-  <rect x="32" y="32" width="128" height="128" rx="28" fill="url(#grad192)"/>
-  <path d="M64 98L88 122L128 74" stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="28" y="28" width="136" height="136" rx="28" fill="url(#agrogotiGrad192)"/>
+  <g fill="none" stroke="white" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M68 130 L96 52 L124 130"/>
+    <path d="M76 105 L116 105"/>
+    <path d="M82 68 L96 52 L110 68"/>
+  </g>
 </svg>

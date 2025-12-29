@@ -1,7 +1,7 @@
 {
-    "name": "Tasker",
-    "short_name": "Tasker",
-    "description": "Track assignments, habits and boost your productivity",
+    "name": "Agrogoti - অগ্রগতি",
+    "short_name": "Agrogoti",
+    "description": "Track your assignments, habits and boost your productivity",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

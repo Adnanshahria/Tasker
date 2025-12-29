@@ -2,33 +2,24 @@
   <!-- White background -->
   <rect width="512" height="512" fill="#ffffff"/>
   
-  <!-- Digital circuit pattern (subtle) -->
-  <g opacity="0.1" stroke="#6366f1" stroke-width="2" fill="none">
-    <line x1="100" y1="100" x2="150" y2="100"/>
-    <line x1="150" y1="100" x2="150" y2="150"/>
-    <line x1="362" y1="100" x2="412" y2="100"/>
-    <line x1="362" y1="100" x2="362" y2="150"/>
-    <line x1="100" y1="412" x2="150" y2="412"/>
-    <line x1="150" y1="362" x2="150" y2="412"/>
-    <line x1="362" y1="412" x2="412" y2="412"/>
-    <line x1="362" y1="362" x2="362" y2="412"/>
-    <circle cx="150" cy="150" r="4"/>
-    <circle cx="362" cy="150" r="4"/>
-    <circle cx="150" cy="362" r="4"/>
-    <circle cx="362" cy="362" r="4"/>
-  </g>
-  
-  <!-- Main checkmark with gradient effect -->
+  <!-- Gradient definition -->
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="agrogotiGrad" x1="0%" y1="100%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#6366f1"/>
       <stop offset="100%" style="stop-color:#a855f7"/>
     </linearGradient>
   </defs>
   
   <!-- Rounded square background -->
-  <rect x="96" y="96" width="320" height="320" rx="64" fill="url(#grad)"/>
+  <rect x="80" y="80" width="352" height="352" rx="72" fill="url(#agrogotiGrad)"/>
   
-  <!-- Checkmark -->
-  <path d="M180 260L240 320L340 200" stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Rising Arrow / Progress Symbol - stylized "A" shape -->
+  <g fill="none" stroke="white" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Upward arrow forming A shape -->
+    <path d="M180 340 L256 140 L332 340"/>
+    <!-- Cross bar -->
+    <path d="M200 280 L312 280"/>
+    <!-- Arrow head at top -->
+    <path d="M220 180 L256 140 L292 180"/>
+  </g>
 </svg>

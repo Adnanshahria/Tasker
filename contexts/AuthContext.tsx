@@ -1,18 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
-// Local User type (mimics Firebase User structure for compatibility)
-export interface LocalUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-}
+import { auth, db } from '../firebase';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
-  currentUser: LocalUser | null;
+  currentUser: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   guestLogin: () => void;
 }
 
@@ -21,79 +23,95 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => { },
   signup: async () => { },
-  logout: () => { },
+  logout: async () => { },
   guestLogin: () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-const LOCAL_STORAGE_KEY = 'zenith_user';
-const LOCAL_USERS_KEY = 'zenith_users'; // Store registered users
+const LOCAL_STORAGE_KEY = 'tasker_guest_user';
 
-const generateUID = () => 'user_' + Math.random().toString(36).substring(2, 15);
+// Guest user type for local-only usage
+interface GuestUser {
+  uid: string;
+  email: null;
+  displayName: string;
+  isGuest: true;
+}
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<LocalUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | GuestUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const storedUser = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+    // Check for guest user first
+    const guestUser = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (guestUser) {
+      setCurrentUser(JSON.parse(guestUser));
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // Listen for Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        // Store user data in Firestore
+        try {
+          const userDoc = doc(db, 'users', user.uid);
+          const docSnap = await getDoc(userDoc);
+          if (!docSnap.exists()) {
+            await setDoc(userDoc, {
+              email: user.email,
+              displayName: user.displayName || user.email?.split('@')[0],
+              createdAt: Date.now(),
+            });
+          }
+        } catch (e) {
+          console.log('Firestore sync skipped:', e);
+        }
+      } else {
+        setCurrentUser(null);
+      }
+      setLoading(false);
+    });
+
+    return unsubscribe;
   }, []);
 
-  const getUsers = (): Record<string, { password: string; uid: string }> => {
-    const users = localStorage.getItem(LOCAL_USERS_KEY);
-    return users ? JSON.parse(users) : {};
-  };
-
-  const saveUsers = (users: Record<string, { password: string; uid: string }>) => {
-    localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
-  };
-
   const signup = async (email: string, password: string) => {
-    const users = getUsers();
-    if (users[email]) {
-      throw new Error('User already exists with this email.');
-    }
-    const uid = generateUID();
-    users[email] = { password, uid };
-    saveUsers(users);
-
-    const user: LocalUser = { uid, email, displayName: email.split('@')[0] };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(user));
-    setCurrentUser(user);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Create user document in Firestore
+    await setDoc(doc(db, 'users', userCredential.user.uid), {
+      email: email,
+      displayName: email.split('@')[0],
+      createdAt: Date.now(),
+    });
   };
 
   const login = async (email: string, password: string) => {
-    const users = getUsers();
-    const userRecord = users[email];
-    if (!userRecord || userRecord.password !== password) {
-      throw new Error('Invalid email or password.');
-    }
-
-    const user: LocalUser = { uid: userRecord.uid, email, displayName: email.split('@')[0] };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(user));
-    setCurrentUser(user);
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem(LOCAL_STORAGE_KEY);
+    await signOut(auth);
     setCurrentUser(null);
   };
 
   const guestLogin = () => {
-    const uid = generateUID();
-    const user: LocalUser = { uid, email: null, displayName: 'Guest' };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(user));
-    setCurrentUser(user);
+    const guestUser: GuestUser = {
+      uid: 'guest_' + Math.random().toString(36).substring(2, 15),
+      email: null,
+      displayName: 'Guest',
+      isGuest: true,
+    };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(guestUser));
+    setCurrentUser(guestUser as any);
   };
 
   const value = {
-    currentUser,
+    currentUser: currentUser as any,
     loading,
     login,
     signup,
