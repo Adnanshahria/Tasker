@@ -45,8 +45,7 @@ const Auth: React.FC = () => {
         className="w-full max-w-md bg-slate-900/50 backdrop-blur-xl p-8 rounded-2xl border border-white/10 shadow-2xl relative z-10"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">অগ্রগতি</h1>
-          <p className="text-lg font-medium text-white mb-1">Ogrogoti</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">Ogrogoti</h1>
           <p className="text-slate-400 text-sm">Track your progress with style</p>
         </div>
 
@@ -78,7 +77,7 @@ const Auth: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                placeholder="কমপক্ষে ৬ অক্ষর"
+                placeholder="At least 6 characters"
               />
               <button
                 type="button"
@@ -95,7 +94,7 @@ const Auth: React.FC = () => {
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 size={20} className="animate-spin" />}
-            {loading ? 'অপেক্ষা করুন...' : isLogin ? 'সাইন ইন' : 'অ্যাকাউন্ট তৈরি করুন'}
+            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
@@ -104,7 +103,7 @@ const Auth: React.FC = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-slate-400 hover:text-white text-sm transition-colors"
           >
-            {isLogin ? 'অ্যাকাউন্ট নেই? সাইন আপ করুন' : 'আগে থেকে অ্যাকাউন্ট আছে? সাইন ইন করুন'}
+            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
           </button>
         </div>
       </motion.div>
