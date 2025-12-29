@@ -30,7 +30,6 @@ const HabitTracker: React.FC = () => {
 
     const loadData = async () => {
         if (!currentUser) return;
-        setLoading(true);
         try {
             const [habitsData, settingsData] = await Promise.all([
                 getHabits(currentUser.uid),

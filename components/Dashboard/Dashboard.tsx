@@ -25,7 +25,6 @@ const Dashboard: React.FC = () => {
 
     const loadData = async () => {
         if (!currentUser) return;
-        setLoading(true);
         try {
             const [assignmentsData, habitsData, settingsData] = await Promise.all([
                 getAssignments(currentUser.uid),

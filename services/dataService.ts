@@ -93,53 +93,29 @@ export const DEFAULT_SETTINGS_BN: UserSettings = {
 
 // ==================== ASSIGNMENTS ====================
 
+// Background sync callback for assignments
+let assignmentsSyncCallback: ((data: LocalAssignment[]) => void) | null = null;
+export const onAssignmentsSync = (callback: (data: LocalAssignment[]) => void) => {
+    assignmentsSyncCallback = callback;
+};
+
 export const getAssignments = async (userId: string): Promise<LocalAssignment[]> => {
     if (!userId) {
         console.error('getAssignments: No userId provided');
         return [];
     }
 
-    // 1. Get local data immediately
-    let localData = getLocalAssignments(userId);
-    console.log('[Data] Local assignments:', localData.length);
+    // 1. Get local data immediately (FAST - no network wait)
+    const localData = getLocalAssignments(userId);
+    console.log('[Data] Returning local assignments immediately:', localData.length);
 
-    // 2. If online, try to sync with remote
+    // 2. If online, sync with remote in BACKGROUND (non-blocking)
     if (isOnline()) {
-        try {
-            console.log('[Data] Fetching remote assignments...');
-            const remoteData = await fetchRemoteAssignments(userId);
-            console.log('[Data] Remote assignments:', remoteData.length);
-
-            // Merge local and remote data
-            const merged = mergeAssignments(localData, remoteData);
-            saveLocalAssignments(userId, merged);
-
-            // Process any pending operations
-            processPendingOperations();
-
-            return merged.map(a => ({
-                id: a.id,
-                userId: a.userId,
-                title: a.title,
-                description: a.description,
-                subject: a.subject,
-                dueDate: a.dueDate,
-                startTime: a.startTime,
-                endTime: a.endTime,
-                status: a.status,
-                priority: a.priority,
-                type: a.type,
-                weight: a.weight,
-                score: a.score,
-                totalPoints: a.totalPoints,
-                createdAt: a.createdAt,
-            }));
-        } catch (error) {
-            console.warn('[Data] Failed to sync assignments, using local data:', error);
-        }
+        // Fire and forget - don't await
+        syncAssignmentsInBackground(userId, localData);
     }
 
-    // Return local data
+    // Return local data immediately for instant page load
     return localData.map(a => ({
         id: a.id,
         userId: a.userId,
@@ -157,6 +133,45 @@ export const getAssignments = async (userId: string): Promise<LocalAssignment[]>
         totalPoints: a.totalPoints,
         createdAt: a.createdAt,
     })).sort((a, b) => a.dueDate - b.dueDate);
+};
+
+// Background sync function for assignments
+const syncAssignmentsInBackground = async (userId: string, localData: StoredAssignment[]) => {
+    try {
+        console.log('[Data] Background sync: Fetching remote assignments...');
+        const remoteData = await fetchRemoteAssignments(userId);
+        console.log('[Data] Background sync: Remote assignments:', remoteData.length);
+
+        // Merge local and remote data
+        const merged = mergeAssignments(localData, remoteData);
+        saveLocalAssignments(userId, merged);
+
+        // Notify component if callback is registered
+        if (assignmentsSyncCallback && merged.length !== localData.length) {
+            assignmentsSyncCallback(merged.map(a => ({
+                id: a.id,
+                userId: a.userId,
+                title: a.title,
+                description: a.description,
+                subject: a.subject,
+                dueDate: a.dueDate,
+                startTime: a.startTime,
+                endTime: a.endTime,
+                status: a.status,
+                priority: a.priority,
+                type: a.type,
+                weight: a.weight,
+                score: a.score,
+                totalPoints: a.totalPoints,
+                createdAt: a.createdAt,
+            })));
+        }
+
+        // Process any pending operations
+        processPendingOperations();
+    } catch (error) {
+        console.warn('[Data] Background sync failed for assignments:', error);
+    }
 };
 
 export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise<string> => {
@@ -269,39 +284,22 @@ export const deleteAssignment = async (id: string): Promise<void> => {
 
 // ==================== HABITS ====================
 
+// Background sync callback for habits
+let habitsSyncCallback: ((data: LocalHabit[]) => void) | null = null;
+export const onHabitsSync = (callback: (data: LocalHabit[]) => void) => {
+    habitsSyncCallback = callback;
+};
+
 export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
     if (!userId) return [];
 
-    // 1. Get local data immediately
-    let localData = getLocalHabits(userId);
-    console.log('[Data] Local habits:', localData.length);
+    // 1. Get local data immediately (FAST - no network wait)
+    const localData = getLocalHabits(userId);
+    console.log('[Data] Returning local habits immediately:', localData.length);
 
-    // 2. If online, try to sync with remote
+    // 2. If online, sync with remote in BACKGROUND (non-blocking)
     if (isOnline()) {
-        try {
-            console.log('[Data] Fetching remote habits...');
-            const remoteData = await fetchRemoteHabits(userId);
-            console.log('[Data] Remote habits:', remoteData.length);
-
-            // Merge local and remote data
-            const merged = mergeHabits(localData, remoteData);
-            saveLocalHabits(userId, merged);
-
-            // Process any pending operations
-            processPendingOperations();
-
-            return merged.map(h => ({
-                id: h.id,
-                userId: h.userId,
-                title: h.title,
-                description: h.description,
-                completedDates: h.completedDates,
-                streak: h.streak,
-                createdAt: h.createdAt,
-            }));
-        } catch (error) {
-            console.warn('[Data] Failed to sync habits, using local data:', error);
-        }
+        syncHabitsInBackground(userId, localData);
     }
 
     return localData.map(h => ({
@@ -313,6 +311,34 @@ export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
         streak: h.streak,
         createdAt: h.createdAt,
     }));
+};
+
+// Background sync function for habits
+const syncHabitsInBackground = async (userId: string, localData: StoredHabit[]) => {
+    try {
+        console.log('[Data] Background sync: Fetching remote habits...');
+        const remoteData = await fetchRemoteHabits(userId);
+        console.log('[Data] Background sync: Remote habits:', remoteData.length);
+
+        const merged = mergeHabits(localData, remoteData);
+        saveLocalHabits(userId, merged);
+
+        if (habitsSyncCallback && merged.length !== localData.length) {
+            habitsSyncCallback(merged.map(h => ({
+                id: h.id,
+                userId: h.userId,
+                title: h.title,
+                description: h.description,
+                completedDates: h.completedDates,
+                streak: h.streak,
+                createdAt: h.createdAt,
+            })));
+        }
+
+        processPendingOperations();
+    } catch (error) {
+        console.warn('[Data] Background sync failed for habits:', error);
+    }
 };
 
 export const saveHabit = async (data: Omit<LocalHabit, 'id'>): Promise<string> => {
@@ -426,29 +452,15 @@ export const deleteHabit = async (id: string): Promise<void> => {
 export const getSettings = async (userId: string): Promise<UserSettings> => {
     if (!userId) return DEFAULT_SETTINGS_BN;
 
-    // 1. Get local data immediately
+    // 1. Get local data immediately (FAST - no network wait)
     const localSettings = getLocalSettings(userId);
 
     if (localSettings) {
-        console.log('[Data] Using local settings');
+        console.log('[Data] Returning local settings immediately');
 
-        // 2. If online, try to sync with remote in background
+        // 2. Sync in background (non-blocking)
         if (isOnline()) {
-            fetchRemoteSettings(userId).then(remoteSettings => {
-                if (remoteSettings && localSettings.syncStatus === 'synced') {
-                    // Remote is newer, update local
-                    const remoteUpdatedAt = (remoteSettings as any).updatedAt || 0;
-                    if (remoteUpdatedAt > localSettings.updatedAt) {
-                        saveLocalSettings(userId, {
-                            ...remoteSettings,
-                            updatedAt: remoteUpdatedAt,
-                            syncStatus: 'synced',
-                        });
-                    }
-                }
-            }).catch(err => {
-                console.warn('[Data] Failed to sync settings:', err);
-            });
+            syncSettingsInBackground(userId, localSettings);
         }
 
         return {
@@ -462,24 +474,42 @@ export const getSettings = async (userId: string): Promise<UserSettings> => {
         };
     }
 
-    // 3. If no local data and online, fetch from remote
+    // 3. No local settings - return defaults immediately, fetch in background
+    console.log('[Data] No local settings, using defaults');
+
     if (isOnline()) {
-        try {
-            const remoteSettings = await fetchRemoteSettings(userId);
+        // Fetch settings in background for next page load
+        fetchRemoteSettings(userId).then(remoteSettings => {
             if (remoteSettings) {
                 saveLocalSettings(userId, {
                     ...remoteSettings,
                     updatedAt: (remoteSettings as any).updatedAt || Date.now(),
                     syncStatus: 'synced',
                 });
-                return remoteSettings as UserSettings;
             }
-        } catch (error) {
-            console.error('[Data] Error fetching settings:', error);
-        }
+        }).catch(err => console.warn('[Data] Failed to fetch settings:', err));
     }
 
     return DEFAULT_SETTINGS_BN;
+};
+
+// Background sync for settings
+const syncSettingsInBackground = async (userId: string, localSettings: StoredSettings) => {
+    try {
+        const remoteSettings = await fetchRemoteSettings(userId);
+        if (remoteSettings && localSettings.syncStatus === 'synced') {
+            const remoteUpdatedAt = (remoteSettings as any).updatedAt || 0;
+            if (remoteUpdatedAt > localSettings.updatedAt) {
+                saveLocalSettings(userId, {
+                    ...remoteSettings,
+                    updatedAt: remoteUpdatedAt,
+                    syncStatus: 'synced',
+                });
+            }
+        }
+    } catch (error) {
+        console.warn('[Data] Background settings sync failed:', error);
+    }
 };
 
 export const saveSettings = async (userId: string, settings: UserSettings): Promise<void> => {
