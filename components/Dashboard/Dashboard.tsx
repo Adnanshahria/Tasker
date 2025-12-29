@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2, BookOpen, TrendingUp, Activity, BarChart2 } from 'lucide-react';
-import { subDays, format, isSameDay } from 'date-fns';
+import { eachDayOfInterval, subDays, format, isSameDay } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAssignments, getHabits, getSettings, LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
@@ -24,6 +24,8 @@ const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [helpKey, setHelpKey] = useState<string | null>(null);
     const [habitDaysRange, setHabitDaysRange] = useState(14);
+    const [customStart, setCustomStart] = useState<Date | null>(null);
+    const [customEnd, setCustomEnd] = useState<Date | null>(null);
 
     const loadData = async () => {
         if (!currentUser) return;
@@ -56,12 +58,22 @@ const Dashboard: React.FC = () => {
     const today = new Date();
     const todaysCompletedHabits = habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), today))).length;
 
-    // Habit data for chart (dynamic range)
-    const habitData = Array.from({ length: habitDaysRange }, (_, i) => {
-        const date = subDays(today, habitDaysRange - 1 - i);
-        const count = habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), date))).length;
-        return { date: format(date, 'dd'), count };
-    });
+    // Habit data for chart (dynamic range or custom range)
+    const habitData = (() => {
+        if (customStart && customEnd) {
+            const days = eachDayOfInterval({ start: customStart, end: customEnd });
+            return days.map(date => ({
+                date: format(date, 'dd'),
+                count: habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), date))).length
+            }));
+        } else {
+            return Array.from({ length: habitDaysRange }, (_, i) => {
+                const date = subDays(today, habitDaysRange - 1 - i);
+                const count = habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), date))).length;
+                return { date: format(date, 'dd'), count };
+            });
+        }
+    })();
 
     // Assignment distribution by subject
     const assignmentData = Object.entries(
@@ -100,7 +112,22 @@ const Dashboard: React.FC = () => {
                 <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                         <SectionHeader title={`${t.consistency.replace('14', habitDaysRange.toString())}`} helpKey="habitConsistency" onHelpClick={setHelpKey} />
-                        <DateRangeSlider minDays={7} maxDays={90} value={habitDaysRange} onChange={setHabitDaysRange} />
+                        <DateRangeSlider
+                            minDays={7}
+                            maxDays={90}
+                            value={habitDaysRange}
+                            onChange={(days) => {
+                                setHabitDaysRange(days);
+                                setCustomStart(null);
+                                setCustomEnd(null);
+                            }}
+                            onCustomRange={(start, end) => {
+                                setCustomStart(start);
+                                setCustomEnd(end);
+                            }}
+                            customStart={customStart}
+                            customEnd={customEnd}
+                        />
                     </div>
                     <div className="h-36 md:h-56">
                         <ResponsiveContainer width="100%" height="100%">
