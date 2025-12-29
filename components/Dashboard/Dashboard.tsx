@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
             acc[a.subject] = (acc[a.subject] || 0) + 1;
             return acc;
         }, {} as Record<string, number>)
-    ).map(([name, value]) => ({ name, value }));
+    ).map(([name, value]) => ({ name, value: value as number }));
 
     // Heatmap data (last 30 days)
     const heatmapData = Array.from({ length: 30 }, (_, i) => {
@@ -113,9 +113,67 @@ const Dashboard: React.FC = () => {
                     <SectionHeader title={t.distribution} helpKey="assignmentDistribution" onHelpClick={setHelpKey} />
                     <div className="h-36 md:h-56">
                         {assignmentData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart><Pie data={assignmentData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">{assignmentData.map((_, i) => <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="rgba(0,0,0,0)" />)}</Pie><Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc', fontSize: 12 }} /><Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} /></PieChart>
-                            </ResponsiveContainer>
+                            <div className="h-full flex flex-col">
+                                {/* Custom Radial Progress Chart */}
+                                <div className="flex-1 flex items-center justify-center relative">
+                                    <div className="relative w-32 h-32 md:w-40 md:h-40">
+                                        {/* Background circle */}
+                                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" />
+                                            {/* Animated segments */}
+                                            {(() => {
+                                                const total = assignmentData.reduce((sum, d) => sum + d.value, 0);
+                                                let accumulated = 0;
+                                                return assignmentData.map((d, i) => {
+                                                    const percentage = d.value / total;
+                                                    const circumference = 2 * Math.PI * 42;
+                                                    const strokeDash = percentage * circumference;
+                                                    const offset = (accumulated / total) * circumference;
+                                                    accumulated += d.value;
+                                                    return (
+                                                        <circle
+                                                            key={i}
+                                                            cx="50"
+                                                            cy="50"
+                                                            r="42"
+                                                            fill="none"
+                                                            stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                                                            strokeWidth="12"
+                                                            strokeDasharray={`${strokeDash} ${circumference}`}
+                                                            strokeDashoffset={-offset}
+                                                            strokeLinecap="round"
+                                                            className="transition-all duration-700 ease-out"
+                                                            style={{ filter: `drop-shadow(0 0 6px ${CHART_COLORS[i % CHART_COLORS.length]}40)` }}
+                                                        />
+                                                    );
+                                                });
+                                            })()}
+                                        </svg>
+                                        {/* Center content */}
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                            <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                                                {assignments.length}
+                                            </span>
+                                            <span className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider">Total</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Legend pills */}
+                                <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 mt-2">
+                                    {assignmentData.slice(0, 5).map((d, i) => (
+                                        <div key={i} className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800/80 border border-white/5">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length], boxShadow: `0 0 6px ${CHART_COLORS[i % CHART_COLORS.length]}` }} />
+                                            <span className="text-[10px] md:text-xs text-slate-300 truncate max-w-[60px] md:max-w-[80px]">{d.name}</span>
+                                            <span className="text-[10px] font-semibold text-white">{d.value}</span>
+                                        </div>
+                                    ))}
+                                    {assignmentData.length > 5 && (
+                                        <div className="flex items-center px-2 py-0.5 rounded-full bg-slate-700/50 border border-white/5">
+                                            <span className="text-[10px] text-slate-400">+{assignmentData.length - 5} more</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ) : <div className="h-full flex items-center justify-center text-slate-500 text-sm">{t.noData}</div>}
                     </div>
                 </div>
