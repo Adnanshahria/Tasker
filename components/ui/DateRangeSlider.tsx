@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, X, Check } from 'lucide-react';
 import { format, subDays, differenceInDays } from 'date-fns';
@@ -69,69 +68,6 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
         ? `${format(customStart, 'MMM d')} - ${format(customEnd, 'MMM d')}`
         : 'Custom';
 
-    const modalContent = (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 bg-black/80 backdrop-blur-lg" onClick={() => setShowCustomPicker(false)}>
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl mx-2"
-                onClick={e => e.stopPropagation()}
-            >
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <Calendar size={18} className="text-indigo-400" />
-                        <span className="font-medium text-white">Custom Date Range</span>
-                    </div>
-                    <button onClick={() => setShowCustomPicker(false)} className="p-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-slate-400 hover:text-white">
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs uppercase font-bold text-slate-400 mb-1">Start Date</label>
-                        <input
-                            type="date"
-                            value={tempStart}
-                            onChange={e => setTempStart(e.target.value)}
-                            max={tempEnd || format(new Date(), 'yyyy-MM-dd')}
-                            className="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:outline-none"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs uppercase font-bold text-slate-400 mb-1">End Date</label>
-                        <input
-                            type="date"
-                            value={tempEnd}
-                            onChange={e => setTempEnd(e.target.value)}
-                            min={tempStart}
-                            max={format(new Date(), 'yyyy-MM-dd')}
-                            className="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:outline-none"
-                        />
-                    </div>
-
-                    {tempStart && tempEnd && (
-                        <div className="text-center text-sm text-slate-400">
-                            {differenceInDays(new Date(tempEnd), new Date(tempStart)) + 1} days selected
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex gap-2 mt-5">
-                    <button onClick={() => setShowCustomPicker(false)} className="flex-1 py-2.5 rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 font-medium">
-                        Cancel
-                    </button>
-                    <button onClick={handleApplyCustom} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium flex items-center justify-center gap-2">
-                        <Check size={16} />
-                        Apply
-                    </button>
-                </div>
-            </motion.div>
-        </div>
-    );
-
     return (
         <>
             <div className="flex items-center gap-1 flex-wrap">
@@ -163,9 +99,78 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
                 </motion.button>
             </div>
 
-            {/* Custom Date Range Picker Modal - Rendered via Portal */}
+            {/* Custom Date Range Picker Modal */}
             <AnimatePresence>
-                {showCustomPicker && ReactDOM.createPortal(modalContent, document.body)}
+                {showCustomPicker && (
+                    <motion.div
+                        key="custom-modal"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 bg-black/80 backdrop-blur-lg"
+                        onClick={() => setShowCustomPicker(false)}
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl mx-2"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Calendar size={18} className="text-indigo-400" />
+                                    <span className="font-medium text-white">Custom Date Range</span>
+                                </div>
+                                <button onClick={() => setShowCustomPicker(false)} className="p-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-slate-400 hover:text-white">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs uppercase font-bold text-slate-400 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        value={tempStart}
+                                        onChange={e => setTempStart(e.target.value)}
+                                        max={tempEnd || format(new Date(), 'yyyy-MM-dd')}
+                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs uppercase font-bold text-slate-400 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        value={tempEnd}
+                                        onChange={e => setTempEnd(e.target.value)}
+                                        min={tempStart}
+                                        max={format(new Date(), 'yyyy-MM-dd')}
+                                        className="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                </div>
+
+                                {tempStart && tempEnd && (
+                                    <div className="text-center text-sm text-slate-400">
+                                        {differenceInDays(new Date(tempEnd), new Date(tempStart)) + 1} days selected
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-2 mt-5">
+                                <button onClick={() => setShowCustomPicker(false)} className="flex-1 py-2.5 rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 font-medium">
+                                    Cancel
+                                </button>
+                                <button onClick={handleApplyCustom} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium flex items-center justify-center gap-2">
+                                    <Check size={16} />
+                                    Apply
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
             </AnimatePresence>
         </>
     );
