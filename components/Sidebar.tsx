@@ -1,58 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Sprout, BarChart2, LogOut, X } from 'lucide-react';
-import { auth } from '../firebase';
-import { signOut } from 'firebase/auth';
+import { LayoutDashboard, CheckSquare, Sprout, LogOut, X, Settings } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { getSettings } from '../services/settings';
 
 interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
 
+const T = {
+  en: { dashboard: 'Dashboard', assignments: 'Assignments', habits: 'Habits', settings: 'Settings', logout: 'Sign Out' },
+  bn: { dashboard: 'ড্যাশবোর্ড', assignments: 'অ্যাসাইনমেন্ট', habits: 'অভ্যাস', settings: 'সেটিংস', logout: 'লগ আউট' }
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
+  const { logout, currentUser } = useAuth();
+  const [lang, setLang] = useState<'en' | 'bn'>('bn');
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/auth');
-    } catch (error) {
-      console.error('Failed to log out', error);
+  useEffect(() => {
+    if (currentUser) {
+      const settings = getSettings(currentUser.uid);
+      setLang(settings.language || 'bn');
     }
+  }, [currentUser]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/auth');
   };
 
+  const t = T[lang];
+
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Assignments', icon: CheckSquare, path: '/assignments' },
-    { name: 'Habits', icon: Sprout, path: '/habits' },
-    { name: 'Analytics', icon: BarChart2, path: '/analytics' },
+    { name: t.dashboard, icon: LayoutDashboard, path: '/', color: 'indigo' },
+    { name: t.assignments, icon: CheckSquare, path: '/assignments', color: 'amber' },
+    { name: t.habits, icon: Sprout, path: '/habits', color: 'emerald' },
+    { name: t.settings, icon: Settings, path: '/settings', color: 'slate' },
   ];
 
   return (
     <>
-      {/* Mobile Overlay */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden"
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 md:hidden" onClick={() => setIsOpen(false)} />
       )}
 
-      {/* Sidebar Container */}
       <aside className={`
-        fixed md:static inset-y-0 left-0 z-40
-        w-64 bg-slate-900 border-r border-white/5
+        fixed md:static inset-y-0 left-0 z-40 w-64 bg-slate-900 border-r border-white/5
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         flex flex-col
       `}>
-        {/* Header */}
+        {/* Header - Tasker Branding */}
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center">
-              <span className="font-bold text-white text-lg">Z</span>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <CheckSquare size={22} className="text-white" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">Zenith</span>
+            <span className="font-bold text-xl tracking-tight text-white">Tasker</span>
           </div>
           <button onClick={() => setIsOpen(false)} className="md:hidden text-slate-400 hover:text-white">
             <X size={20} />
@@ -68,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => `
                 flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                ${isActive 
-                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-lg shadow-indigo-500/5' 
+                ${isActive
+                  ? `bg-${item.color}-500/10 text-${item.color}-400 border border-${item.color}-500/20 shadow-lg shadow-${item.color}-500/5`
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
                 }
               `}
@@ -82,12 +88,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
         {/* Footer */}
         <div className="p-4 border-t border-white/5">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-colors"
-          >
+          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-colors">
             <LogOut size={20} />
-            <span className="font-medium">Sign Out</span>
+            <span className="font-medium">{t.logout}</span>
           </button>
         </div>
       </aside>

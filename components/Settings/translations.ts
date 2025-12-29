@@ -1,0 +1,53 @@
+export const T = {
+    en: {
+        settingsTitle: 'Settings',
+        customizeDesc: 'Customize your subjects, types, and statuses',
+        resetToDefault: 'Reset to Defaults',
+        add: '+ Add',
+        noItems: 'No items. Click "Add" to create one.',
+        items: 'items',
+        enterName: 'Enter name...',
+        tip: 'Tip:',
+        tipText: 'Changes are saved automatically. Your custom options will appear in all dropdown menus.',
+        resetConfirmTitle: 'Reset to Default Settings',
+        resetConfirmMsg: 'Reset all settings to defaults?',
+        reset: 'Reset',
+        cancel: 'Cancel',
+        language: 'Language',
+        english: 'English',
+        bangla: 'বাংলা',
+        subjects: 'Subjects',
+        types: 'Assignment Types',
+        statuses: 'Statuses',
+        priorities: 'Priorities'
+    },
+    bn: {
+        settingsTitle: 'সেটিংস',
+        customizeDesc: 'আপনার বিষয়, ধরন এবং স্ট্যাটাস কাস্টমাইজ করুন',
+        resetToDefault: 'ডিফল্টে ফেরত',
+        add: '+ যোগ করুন',
+        noItems: 'কোনো আইটেম নেই',
+        items: 'টি',
+        enterName: 'নাম লিখুন...',
+        tip: 'টিপস:',
+        tipText: 'পরিবর্তনগুলো স্বয়ংক্রিয়ভাবে সংরক্ষিত হয়। আপনার কাস্টম অপশনগুলো সব ড্রপডাউন মেনুতে দেখা যাবে।',
+        resetConfirmTitle: 'ডিফল্টে রিসেট করুন',
+        resetConfirmMsg: 'সব সেটিংস ডিফল্টে রিসেট করবেন?',
+        reset: 'রিসেট',
+        cancel: 'বাতিল',
+        language: 'ভাষা',
+        english: 'English',
+        bangla: 'বাংলা',
+        subjects: 'বিষয়সমূহ',
+        types: 'অ্যাসাইনমেন্টের ধরন',
+        statuses: 'স্ট্যাটাস',
+        priorities: 'গুরুত্ব'
+    }
+};
+
+export const CATEGORY_CONFIG = (lang: 'en' | 'bn') => ({
+    subjects: { label: lang === 'en' ? 'Subjects' : 'বিষয়সমূহ', color: 'text-indigo-400', bg: 'from-indigo-500/20 to-indigo-600/10', border: 'border-indigo-500/20' },
+    types: { label: lang === 'en' ? 'Assignment Types' : 'অ্যাসাইনমেন্টের ধরন', color: 'text-emerald-400', bg: 'from-emerald-500/20 to-emerald-600/10', border: 'border-emerald-500/20' },
+    statuses: { label: lang === 'en' ? 'Statuses' : 'স্ট্যাটাস', color: 'text-amber-400', bg: 'from-amber-500/20 to-amber-600/10', border: 'border-amber-500/20' },
+    priorities: { label: lang === 'en' ? 'Priorities' : 'গুরুত্ব', color: 'text-rose-400', bg: 'from-rose-500/20 to-rose-600/10', border: 'border-rose-500/20' },
+});

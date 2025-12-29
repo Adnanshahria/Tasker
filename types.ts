@@ -14,9 +14,13 @@ export interface Assignment {
   userId: string;
   title: string;
   subject: string;
-  dueDate: Timestamp; 
+  dueDate: Timestamp;
   status: AssignmentStatus;
   priority: AssignmentPriority;
+  type: string; // e.g., 'Exam', 'Quiz', 'Project' (User definable)
+  weight?: number; // perctage of course grade (0-100)
+  score?: number; // Obtained marks
+  totalPoints?: number; // Max marks
 }
 
 export interface Habit {
@@ -24,6 +28,7 @@ export interface Habit {
   userId: string;
   name: string;
   completedDates: string[]; // YYYY-MM-DD
+  category: "Health" | "Study" | "Productivity" | "Creativity" | "Other";
 }
 
 export interface ChartDataPoint {
