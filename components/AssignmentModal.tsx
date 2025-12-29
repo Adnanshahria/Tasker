@@ -260,18 +260,35 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => setShowDurationPicker(true)}
-                                    className={clickableInputCls}
+                                    className={clickableInputCls + " relative overflow-hidden"}
                                 >
                                     <motion.span
                                         key={durationMinutes}
-                                        initial={{ scale: 0.8, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ type: 'spring', stiffness: 300 }}
-                                        className={durationMinutes > 0 ? 'text-indigo-400 font-mono' : 'text-slate-500'}
+                                        initial={{ scale: 0.5, opacity: 0, y: -10 }}
+                                        animate={{
+                                            scale: [1, 1.15, 1],
+                                            opacity: 1,
+                                            y: 0,
+                                            color: durationMinutes > 0 ? ['#818cf8', '#c084fc', '#818cf8'] : '#64748b'
+                                        }}
+                                        transition={{
+                                            duration: 0.6,
+                                            scale: { duration: 0.4 },
+                                            color: { duration: 0.8, repeat: 0 }
+                                        }}
+                                        className="font-mono font-bold"
                                     >
                                         {formatDuration(durationMinutes)}
                                     </motion.span>
                                     <Timer size={14} className="text-indigo-400 flex-shrink-0" />
+                                    {/* Glow effect on change */}
+                                    <motion.div
+                                        key={`glow-${durationMinutes}`}
+                                        initial={{ opacity: 0.8, scale: 0.8 }}
+                                        animate={{ opacity: 0, scale: 1.5 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="absolute inset-0 bg-indigo-500/20 rounded-lg pointer-events-none"
+                                    />
                                 </button>
                             </div>
                         </div>
