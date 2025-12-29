@@ -9,7 +9,6 @@ import {
     deleteDoc,
     query,
     where,
-    orderBy,
     setDoc,
     getDoc
 } from 'firebase/firestore';
@@ -62,14 +61,20 @@ export const DEFAULT_SETTINGS_BN: UserSettings = {
 
 // ==================== ASSIGNMENTS ====================
 export const getAssignments = async (userId: string): Promise<LocalAssignment[]> => {
+    if (!userId) {
+        console.error('getAssignments: No userId provided');
+        return [];
+    }
     try {
+        console.log('Fetching assignments for userId:', userId);
         const q = query(
             collection(db, 'assignments'),
             where('userId', '==', userId)
         );
         const snapshot = await getDocs(q);
+        console.log('Found', snapshot.docs.length, 'assignments');
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LocalAssignment));
-        return data.sort((a, b) => a.dueDate - b.dueDate); // Sort client-side
+        return data.sort((a, b) => a.dueDate - b.dueDate);
     } catch (error) {
         console.error('Error fetching assignments:', error);
         return [];
@@ -77,11 +82,16 @@ export const getAssignments = async (userId: string): Promise<LocalAssignment[]>
 };
 
 export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise<string> => {
+    if (!data.userId) {
+        throw new Error('userId is required');
+    }
     try {
+        console.log('Saving assignment for userId:', data.userId);
         const docRef = await addDoc(collection(db, 'assignments'), {
             ...data,
             createdAt: Date.now()
         });
+        console.log('Assignment saved with id:', docRef.id);
         return docRef.id;
     } catch (error) {
         console.error('Error saving assignment:', error);
@@ -109,6 +119,7 @@ export const deleteAssignment = async (id: string): Promise<void> => {
 
 // ==================== HABITS ====================
 export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
+    if (!userId) return [];
     try {
         const q = query(
             collection(db, 'habits'),
@@ -123,6 +134,7 @@ export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
 };
 
 export const saveHabit = async (data: Omit<LocalHabit, 'id'>): Promise<string> => {
+    if (!data.userId) throw new Error('userId is required');
     try {
         const docRef = await addDoc(collection(db, 'habits'), {
             ...data,
@@ -155,13 +167,13 @@ export const deleteHabit = async (id: string): Promise<void> => {
 
 // ==================== SETTINGS ====================
 export const getSettings = async (userId: string): Promise<UserSettings> => {
+    if (!userId) return DEFAULT_SETTINGS_BN;
     try {
         const docRef = doc(db, 'settings', userId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             return docSnap.data() as UserSettings;
         }
-        // Return default settings if not found
         return DEFAULT_SETTINGS_BN;
     } catch (error) {
         console.error('Error fetching settings:', error);
@@ -170,6 +182,7 @@ export const getSettings = async (userId: string): Promise<UserSettings> => {
 };
 
 export const saveSettings = async (userId: string, settings: UserSettings): Promise<void> => {
+    if (!userId) throw new Error('userId is required');
     try {
         await setDoc(doc(db, 'settings', userId), settings);
     } catch (error) {
