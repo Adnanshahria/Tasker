@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
                 <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
-                        <SectionHeader title={`${t.consistency.replace('14', habitDaysRange.toString())}`} helpKey="habitConsistency" onHelpClick={setHelpKey} />
+                        <SectionHeader title={t.consistency.split('(')[0].trim()} helpKey="habitConsistency" onHelpClick={setHelpKey} />
                         <DateRangeSlider
                             minDays={7}
                             maxDays={90}
