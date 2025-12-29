@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, 
 import StatCard from '../ui/StatCard';
 import SectionHeader from '../ui/SectionHeader';
 import HelpModal from '../ui/HelpModal';
+import DateRangeSlider from '../ui/DateRangeSlider';
 import HeroBanner from './HeroBanner';
 import QuickLinks from './QuickLinks';
 import HeatmapGrid from './HeatmapGrid';
@@ -22,6 +23,7 @@ const Dashboard: React.FC = () => {
     const [habits, setHabits] = useState<LocalHabit[]>([]);
     const [loading, setLoading] = useState(true);
     const [helpKey, setHelpKey] = useState<string | null>(null);
+    const [habitDaysRange, setHabitDaysRange] = useState(14);
 
     const loadData = async () => {
         if (!currentUser) return;
@@ -54,9 +56,9 @@ const Dashboard: React.FC = () => {
     const today = new Date();
     const todaysCompletedHabits = habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), today))).length;
 
-    // Habit data for chart (last 14 days)
-    const habitData = Array.from({ length: 14 }, (_, i) => {
-        const date = subDays(today, 13 - i);
+    // Habit data for chart (dynamic range)
+    const habitData = Array.from({ length: habitDaysRange }, (_, i) => {
+        const date = subDays(today, habitDaysRange - 1 - i);
         const count = habits.filter(h => h.completedDates?.some(d => isSameDay(new Date(d), date))).length;
         return { date: format(date, 'dd'), count };
     });
@@ -96,7 +98,10 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
                 <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
-                    <SectionHeader title={t.consistency} helpKey="habitConsistency" onHelpClick={setHelpKey} />
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
+                        <SectionHeader title={`${t.consistency.replace('14', habitDaysRange.toString())}`} helpKey="habitConsistency" onHelpClick={setHelpKey} />
+                        <DateRangeSlider minDays={7} maxDays={90} value={habitDaysRange} onChange={setHabitDaysRange} />
+                    </div>
                     <div className="h-36 md:h-56">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={habitData}>
