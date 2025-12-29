@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Clock } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface TimePickerProps {
     isOpen: boolean;
@@ -14,8 +14,6 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
     const [hours, setHours] = useState(12);
     const [minutes, setMinutes] = useState(0);
     const [mode, setMode] = useState<'hours' | 'minutes'>('hours');
-    const clockRef = useRef<HTMLDivElement>(null);
-    const isDragging = useRef(false);
 
     useEffect(() => {
         if (value) {
@@ -27,53 +25,23 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
 
     if (!isOpen) return null;
 
-    const handleClockClick = (e: React.MouseEvent | React.TouchEvent) => {
-        if (!clockRef.current) return;
-
-        const rect = clockRef.current.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-
-        let clientX, clientY;
-        if ('touches' in e) {
-            clientX = e.touches[0].clientX - rect.left;
-            clientY = e.touches[0].clientY - rect.top;
+    const handleHourClick = (hour12: number) => {
+        // Convert 12h to 24h based on AM/PM
+        let newHour: number;
+        if (hours >= 12) {
+            // PM
+            newHour = hour12 === 12 ? 12 : hour12 + 12;
         } else {
-            clientX = e.clientX - rect.left;
-            clientY = e.clientY - rect.top;
+            // AM
+            newHour = hour12 === 12 ? 0 : hour12;
         }
-
-        const angle = Math.atan2(clientY - centerY, clientX - centerX);
-        let degrees = (angle * 180) / Math.PI + 90;
-        if (degrees < 0) degrees += 360;
-
-        if (mode === 'hours') {
-            let hour = Math.round(degrees / 30) % 12;
-            if (hour === 0) hour = 12;
-            // Convert to 24h format if needed
-            const finalHour = hours >= 12 ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour);
-            setHours(finalHour);
-        } else {
-            let minute = Math.round(degrees / 6) % 60;
-            setMinutes(minute);
-        }
+        setHours(newHour);
+        // Auto-switch to minutes after selecting hour
+        setTimeout(() => setMode('minutes'), 200);
     };
 
-    const handleMouseDown = () => {
-        isDragging.current = true;
-    };
-
-    const handleMouseUp = () => {
-        isDragging.current = false;
-        if (mode === 'hours') {
-            setMode('minutes');
-        }
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (isDragging.current) {
-            handleClockClick(e);
-        }
+    const handleMinuteClick = (minute: number) => {
+        setMinutes(minute);
     };
 
     const handleConfirm = () => {
@@ -96,36 +64,40 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
         }
     };
 
-    // Generate hour markers
+    // Generate hour markers (1-12 displayed in circle)
     const hourMarkers = Array.from({ length: 12 }, (_, i) => {
-        const hour = i === 0 ? 12 : i;
+        const hour12 = i === 0 ? 12 : i;
         const angle = (i * 30 - 90) * (Math.PI / 180);
-        const radius = 80;
+        const radius = 70;
         const x = 100 + radius * Math.cos(angle);
         const y = 100 + radius * Math.sin(angle);
-        const displayHour = hours >= 12 ? (hour === 12 ? 12 : hour + 12) : (hour === 12 ? 0 : hour);
-        const isSelected = hours % 12 === hour % 12 || (hours === 0 && hour === 12) || (hours === 12 && hour === 12);
 
-        return { hour, displayHour, x, y, isSelected };
+        // Check if this hour is selected
+        const currentHour12 = hours % 12 === 0 ? 12 : hours % 12;
+        const isSelected = currentHour12 === hour12;
+
+        return { hour12, x, y, isSelected };
     });
 
-    // Generate minute markers
+    // Generate minute markers (00, 05, 10, ..., 55)
     const minuteMarkers = Array.from({ length: 12 }, (_, i) => {
         const minute = i * 5;
-        const angle = (minute * 6 - 90) * (Math.PI / 180);
-        const radius = 80;
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const radius = 70;
         const x = 100 + radius * Math.cos(angle);
         const y = 100 + radius * Math.sin(angle);
-        const isSelected = Math.abs(minutes - minute) < 3 || (minute === 0 && minutes >= 58);
+
+        // Check if this minute range is selected
+        const isSelected = Math.floor(minutes / 5) === i;
 
         return { minute, x, y, isSelected };
     });
 
     // Calculate hand position
     const handAngle = mode === 'hours'
-        ? ((hours % 12) * 30 - 90) * (Math.PI / 180)
-        : (minutes * 6 - 90) * (Math.PI / 180);
-    const handLength = 65;
+        ? (((hours % 12) || 12) * 30 - 90) * (Math.PI / 180)
+        : (Math.floor(minutes / 5) * 30 - 90) * (Math.PI / 180);
+    const handLength = 55;
     const handX = 100 + handLength * Math.cos(handAngle);
     const handY = 100 + handLength * Math.sin(handAngle);
 
@@ -182,19 +154,9 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                 </div>
 
                 {/* Circular Clock */}
-                <div
-                    ref={clockRef}
-                    className="relative mx-auto w-[200px] h-[200px] rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border-2 border-indigo-500/30 shadow-inner cursor-pointer"
-                    onClick={handleClockClick}
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
-                    onMouseMove={handleMouseMove}
-                    onMouseLeave={() => { isDragging.current = false; }}
-                    onTouchStart={(e) => { isDragging.current = true; handleClockClick(e); }}
-                    onTouchMove={handleClockClick as any}
-                    onTouchEnd={() => { isDragging.current = false; if (mode === 'hours') setMode('minutes'); }}
-                >
-                    <svg width="200" height="200" className="absolute inset-0">
+                <div className="relative mx-auto w-[200px] h-[200px] rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border-2 border-indigo-500/30 shadow-inner">
+                    {/* SVG for hand */}
+                    <svg width="200" height="200" className="absolute inset-0 pointer-events-none">
                         {/* Center dot */}
                         <circle cx="100" cy="100" r="5" fill="url(#clockGradient)" />
 
@@ -208,7 +170,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                         />
 
                         {/* Hand end dot */}
-                        <circle cx={handX} cy={handY} r="8" fill="url(#clockGradient)" />
+                        <circle cx={handX} cy={handY} r="6" fill="url(#clockGradient)" />
 
                         <defs>
                             <linearGradient id="clockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -218,14 +180,15 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                         </defs>
                     </svg>
 
-                    {/* Hour/Minute markers */}
+                    {/* Hour/Minute buttons */}
                     {mode === 'hours' ? (
-                        hourMarkers.map(({ hour, x, y, isSelected }) => (
-                            <div
-                                key={hour}
-                                className={`absolute w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-all ${isSelected
-                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110'
-                                        : 'text-slate-400 hover:text-white hover:bg-slate-600/50'
+                        hourMarkers.map(({ hour12, x, y, isSelected }) => (
+                            <button
+                                key={hour12}
+                                onClick={() => handleHourClick(hour12)}
+                                className={`absolute w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold transition-all z-10 ${isSelected
+                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
+                                        : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
                                     }`}
                                 style={{
                                     left: `${x}px`,
@@ -233,16 +196,17 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                     transform: 'translate(-50%, -50%)'
                                 }}
                             >
-                                {hour}
-                            </div>
+                                {hour12}
+                            </button>
                         ))
                     ) : (
                         minuteMarkers.map(({ minute, x, y, isSelected }) => (
-                            <div
+                            <button
                                 key={minute}
-                                className={`absolute w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-all ${isSelected
-                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110'
-                                        : 'text-slate-400 hover:text-white hover:bg-slate-600/50'
+                                onClick={() => handleMinuteClick(minute)}
+                                className={`absolute w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold transition-all z-10 ${isSelected
+                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
+                                        : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
                                     }`}
                                 style={{
                                     left: `${x}px`,
@@ -251,7 +215,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                 }}
                             >
                                 {minute.toString().padStart(2, '0')}
-                            </div>
+                            </button>
                         ))
                     )}
                 </div>
