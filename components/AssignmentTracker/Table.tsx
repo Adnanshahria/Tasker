@@ -148,22 +148,24 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                                 {idx + 1}
                                             </td>
 
-                                            {/* Task Name + Time Status (inline) + Description ? icon */}
+                                            {/* Task Name + Time Status (right aligned) + Description ? icon */}
                                             <td className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-6 z-10 relative`}>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-white font-medium truncate max-w-[80px] md:max-w-[100px]">{item.title}</span>
-                                                    <span className={`text-[7px] md:text-[8px] font-bold px-1 py-0.5 rounded-full whitespace-nowrap ${timeStatus.color}`}>
-                                                        {timeStatus.label}
-                                                    </span>
-                                                    {item.description && (
-                                                        <button
-                                                            onClick={() => openDescModal(item)}
-                                                            className="p-0.5 text-amber-400 hover:text-amber-300 transition-colors ml-auto flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20"
-                                                            title="View description"
-                                                        >
-                                                            <HelpCircle size={12} />
-                                                        </button>
-                                                    )}
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <span className="text-white font-medium truncate max-w-[60px] md:max-w-[80px]">{item.title}</span>
+                                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                                        <span className={`text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${timeStatus.color}`}>
+                                                            {timeStatus.label}
+                                                        </span>
+                                                        {item.description && (
+                                                            <button
+                                                                onClick={() => openDescModal(item)}
+                                                                className="p-0.5 text-amber-400 hover:text-amber-300 transition-colors ml-auto flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20"
+                                                                title="View description"
+                                                            >
+                                                                <HelpCircle size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
 
