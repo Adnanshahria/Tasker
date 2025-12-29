@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 interface AssignmentModalProps {
     isOpen: boolean;
@@ -50,10 +50,23 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
     setTitle, setDescription, setSubject, setDate, setType, setPriority, setStatus, setStartTime, setEndTime,
     onSubmit, onClose, subjects, types, statuses, priorities, lang = 'bn'
 }) => {
+    const dateRef = useRef<HTMLInputElement>(null);
+    const startTimeRef = useRef<HTMLInputElement>(null);
+    const endTimeRef = useRef<HTMLInputElement>(null);
+
     if (!isOpen) return null;
     const t = T[lang];
+
     const inputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
     const labelCls = "block text-xs uppercase font-bold text-slate-400 mb-1";
+    const clickableInputCls = "w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-white text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all cursor-pointer";
+
+    // Function to trigger date/time picker on click
+    const handleInputClick = (ref: React.RefObject<HTMLInputElement>) => {
+        if (ref.current) {
+            ref.current.showPicker?.();
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
@@ -64,11 +77,42 @@ const AssignmentModal: React.FC<AssignmentModalProps> = ({
                     <div><label className={labelCls}>{t.description}</label><textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} className={inputCls + " resize-none"} placeholder={t.descPlaceholder} /></div>
                     <div className="grid grid-cols-2 gap-3">
                         <div><label className={labelCls}>{t.subject}</label><select required value={subject} onChange={e => setSubject(e.target.value)} className={inputCls}><option value="">{t.select}</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
-                        <div><label className={labelCls}>{t.dueDate}</label><input required type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} /></div>
+                        <div>
+                            <label className={labelCls}>{t.dueDate}</label>
+                            <input
+                                ref={dateRef}
+                                required
+                                type="date"
+                                value={date}
+                                onChange={e => setDate(e.target.value)}
+                                className={clickableInputCls}
+                                onClick={() => handleInputClick(dateRef)}
+                            />
+                        </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                        <div><label className={labelCls}>{t.startTime}</label><input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className={inputCls} /></div>
-                        <div><label className={labelCls}>{t.endTime}</label><input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} className={inputCls} /></div>
+                        <div>
+                            <label className={labelCls}>{t.startTime}</label>
+                            <input
+                                ref={startTimeRef}
+                                type="time"
+                                value={startTime}
+                                onChange={e => setStartTime(e.target.value)}
+                                className={clickableInputCls}
+                                onClick={() => handleInputClick(startTimeRef)}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls}>{t.endTime}</label>
+                            <input
+                                ref={endTimeRef}
+                                type="time"
+                                value={endTime}
+                                onChange={e => setEndTime(e.target.value)}
+                                className={clickableInputCls}
+                                onClick={() => handleInputClick(endTimeRef)}
+                            />
+                        </div>
                         <div><label className={labelCls}>{t.duration}</label><div className="bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-indigo-400 text-sm font-mono text-center">{calcDur(startTime, endTime)}</div></div>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
