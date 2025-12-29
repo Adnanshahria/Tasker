@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RotateCcw, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
+import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS, DEFAULT_SETTINGS_BN } from '../../services/dataService';
 
 import ConfirmModal from '../ui/ConfirmModal';
 import LanguageToggle from './LanguageToggle';

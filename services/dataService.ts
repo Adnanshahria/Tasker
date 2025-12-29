@@ -80,12 +80,23 @@ export interface UserSettings {
     countdownLabel?: string;
 }
 
-// Default Settings
-export const DEFAULT_SETTINGS_BN: UserSettings = {
-    subjects: ['পদার্থবিজ্ঞান', 'রসায়ন', 'গণিত', 'জীববিজ্ঞান', 'ICT', 'ইংরেজি', 'বাংলা'],
-    types: ['Project', 'Assignment', 'Quiz', 'Exam', 'Lab', 'Presentation'],
+// Default Settings - English (default for new users)
+export const DEFAULT_SETTINGS: UserSettings = {
+    subjects: ['Physics', 'Chemistry', 'Math', 'Biology', 'ICT', 'English', 'Bengali'],
+    types: ['Class', 'Assignment', 'Quiz', 'Exam', 'Lab', 'Presentation', 'Project'],
     statuses: ['Not Started', 'In Progress', 'Completed'],
     priorities: ['Low', 'Medium', 'Urgent'],
+    language: 'en',
+    countdownDate: undefined,
+    countdownLabel: 'Exam'
+};
+
+// Default Settings - Bangla (for backward compatibility)
+export const DEFAULT_SETTINGS_BN: UserSettings = {
+    subjects: ['পদার্থবিজ্ঞান', 'রসায়ন', 'গণিত', 'জীববিজ্ঞান', 'ICT', 'ইংরেজি', 'বাংলা'],
+    types: ['ক্লাস', 'অ্যাসাইনমেন্ট', 'কুইজ', 'পরীক্ষা', 'ল্যাব', 'প্রেজেন্টেশন', 'প্রজেক্ট'],
+    statuses: ['শুরু হয়নি', 'চলমান', 'সম্পন্ন'],
+    priorities: ['কম', 'মাঝারি', 'জরুরি'],
     language: 'bn',
     countdownDate: undefined,
     countdownLabel: 'পরীক্ষা'
@@ -450,7 +461,7 @@ export const deleteHabit = async (id: string): Promise<void> => {
 // ==================== SETTINGS ====================
 
 export const getSettings = async (userId: string): Promise<UserSettings> => {
-    if (!userId) return DEFAULT_SETTINGS_BN;
+    if (!userId) return DEFAULT_SETTINGS;
 
     // 1. Get local data immediately (FAST - no network wait)
     const localSettings = getLocalSettings(userId);
@@ -490,7 +501,7 @@ export const getSettings = async (userId: string): Promise<UserSettings> => {
         }).catch(err => console.warn('[Data] Failed to fetch settings:', err));
     }
 
-    return DEFAULT_SETTINGS_BN;
+    return DEFAULT_SETTINGS;
 };
 
 // Background sync for settings

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Sprout, LogOut, X, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSettings, DEFAULT_SETTINGS_BN } from '../services/dataService';
+import { getSettings, DEFAULT_SETTINGS } from '../services/dataService';
 
 interface SidebarProps {
   isOpen: boolean;

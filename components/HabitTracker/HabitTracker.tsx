@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getHabits, saveHabit, updateHabit, deleteHabit, getSettings, LocalHabit, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
+import { getHabits, saveHabit, updateHabit, deleteHabit, getSettings, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
 
 import ConfirmModal from '../ui/ConfirmModal';
 import Toolbar from './Toolbar';
@@ -17,7 +17,7 @@ const HabitTracker: React.FC = () => {
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS_BN);
+    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
     const [loading, setLoading] = useState(true);
     const now = new Date();
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth());

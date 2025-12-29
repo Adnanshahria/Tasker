@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle2, BookOpen, TrendingUp, Activity, BarChart2 } from 'lucide-react';
 import { subDays, format, isSameDay } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAssignments, getHabits, getSettings, LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
+import { getAssignments, getHabits, getSettings, LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 import StatCard from '../ui/StatCard';
@@ -17,7 +17,7 @@ const CHART_COLORS = ['#6366f1', '#22c55e', '#f97316', '#ec4899', '#a855f7', '#1
 
 const Dashboard: React.FC = () => {
     const { currentUser, logout } = useAuth();
-    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS_BN);
+    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
     const [assignments, setAssignments] = useState<LocalAssignment[]>([]);
     const [habits, setHabits] = useState<LocalHabit[]>([]);
     const [loading, setLoading] = useState(true);

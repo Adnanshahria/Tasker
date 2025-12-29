@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAssignments, saveAssignment, updateAssignment, deleteAssignment, getSettings, LocalAssignment, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
+import { getAssignments, saveAssignment, updateAssignment, deleteAssignment, getSettings, LocalAssignment, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
 
 import AssignmentModal from '../AssignmentModal';
 import ConfirmModal from '../ui/ConfirmModal';
@@ -17,7 +17,7 @@ const AssignmentTracker: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [subjectFilter, setSubjectFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS_BN);
+    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
     const [loading, setLoading] = useState(true);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [form, setForm] = useState(createInitialFormState());

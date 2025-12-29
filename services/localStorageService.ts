@@ -1,7 +1,7 @@
 // Local Storage Service - Offline Data Persistence Layer
 // Provides local-first data storage with sync timestamps for conflict resolution
 
-import { LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS_BN } from './dataService';
+import { LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS } from './dataService';
 
 // Storage Keys
 const KEYS = {
