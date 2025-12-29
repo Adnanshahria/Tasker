@@ -1,4 +1,4 @@
-import { differenceInDays, differenceInMinutes, isPast, isToday, isBefore, parse, format } from 'date-fns';
+import { differenceInDays, differenceInMinutes, differenceInHours, isPast, isToday, isBefore, parse, format } from 'date-fns';
 import { LocalAssignment } from '../../services/dataService';
 
 // Calculate duration between two times (24h format)
@@ -15,29 +15,72 @@ export const calcDuration = (start?: string, end?: string): string => {
     return `${hours}h ${minutes}m`;
 };
 
-// Check if task is currently active (within time range today)
-const isTaskActive = (item: LocalAssignment): { active: boolean; minutesLeft?: number } => {
-    if (!item.startTime || !item.endTime) return { active: false };
-    if (!isToday(new Date(item.dueDate))) return { active: false };
-
+// Get time until due with hours and minutes
+const getTimeUntilDue = (item: LocalAssignment, lang: 'en' | 'bn'): { label: string; color: string } | null => {
     const now = new Date();
-    const [sh, sm] = item.startTime.split(':').map(Number);
-    const [eh, em] = item.endTime.split(':').map(Number);
+    const dueDate = new Date(item.dueDate);
 
-    const startDate = new Date();
-    startDate.setHours(sh, sm, 0, 0);
-    const endDate = new Date();
-    endDate.setHours(eh, em, 0, 0);
-
-    if (now >= startDate && now <= endDate) {
-        const minutesLeft = differenceInMinutes(endDate, now);
-        return { active: true, minutesLeft };
+    // If has specific time, use it
+    if (item.startTime) {
+        const [h, m] = item.startTime.split(':').map(Number);
+        dueDate.setHours(h, m, 0, 0);
+    } else {
+        // Default to end of day
+        dueDate.setHours(23, 59, 59, 0);
     }
-    return { active: false };
+
+    const minutesDiff = differenceInMinutes(dueDate, now);
+    const hoursDiff = differenceInHours(dueDate, now);
+
+    // Past due
+    if (minutesDiff < 0) {
+        const hoursAgo = Math.abs(hoursDiff);
+        const minutesAgo = Math.abs(minutesDiff) % 60;
+
+        if (hoursAgo < 1) {
+            const label = lang === 'en' ? `${Math.abs(minutesDiff)}m ago` : `${Math.abs(minutesDiff)} মি. আগে`;
+            return { label, color: 'bg-red-500/90 text-white' };
+        } else if (hoursAgo < 24) {
+            const label = lang === 'en' ? `${hoursAgo}h ago` : `${hoursAgo} ঘ. আগে`;
+            return { label, color: 'bg-red-500/90 text-white' };
+        } else {
+            const daysAgo = Math.floor(hoursAgo / 24);
+            const label = lang === 'en' ? `${daysAgo}d ago` : `${daysAgo} দিন আগে`;
+            return { label, color: 'bg-red-600/90 text-white' };
+        }
+    }
+
+    // Due very soon (less than 1 hour)
+    if (minutesDiff <= 60) {
+        const label = lang === 'en' ? `${minutesDiff}m left` : `${minutesDiff} মি. বাকি`;
+        return { label, color: 'bg-rose-500 text-white animate-pulse' };
+    }
+
+    // Due within hours today
+    if (minutesDiff <= 24 * 60) {
+        const hrs = Math.floor(minutesDiff / 60);
+        const mins = minutesDiff % 60;
+        if (mins > 0) {
+            const label = lang === 'en' ? `${hrs}h ${mins}m left` : `${hrs}ঘ ${mins}মি বাকি`;
+            return { label, color: hrs <= 3 ? 'bg-amber-500 text-white' : 'bg-yellow-500/90 text-white' };
+        } else {
+            const label = lang === 'en' ? `${hrs}h left` : `${hrs} ঘন্টা বাকি`;
+            return { label, color: hrs <= 3 ? 'bg-amber-500 text-white' : 'bg-yellow-500/90 text-white' };
+        }
+    }
+
+    return null; // Fall back to day-based display
 };
 
-// Get urgency badge based on due date with relative time
+// Get urgency badge based on due date with precise relative time
 export const getUrgencyBadge = (item: LocalAssignment, lang: 'en' | 'bn') => {
+    // Try precise time first
+    const preciseTime = getTimeUntilDue(item, lang);
+    if (preciseTime) {
+        return preciseTime;
+    }
+
+    // Fall back to day-based calculation
     const dueDate = new Date(item.dueDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -45,39 +88,19 @@ export const getUrgencyBadge = (item: LocalAssignment, lang: 'en' | 'bn') => {
 
     const days = differenceInDays(dueDate, today);
 
-    // Check if task is currently active
-    const { active, minutesLeft } = isTaskActive(item);
-    if (active && minutesLeft !== undefined) {
-        const label = lang === 'en' ? `${minutesLeft}m left` : `${minutesLeft} মি. বাকি`;
-        return { label, color: 'bg-cyan-500 text-white animate-pulse' };
-    }
-
-    // Overdue
-    if (days < 0) {
-        const ago = Math.abs(days);
-        const label = lang === 'en' ? `${ago}d ago` : `${ago} দিন আগে`;
-        return { label, color: 'bg-red-500 text-white' };
-    }
-
-    // Today
-    if (days === 0) {
-        const label = lang === 'en' ? 'TODAY' : 'আজ';
-        return { label, color: 'bg-amber-500 text-white' };
-    }
-
     // Tomorrow
     if (days === 1) {
-        const label = lang === 'en' ? 'Tomorrow' : 'আগামীকাল';
-        return { label, color: 'bg-orange-500 text-white' };
+        const label = lang === 'en' ? '1d left' : '১ দিন বাকি';
+        return { label, color: 'bg-orange-500/90 text-white' };
     }
 
     // Within a week
     if (days <= 7) {
-        const label = lang === 'en' ? `${days}d` : `${days} দিন`;
-        return { label, color: 'bg-yellow-500/80 text-white' };
+        const label = lang === 'en' ? `${days}d left` : `${days} দিন বাকি`;
+        return { label, color: 'bg-yellow-600/80 text-white' };
     }
 
     // More than a week
-    const label = lang === 'en' ? `${days}d` : `${days} দিন`;
-    return { label, color: 'bg-slate-600 text-slate-300' };
+    const label = lang === 'en' ? `${days}d left` : `${days} দিন বাকি`;
+    return { label, color: 'bg-slate-600 text-slate-200' };
 };
