@@ -24,8 +24,8 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                 <table className="w-full text-left border-collapse text-xs md:text-sm min-w-[700px]">
                     <thead className="sticky top-0 z-10">
                         <tr className="bg-slate-800 text-slate-400 font-semibold border-b border-slate-700">
-                            <th className="p-2 md:p-3 w-8 text-center sticky left-0 z-20 bg-slate-800">#</th>
-                            <th className="p-2 md:p-3 border-r border-slate-700 min-w-[120px] sticky left-8 z-20 bg-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.3)]">{t.taskName}</th>
+                            <th className="p-2 md:p-3 w-8 text-center border-r border-slate-700 bg-slate-800">#</th>
+                            <th className="p-2 md:p-3 border-r border-slate-700 min-w-[120px] bg-slate-800">{t.taskName}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.subject}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.type}</th>
                             <th className="p-2 md:p-3 border-r border-slate-700">{t.dueDate}</th>
@@ -44,8 +44,8 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                 const duration = calcDuration(item.startTime, item.endTime);
                                 return (
                                     <motion.tr key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`group hover:bg-white/5 transition-colors border-b border-slate-700 ${ps.rowBg || ''}`}>
-                                        <td className="p-2 md:p-3 text-center text-slate-500 font-mono sticky left-0 z-10 bg-slate-900">{idx + 1}</td>
-                                        <td className="p-2 md:p-3 border-r border-slate-700 sticky left-8 z-10 bg-slate-900 shadow-[2px_0_5px_rgba(0,0,0,0.3)]">
+                                        <td className="p-2 md:p-3 text-center text-slate-500 font-mono border-r border-slate-700 bg-slate-900">{idx + 1}</td>
+                                        <td className="p-2 md:p-3 border-r border-slate-700 bg-slate-900">
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                                 <span className="text-white font-medium">{item.title}</span>
                                                 <span className={`text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full ${urgency.color}`}>{urgency.label}</span>

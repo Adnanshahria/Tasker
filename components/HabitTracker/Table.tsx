@@ -18,8 +18,8 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
     <table className="w-full text-left border-collapse">
         <thead className="sticky top-0 z-10">
             <tr className="bg-gradient-to-r from-slate-800 to-slate-800/90 backdrop-blur-sm text-slate-300 text-[10px] md:text-xs font-bold border-b-2 border-emerald-500/30">
-                <th className="w-8 md:w-10 p-2 md:p-3 text-center text-slate-500 sticky left-0 z-20 bg-slate-800">#</th>
-                <th className="p-2 md:p-3 border-r border-slate-600/50 w-[90px] md:w-[120px] sticky left-8 md:left-10 z-20 bg-slate-800 shadow-[2px_0_5px_rgba(0,0,0,0.3)]">{t.habitName}</th>
+                <th className="w-8 md:w-10 p-2 md:p-3 text-center text-slate-500 bg-slate-800 border-r border-slate-600/50">#</th>
+                <th className="p-2 md:p-3 border-r border-slate-600/50 w-[90px] md:w-[120px] bg-slate-800">{t.habitName}</th>
                 <th className="hidden md:table-cell p-3 border-r border-slate-600/50 w-[80px]">{t.description}</th>
                 {daysInMonth.map(day => (
                     <th key={day.toISOString()} className={`p-0.5 md:p-1 border-r border-slate-600/50 w-7 md:w-8 text-center ${isSameDay(day, new Date()) && isSameMonth(day, new Date()) ? 'bg-emerald-500/30 text-emerald-300' : ''}`}>
@@ -34,8 +34,8 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
             <AnimatePresence>
                 {habits.map((habit, idx) => (
                     <motion.tr key={habit.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="group hover:bg-emerald-500/5 transition-colors border-b border-slate-700/50">
-                        <td className="w-8 md:w-10 text-center text-[10px] md:text-xs text-slate-500 bg-slate-800 font-mono p-1 md:p-2 sticky left-0 z-10">{idx + 1}</td>
-                        <td className="p-0 border-r border-slate-700/50 sticky left-8 md:left-10 z-10 bg-slate-900 shadow-[2px_0_5px_rgba(0,0,0,0.3)]"><div className="px-1.5 md:px-2 py-1.5 md:py-2 text-slate-200 font-medium truncate text-xs md:text-sm">{habit.title}</div></td>
+                        <td className="w-8 md:w-10 text-center text-[10px] md:text-xs text-slate-500 bg-slate-800 font-mono p-1 md:p-2 border-r border-slate-700/50">{idx + 1}</td>
+                        <td className="p-0 border-r border-slate-700/50 bg-slate-900"><div className="px-1.5 md:px-2 py-1.5 md:py-2 text-slate-200 font-medium truncate text-xs md:text-sm">{habit.title}</div></td>
                         <td className="hidden md:table-cell p-2 border-r border-slate-700/50 text-slate-400 text-xs"><div className="truncate max-w-[70px]" title={habit.description}>{habit.description || '-'}</div></td>
                         {daysInMonth.map(day => {
                             const done = isHabitCompletedOnDate(habit, day);
