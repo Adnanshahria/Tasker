@@ -8,6 +8,7 @@ import AssignmentTracker from './components/AssignmentTracker';
 import HabitTracker from './components/HabitTracker';
 import Settings from './components/Settings';
 import Auth from './components/Auth';
+import NetworkStatus from './components/ui/NetworkStatus';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -44,6 +45,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Mobile Bottom Nav */}
       <BottomNav />
+
+      {/* Network Status Indicator */}
+      <NetworkStatus />
     </div>
   );
 };
