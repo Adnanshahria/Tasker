@@ -70,11 +70,19 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                 );
                             })}
                         </AnimatePresence>
+                        {/* Add New Row - Inside table */}
+                        <tr onClick={onAddClick} className="cursor-pointer hover:bg-amber-500/10 transition-colors border-b border-slate-700">
+                            <td colSpan={10} className="p-2 md:p-3">
+                                <div className="flex items-center gap-2 text-amber-500 font-medium">
+                                    <Plus size={14} />
+                                    <span>{t.addNew}</span>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
                 {assignments.length === 0 && <EmptyState t={t} />}
             </div>
-            <AddRow onClick={onAddClick} label={t.addNew} />
         </div>
     );
 };
@@ -87,12 +95,4 @@ const EmptyState: React.FC<{ t: Record<string, string> }> = ({ t }) => (
     </div>
 );
 
-const AddRow: React.FC<{ onClick: () => void; label: string }> = ({ onClick, label }) => (
-    <div onClick={onClick} className="p-3 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 hover:from-indigo-500/20 hover:to-purple-500/20 cursor-pointer flex items-center justify-center gap-2 border-t border-indigo-500/30 transition-all active:scale-[0.99]">
-        <Plus size={16} className="text-indigo-400" />
-        <span className="text-indigo-400 font-semibold text-sm">{label}</span>
-    </div>
-);
-
 export default Table;
-
