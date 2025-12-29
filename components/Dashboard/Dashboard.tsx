@@ -84,10 +84,10 @@ const Dashboard: React.FC = () => {
     }
 
     return (
-        <div className="space-y-4 md:space-y-6 pb-12 font-sans max-w-7xl mx-auto">
+        <div className="space-y-3 md:space-y-5 pb-10 font-sans max-w-7xl mx-auto">
             <HeroBanner welcomeText={t.welcome} userName={currentUser?.displayName || currentUser?.email?.split('@')[0] || ''} />
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
                 <StatCard icon={BookOpen} iconColor="bg-indigo-500/20 text-indigo-400" label={t.exams} value={assignments.filter(a => a.type?.toLowerCase().includes('exam') || a.type?.includes('পরীক্ষা')).length} helpKey="upcomingExams" onHelpClick={setHelpKey} />
                 <StatCard icon={CheckCircle2} iconColor="bg-amber-500/20 text-amber-400" label={t.habitsLabel} value={`${todaysCompletedHabits}/${habits.length}`} helpKey="activeHabits" onHelpClick={setHelpKey} />
                 <StatCard icon={Activity} iconColor="bg-rose-500/20 text-rose-400" label={t.pending} value={pending} helpKey="pendingTasks" onHelpClick={setHelpKey} />
@@ -95,10 +95,10 @@ const Dashboard: React.FC = () => {
                 <StatCard icon={BarChart2} iconColor="bg-violet-500/20 text-violet-400" label={t.peak} value={peak} helpKey="peakHabits" onHelpClick={setHelpKey} />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 shadow-xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
+                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
                     <SectionHeader title={t.consistency} helpKey="habitConsistency" onHelpClick={setHelpKey} />
-                    <div className="h-48 md:h-64">
+                    <div className="h-36 md:h-56">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={habitData}>
                                 <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} />
@@ -110,9 +110,9 @@ const Dashboard: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-5 shadow-xl">
+                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
                     <SectionHeader title={t.distribution} helpKey="assignmentDistribution" onHelpClick={setHelpKey} />
-                    <div className="h-48 md:h-64">
+                    <div className="h-36 md:h-56">
                         {assignmentData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart><Pie data={assignmentData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value">{assignmentData.map((_, i) => <Cell key={`cell-${i}`} fill={CHART_COLORS[i % CHART_COLORS.length]} stroke="rgba(0,0,0,0)" />)}</Pie><Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc', fontSize: 12 }} /><Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: 12 }} /></PieChart>
