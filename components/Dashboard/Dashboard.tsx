@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={habitData}>
                                 <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} />
-                                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={30} />
+                                <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={30} domain={[0, habits.length || 1]} />
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc', fontSize: 12 }} />
                                 <Line type="monotone" dataKey="count" stroke="url(#lineGradient)" strokeWidth={3} dot={{ r: 4, fill: '#818cf8', strokeWidth: 0 }} activeDot={{ r: 6, fill: '#6366f1' }} />
                                 <defs><linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#a855f7" /></linearGradient></defs>
