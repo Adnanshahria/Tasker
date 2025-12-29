@@ -96,7 +96,6 @@ const HabitTracker: React.FC = () => {
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
                     <Table habits={habits} daysInMonth={daysInMonth} t={t} lang={lang} onToggle={handleToggle} onDelete={setDeleteConfirm} />
                     {habits.length === 0 && <EmptyState t={t} />}
-                    <AddRow onClick={() => setShowAddModal(true)} label={t.addNew} />
                 </div>
             </div>
 

@@ -51,10 +51,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
             </div>
         </div>
         <button onClick={onAddClick} className="flex items-center gap-1 md:gap-2 bg-emerald-500 hover:bg-emerald-400 text-white px-2 md:px-4 py-1.5 md:py-2 rounded-xl text-xs md:text-sm font-bold shadow-lg shadow-emerald-500/30 hover:scale-105 transition-all shrink-0">
-            <Plus size={12} className="md:hidden" />
-            <Plus size={16} className="hidden md:block" />
+            <Plus size={14} />
             <span className="hidden sm:inline">{addLabel}</span>
-            <span className="sm:hidden">+</span>
         </button>
     </div>
 );
