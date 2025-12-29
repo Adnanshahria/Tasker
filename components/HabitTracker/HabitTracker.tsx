@@ -60,11 +60,12 @@ const HabitTracker: React.FC = () => {
     };
 
     const handleToggle = async (habit: LocalHabit, date: Date) => {
+        if (!currentUser) return;
         const newCompletedDates = toggleHabitDate(habit, date);
         // Optimistic update - update UI immediately
         setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, completedDates: newCompletedDates } : h));
         try {
-            await updateHabit(habit.id, { completedDates: newCompletedDates });
+            await updateHabit(habit.id, { userId: currentUser.uid, completedDates: newCompletedDates });
         } catch (error) {
             console.error('Error toggling habit:', error);
             // Revert on error
