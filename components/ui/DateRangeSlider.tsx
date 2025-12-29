@@ -77,8 +77,8 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handlePresetClick(preset.value)}
                         className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all ${value === preset.value && !isCustomActive
-                                ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-white'
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                            : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-white'
                             }`}
                     >
                         {preset.label}
@@ -90,8 +90,8 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
                     whileTap={{ scale: 0.95 }}
                     onClick={handleCustomClick}
                     className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all flex items-center gap-1 ${isCustomActive
-                            ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
-                            : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-white'
+                        ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
+                        : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-white'
                         }`}
                 >
                     <Calendar size={12} />
@@ -107,7 +107,7 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-full max-w-sm shadow-2xl"
+                            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-[95vw] max-w-sm shadow-2xl"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-4">

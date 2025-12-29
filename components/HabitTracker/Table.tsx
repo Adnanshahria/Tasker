@@ -32,7 +32,7 @@ const DescriptionModal: React.FC<{
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl"
+                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 w-[95vw] max-w-md shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-start justify-between gap-3 mb-4">
@@ -111,8 +111,8 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
                                         <button
                                             onClick={() => openDescModal(habit)}
                                             className={`p-0.5 transition-colors flex-shrink-0 rounded ${habit.description
-                                                    ? 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                                                    : 'text-slate-500 hover:text-slate-400 bg-slate-700/30 hover:bg-slate-700/50'
+                                                ? 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
+                                                : 'text-slate-500 hover:text-slate-400 bg-slate-700/30 hover:bg-slate-700/50'
                                                 }`}
                                             title={habit.description ? "View description" : "No description"}
                                         >
