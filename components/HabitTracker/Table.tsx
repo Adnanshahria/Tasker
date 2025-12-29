@@ -1,6 +1,6 @@
 import React from 'react';
-import { format, isSameDay, isSameMonth } from 'date-fns';
-import { Trash2, Check, FileText } from 'lucide-react';
+import { format, isSameDay, isSameMonth, isPast, startOfDay } from 'date-fns';
+import { Trash2, Check, X, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LocalHabit } from '../../services/dataService';
 import { isHabitCompletedOnDate, calculateCompletionRate } from './helpers';
@@ -39,11 +39,16 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
                         <td className="hidden md:table-cell p-2 border-r border-slate-700/50 text-slate-400 text-xs"><div className="truncate max-w-[70px]" title={habit.description}>{habit.description || '-'}</div></td>
                         {daysInMonth.map(day => {
                             const done = isHabitCompletedOnDate(habit, day);
+                            const isToday = isSameDay(day, new Date());
+                            const isPastDay = isPast(startOfDay(day)) && !isToday;
+                            const missed = isPastDay && !done;
                             return (
                                 <td key={day.toISOString()} className="p-0 border-r border-slate-700/50 text-center">
-                                    <button onClick={() => onToggle(habit, day)} className={`w-full h-8 md:h-9 flex items-center justify-center transition-all ${done ? 'bg-emerald-500/30 text-emerald-400' : 'hover:bg-slate-800'}`}>
+                                    <button onClick={() => onToggle(habit, day)} className={`w-full h-8 md:h-9 flex items-center justify-center transition-all ${done ? 'bg-emerald-500/30 text-emerald-400' : missed ? 'bg-red-500/10 text-red-400/60' : 'hover:bg-slate-800'}`}>
                                         {done && <Check size={12} strokeWidth={3} className="md:hidden" />}
                                         {done && <Check size={14} strokeWidth={3} className="hidden md:block" />}
+                                        {missed && <X size={10} strokeWidth={2} className="md:hidden" />}
+                                        {missed && <X size={12} strokeWidth={2} className="hidden md:block" />}
                                     </button>
                                 </td>
                             );
