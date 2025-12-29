@@ -65,11 +65,11 @@ export const getAssignments = async (userId: string): Promise<LocalAssignment[]>
     try {
         const q = query(
             collection(db, 'assignments'),
-            where('userId', '==', userId),
-            orderBy('dueDate', 'asc')
+            where('userId', '==', userId)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LocalAssignment));
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LocalAssignment));
+        return data.sort((a, b) => a.dueDate - b.dueDate); // Sort client-side
     } catch (error) {
         console.error('Error fetching assignments:', error);
         return [];
