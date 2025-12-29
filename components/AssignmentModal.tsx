@@ -31,8 +31,8 @@ interface AssignmentModalProps {
 }
 
 const T = {
-    en: { title: 'Title', description: 'Description', subject: 'Subject', dueDate: 'Due', type: 'Type', priority: 'Priority', status: 'Status', startTime: 'Start', endTime: 'End', duration: 'Duration', cancel: 'Cancel', save: 'Save', editTitle: 'Edit Task', newTitle: 'New Task', placeholder: 'Task name', descPlaceholder: 'Description (optional)', select: 'Select...' },
-    bn: { title: 'শিরোনাম', description: 'বিবরণ', subject: 'বিষয়', dueDate: 'তারিখ', type: 'ধরন', priority: 'গুরুত্ব', status: 'স্ট্যাটাস', startTime: 'শুরু', endTime: 'শেষ', duration: 'সময়কাল', cancel: 'বাতিল', save: 'সংরক্ষণ', editTitle: 'সম্পাদনা', newTitle: 'নতুন টাস্ক', placeholder: 'টাস্কের নাম', descPlaceholder: 'বিবরণ (ঐচ্ছিক)', select: 'নির্বাচন...' }
+    en: { title: 'Title', description: 'Description', subject: 'Subject', dueDate: 'Due', type: 'Type', priority: 'Priority', status: 'Status', startTime: 'Start (opt)', endTime: 'End (opt)', duration: 'Duration', cancel: 'Cancel', save: 'Save', editTitle: 'Edit Task', newTitle: 'New Task', placeholder: 'Task name', descPlaceholder: 'Description (optional)', select: 'Select...' },
+    bn: { title: 'শিরোনাম', description: 'বিবরণ', subject: 'বিষয়', dueDate: 'তারিখ', type: 'ধরন', priority: 'গুরুত্ব', status: 'স্ট্যাটাস', startTime: 'শুরু (ঐচ্ছিক)', endTime: 'শেষ (ঐচ্ছিক)', duration: 'সময়কাল', cancel: 'বাতিল', save: 'সংরক্ষণ', editTitle: 'সম্পাদনা', newTitle: 'নতুন টাস্ক', placeholder: 'টাস্কের নাম', descPlaceholder: 'বিবরণ (ঐচ্ছিক)', select: 'নির্বাচন...' }
 };
 
 const calcDur = (s: string, e: string) => {
