@@ -1,14 +1,15 @@
 // Enhanced Service Worker for Offline-First PWA
 // Caches static assets and provides offline fallback
 
-const CACHE_NAME = 'ogrogoti-v2';
-const STATIC_CACHE = 'ogrogoti-static-v2';
-const DYNAMIC_CACHE = 'ogrogoti-dynamic-v2';
+const CACHE_NAME = 'ogrogoti-v3';
+const STATIC_CACHE = 'ogrogoti-static-v3';
+const DYNAMIC_CACHE = 'ogrogoti-dynamic-v3';
 
 // Static assets to cache on install
 const urlsToCache = [
     '/',
     '/index.html',
+    '/manifest.json',
     '/icons/icon-192.svg',
     '/icons/icon-512.svg'
 ];
