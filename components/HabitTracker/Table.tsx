@@ -108,15 +108,16 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
                                 <td className="p-0 border-b border-r border-slate-700/50 bg-slate-900 sticky left-8 z-10">
                                     <div className="px-1.5 md:px-2 py-1.5 md:py-2 flex items-center gap-1">
                                         <span className="text-slate-200 font-medium truncate text-xs md:text-sm flex-1">{habit.title}</span>
-                                        {habit.description && (
-                                            <button
-                                                onClick={() => openDescModal(habit)}
-                                                className="p-0.5 text-emerald-400 hover:text-emerald-300 transition-colors flex-shrink-0 bg-emerald-500/10 rounded hover:bg-emerald-500/20"
-                                                title="View description"
-                                            >
-                                                <HelpCircle size={12} />
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={() => openDescModal(habit)}
+                                            className={`p-0.5 transition-colors flex-shrink-0 rounded ${habit.description
+                                                    ? 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
+                                                    : 'text-slate-500 hover:text-slate-400 bg-slate-700/30 hover:bg-slate-700/50'
+                                                }`}
+                                            title={habit.description ? "View description" : "No description"}
+                                        >
+                                            <HelpCircle size={12} />
+                                        </button>
                                     </div>
                                 </td>
                                 {daysInMonth.map(day => {
