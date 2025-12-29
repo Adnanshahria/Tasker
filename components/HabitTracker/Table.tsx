@@ -25,14 +25,14 @@ const DescriptionModal: React.FC<{
 
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-3 bg-black/70 backdrop-blur-md"
             onClick={onClose}
         >
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 w-[95vw] max-w-md shadow-2xl"
+                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl mx-2"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-start justify-between gap-3 mb-4">

@@ -102,12 +102,12 @@ const DateRangeSlider: React.FC<DateRangeSliderProps> = ({
             {/* Custom Date Range Picker Modal */}
             <AnimatePresence>
                 {showCustomPicker && (
-                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowCustomPicker(false)}>
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 bg-black/70 backdrop-blur-md" onClick={() => setShowCustomPicker(false)}>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-[95vw] max-w-sm shadow-2xl"
+                            className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 w-full max-w-md shadow-2xl mx-2"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-4">
