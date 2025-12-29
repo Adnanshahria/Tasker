@@ -22,12 +22,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-center p-4 border-b border-white/10 bg-slate-900/80 backdrop-blur-md z-20">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">অগ্রগতি</h1>
+        <div className="md:hidden flex items-center justify-center p-3 border-b border-white/10 bg-slate-900/80 backdrop-blur-md z-20">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">অগ্রগতি</h1>
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-20 md:pb-8 relative z-10 scroll-smooth">
+        <main className="flex-1 overflow-y-auto p-3 md:p-8 pb-20 md:pb-8 relative z-10 scroll-smooth overscroll-y-contain">
           <AnimatePresence mode="wait">
             <motion.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
               {children}

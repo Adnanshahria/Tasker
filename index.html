@@ -38,6 +38,18 @@
       color: #f8fafc;
     }
 
+    /* Safe area insets for notched phones */
+    .safe-area-pb {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Prevent overscroll bounce */
+    html,
+    body {
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -54,6 +66,23 @@
 
     ::-webkit-scrollbar-thumb:hover {
       background: #64748b;
+    }
+
+    /* Mobile-specific optimizations */
+    @media (max-width: 768px) {
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button,
+      a {
+        touch-action: manipulation;
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
     }
   </style>
   <script type="importmap">

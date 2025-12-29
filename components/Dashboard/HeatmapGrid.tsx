@@ -11,13 +11,13 @@ interface HeatmapGridProps {
 }
 
 const HeatmapGrid: React.FC<HeatmapGridProps> = ({ title, data, habitsLabel, helpKey, onHelpClick }) => (
-    <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl p-5 shadow-xl">
+    <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl p-3 md:p-5 shadow-xl">
         <SectionHeader title={title} helpKey={helpKey} onHelpClick={onHelpClick} />
-        <div className="flex flex-wrap gap-2 justify-center md:justify-start pt-2">
+        <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center md:justify-start pt-2 overflow-x-auto">
             {data.map((day) => (
                 <div
                     key={day.date}
-                    className="w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all hover:scale-110 cursor-default relative group"
+                    className="w-6 h-6 md:w-9 md:h-9 rounded-md md:rounded-lg flex items-center justify-center text-[8px] md:text-[10px] font-bold transition-all hover:scale-110 cursor-default relative group flex-shrink-0"
                     style={{
                         backgroundColor: day.intensity === 0 ? 'rgba(30, 41, 59, 0.6)' : `rgba(16, 185, 129, ${Math.max(0.25, day.intensity)})`,
                         color: day.intensity > 0.5 ? '#fff' : '#64748b',

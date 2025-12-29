@@ -7,7 +7,7 @@ interface QuickLinksProps {
 }
 
 const QuickLinks: React.FC<QuickLinksProps> = ({ t, onLogout }) => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="hidden md:grid grid-cols-4 gap-4">
         <Link to="/assignments" className="bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 rounded-2xl p-5 hover:scale-[1.02] transition-all text-center shadow-lg">
             <p className="font-bold text-white text-lg">{t.assignments}</p>
         </Link>

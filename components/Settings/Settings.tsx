@@ -72,10 +72,10 @@ const Settings: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-12">
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.settingsTitle}</h1>
-                    <p className="text-slate-400 text-sm">{t.customizeDesc}</p>
+                    <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.settingsTitle}</h1>
+                    <p className="text-slate-400 text-xs md:text-sm">{t.customizeDesc}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {saving && <Loader2 size={16} className="animate-spin text-indigo-400" />}
