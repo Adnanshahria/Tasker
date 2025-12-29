@@ -130,8 +130,9 @@ const EmptyState: React.FC<{ t: Record<string, string> }> = ({ t }) => (
 );
 
 const AddRow: React.FC<{ onClick: () => void; label: string }> = ({ onClick, label }) => (
-    <div onClick={onClick} className="w-full p-3 border-b border-slate-700 text-slate-500 text-sm hover:bg-emerald-500/5 cursor-pointer flex items-center gap-2 pl-16 transition-colors">
-        <span className="text-emerald-400">+</span> {label}
+    <div onClick={onClick} className="p-2 md:p-3 border-t border-slate-700/50 text-emerald-500 text-xs md:text-sm hover:bg-emerald-500/10 cursor-pointer flex items-center gap-1.5 transition-colors">
+        <span className="text-emerald-400 font-bold">+</span>
+        <span className="truncate">{label}</span>
     </div>
 );
 
