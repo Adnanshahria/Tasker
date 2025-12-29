@@ -63,14 +63,15 @@ const AnimatedTimeDisplay: React.FC<AnimatedTimeDisplayProps> = ({
             const endMins = eh * 60 + em;
             const diff = endMins - startMins;
 
-            // FAST: 8 steps at 60ms each = ~0.5 seconds total
-            const steps = Math.min(Math.abs(diff), 8);
+            // MORE VISIBLE: 12 steps at 80ms each = ~1 second animation
+            const totalSteps = Math.min(Math.abs(diff), 12);
+            const stepDuration = 80;
             let step = 0;
 
-            if (steps > 0) {
+            if (totalSteps > 0) {
                 animationRef.current = setInterval(() => {
                     step++;
-                    const progress = step / steps;
+                    const progress = step / totalSteps;
                     const eased = 1 - Math.pow(1 - progress, 2);
                     let currentMins = Math.round(startMins + diff * eased);
                     if (currentMins < 0) currentMins += 1440;
@@ -80,11 +81,11 @@ const AnimatedTimeDisplay: React.FC<AnimatedTimeDisplayProps> = ({
                     const m = currentMins % 60;
                     setDisplayTime(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`);
 
-                    if (step >= steps) {
+                    if (step >= totalSteps) {
                         clearInterval(animationRef.current!);
                         setDisplayTime(time);
                     }
-                }, 60);
+                }, stepDuration);
             } else {
                 setDisplayTime(time);
             }
