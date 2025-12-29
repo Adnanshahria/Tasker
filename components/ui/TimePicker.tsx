@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Check, ChevronUp, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, Clock, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface TimePickerProps {
     isOpen: boolean;
@@ -13,25 +13,37 @@ interface TimePickerProps {
 const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClose, label = 'Select Time' }) => {
     const [hours, setHours] = useState(12);
     const [minutes, setMinutes] = useState(0);
-    const [isPM, setIsPM] = useState(false);
+    const [mode, setMode] = useState<'hours' | 'minutes'>('hours');
 
     useEffect(() => {
         if (value) {
             const [h, m] = value.split(':').map(Number);
-            setHours(h % 12 || 12);
+            setHours(h);
             setMinutes(m);
-            setIsPM(h >= 12);
         }
     }, [value]);
 
     if (!isOpen) return null;
 
+    const handleHourClick = (hour12: number) => {
+        let newHour: number;
+        if (hours >= 12) {
+            newHour = hour12 === 12 ? 12 : hour12 + 12;
+        } else {
+            newHour = hour12 === 12 ? 0 : hour12;
+        }
+        setHours(newHour);
+        setTimeout(() => setMode('minutes'), 150);
+    };
+
+    const handleMinuteClick = (minute: number) => {
+        setMinutes(minute);
+    };
+
     const handleConfirm = () => {
-        let h = hours;
-        if (isPM && hours !== 12) h = hours + 12;
-        if (!isPM && hours === 12) h = 0;
-        const timeStr = `${h.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        onChange(timeStr);
+        const h = hours.toString().padStart(2, '0');
+        const m = minutes.toString().padStart(2, '0');
+        onChange(`${h}:${m}`);
         onClose();
     };
 
@@ -40,173 +52,155 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
         onClose();
     };
 
-    const incrementHours = () => setHours(h => h >= 12 ? 1 : h + 1);
-    const decrementHours = () => setHours(h => h <= 1 ? 12 : h - 1);
-    const incrementMinutes = () => setMinutes(m => m >= 55 ? 0 : m + 5);
-    const decrementMinutes = () => setMinutes(m => m <= 0 ? 55 : m - 5);
+    const toggleAMPM = () => {
+        setHours(hours < 12 ? hours + 12 : hours - 12);
+    };
 
-    // Slot machine style digit
-    const SlotDigit: React.FC<{ value: number; padStart?: number }> = ({ value, padStart = 2 }) => (
-        <AnimatePresence mode="popLayout">
-            <motion.span
-                key={value}
-                initial={{ y: -40, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 40, opacity: 0 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="inline-block"
-            >
-                {value.toString().padStart(padStart, '0')}
-            </motion.span>
-        </AnimatePresence>
-    );
+    // Clock face configuration
+    const radius = 80;
+    const centerX = 100;
+    const centerY = 100;
+
+    // Generate markers
+    const hourMarkers = Array.from({ length: 12 }, (_, i) => {
+        const hour12 = i === 0 ? 12 : i;
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        const currentHour12 = hours % 12 === 0 ? 12 : hours % 12;
+        const isSelected = currentHour12 === hour12;
+        return { hour12, x, y, isSelected };
+    });
+
+    const minuteMarkers = Array.from({ length: 12 }, (_, i) => {
+        const minute = i * 5;
+        const angle = (i * 30 - 90) * (Math.PI / 180);
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        const isSelected = Math.floor(minutes / 5) === i;
+        return { minute, x, y, isSelected };
+    });
+
+    // Hand angle
+    const handAngle = mode === 'hours'
+        ? (((hours % 12) || 12) * 30 - 90)
+        : (Math.floor(minutes / 5) * 30 - 90);
+    const handLength = 60;
+
+    const displayHour = hours % 12 === 0 ? 12 : hours % 12;
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
             <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-3xl p-6 w-full max-w-sm shadow-2xl"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+                className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-3xl p-5 w-full max-w-xs shadow-2xl"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <Clock size={20} className="text-indigo-400" />
-                        <span className="text-lg font-medium text-white">{label}</span>
+                        <Clock size={18} className="text-indigo-400" />
+                        <span className="text-sm font-medium text-slate-400">{label}</span>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 bg-slate-700/50 hover:bg-slate-600/50 rounded-xl text-slate-400 hover:text-white transition-colors"
-                    >
-                        <X size={18} />
+                    <button onClick={onClose} className="p-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-slate-400 hover:text-white transition-colors">
+                        <X size={16} />
                     </button>
                 </div>
 
-                {/* Time Picker - Slot Machine Style */}
-                <div className="flex items-center justify-center gap-3 mb-6">
-                    {/* Hours */}
-                    <div className="flex flex-col items-center">
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={incrementHours}
-                            className="p-2 rounded-xl bg-slate-700/50 hover:bg-indigo-500/30 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <ChevronUp size={24} />
-                        </motion.button>
-                        <div className="my-2 w-20 h-20 flex items-center justify-center bg-slate-900/80 border-2 border-indigo-500/40 rounded-2xl overflow-hidden">
-                            <span className="text-5xl font-bold bg-gradient-to-b from-white to-slate-300 bg-clip-text text-transparent">
-                                <SlotDigit value={hours} />
-                            </span>
-                        </div>
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={decrementHours}
-                            className="p-2 rounded-xl bg-slate-700/50 hover:bg-indigo-500/30 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <ChevronDown size={24} />
-                        </motion.button>
-                        <span className="mt-1 text-xs text-slate-500 uppercase">Hours</span>
-                    </div>
-
-                    {/* Separator */}
-                    <div className="text-5xl font-bold text-indigo-400 pb-8">:</div>
-
-                    {/* Minutes */}
-                    <div className="flex flex-col items-center">
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={incrementMinutes}
-                            className="p-2 rounded-xl bg-slate-700/50 hover:bg-indigo-500/30 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <ChevronUp size={24} />
-                        </motion.button>
-                        <div className="my-2 w-20 h-20 flex items-center justify-center bg-slate-900/80 border-2 border-indigo-500/40 rounded-2xl overflow-hidden">
-                            <span className="text-5xl font-bold bg-gradient-to-b from-white to-slate-300 bg-clip-text text-transparent">
-                                <SlotDigit value={minutes} />
-                            </span>
-                        </div>
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={decrementMinutes}
-                            className="p-2 rounded-xl bg-slate-700/50 hover:bg-indigo-500/30 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <ChevronDown size={24} />
-                        </motion.button>
-                        <span className="mt-1 text-xs text-slate-500 uppercase">Minutes</span>
-                    </div>
-
-                    {/* AM/PM */}
-                    <div className="flex flex-col items-center">
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setIsPM(false)}
-                            className={`p-2 rounded-xl transition-colors ${!isPM ? 'bg-indigo-500 text-white' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'}`}
-                        >
-                            <span className="text-sm font-bold px-1">AM</span>
-                        </motion.button>
-                        <div className="my-2 h-20 flex items-center justify-center">
-                            <AnimatePresence mode="popLayout">
-                                <motion.span
-                                    key={isPM ? 'PM' : 'AM'}
-                                    initial={{ y: isPM ? 20 : -20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: isPM ? -20 : 20, opacity: 0 }}
-                                    className="text-2xl font-bold text-indigo-400"
-                                >
-                                    {isPM ? 'PM' : 'AM'}
-                                </motion.span>
-                            </AnimatePresence>
-                        </div>
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setIsPM(true)}
-                            className={`p-2 rounded-xl transition-colors ${isPM ? 'bg-indigo-500 text-white' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'}`}
-                        >
-                            <span className="text-sm font-bold px-1">PM</span>
-                        </motion.button>
-                        <span className="mt-1 text-xs text-slate-500 opacity-0">Period</span>
-                    </div>
+                {/* Time Display */}
+                <div className="flex items-center justify-center gap-1 mb-4">
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMode('hours')}
+                        className={`text-5xl font-bold transition-all ${mode === 'hours' ? 'text-white' : 'text-slate-500'}`}
+                    >
+                        <motion.span key={displayHour} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.15 }}>
+                            {displayHour.toString().padStart(2, '0')}
+                        </motion.span>
+                    </motion.button>
+                    <span className="text-5xl font-bold text-slate-500">:</span>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setMode('minutes')}
+                        className={`text-5xl font-bold transition-all ${mode === 'minutes' ? 'text-white' : 'text-slate-500'}`}
+                    >
+                        <motion.span key={minutes} initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.15 }}>
+                            {minutes.toString().padStart(2, '0')}
+                        </motion.span>
+                    </motion.button>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={toggleAMPM}
+                        className="ml-2 px-3 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-400 text-lg font-bold transition-colors"
+                    >
+                        {hours >= 12 ? 'PM' : 'AM'}
+                    </motion.button>
                 </div>
 
-                {/* Quick Time Options */}
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                    {[
-                        { h: 9, m: 0, pm: false, label: '9 AM' },
-                        { h: 12, m: 0, pm: true, label: '12 PM' },
-                        { h: 3, m: 0, pm: true, label: '3 PM' },
-                        { h: 6, m: 0, pm: true, label: '6 PM' },
-                    ].map(({ h, m, pm, label: l }) => (
-                        <motion.button
-                            key={l}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => { setHours(h); setMinutes(m); setIsPM(pm); }}
-                            className="py-2 px-3 rounded-xl bg-slate-700/50 hover:bg-indigo-500/30 text-slate-300 hover:text-white text-sm font-medium transition-colors"
+                {/* Circular Clock */}
+                <div className="relative mx-auto w-[200px] h-[200px] rounded-full bg-slate-900/80 border-2 border-indigo-500/30">
+                    {/* SVG Hand */}
+                    <svg width="200" height="200" className="absolute inset-0">
+                        <motion.g
+                            animate={{ rotate: handAngle }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                            style={{ transformOrigin: '100px 100px' }}
                         >
-                            {l}
-                        </motion.button>
-                    ))}
+                            <line x1="100" y1="100" x2={100 + handLength} y2="100" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" />
+                            <circle cx={100 + handLength} cy="100" r="6" fill="#818cf8" />
+                        </motion.g>
+                        <circle cx="100" cy="100" r="4" fill="#818cf8" />
+                    </svg>
+
+                    {/* Numbers */}
+                    {mode === 'hours' ? (
+                        hourMarkers.map(({ hour12, x, y, isSelected }) => (
+                            <motion.button
+                                key={hour12}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleHourClick(hour12)}
+                                className={`absolute w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${isSelected ? 'bg-indigo-500 text-white' : 'text-slate-300 hover:bg-slate-700/50'
+                                    }`}
+                                style={{ left: `${x}px`, top: `${y}px`, transform: 'translate(-50%, -50%)' }}
+                            >
+                                {hour12}
+                            </motion.button>
+                        ))
+                    ) : (
+                        minuteMarkers.map(({ minute, x, y, isSelected }) => (
+                            <motion.button
+                                key={minute}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => handleMinuteClick(minute)}
+                                className={`absolute w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-colors ${isSelected ? 'bg-indigo-500 text-white' : 'text-slate-300 hover:bg-slate-700/50'
+                                    }`}
+                                style={{ left: `${x}px`, top: `${y}px`, transform: 'translate(-50%, -50%)' }}
+                            >
+                                {minute.toString().padStart(2, '0')}
+                            </motion.button>
+                        ))
+                    )}
+                </div>
+
+                {/* Mode Toggle */}
+                <div className="flex justify-center gap-2 mt-4 mb-4">
+                    <button onClick={() => setMode('hours')} className={`px-4 py-1.5 rounded-full text-xs font-medium ${mode === 'hours' ? 'bg-indigo-500 text-white' : 'bg-slate-700/50 text-slate-400'}`}>
+                        Hours
+                    </button>
+                    <button onClick={() => setMode('minutes')} className={`px-4 py-1.5 rounded-full text-xs font-medium ${mode === 'minutes' ? 'bg-indigo-500 text-white' : 'bg-slate-700/50 text-slate-400'}`}>
+                        Minutes
+                    </button>
                 </div>
 
                 {/* Footer */}
-                <div className="flex gap-3">
-                    <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleClear}
-                        className="flex-1 py-3 rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 font-medium transition-colors"
-                    >
-                        Clear
-                    </motion.button>
-                    <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleConfirm}
-                        className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium hover:from-indigo-500 hover:to-purple-500 transition-colors shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2"
-                    >
-                        <Check size={18} />
-                        Confirm
-                    </motion.button>
+                <div className="flex gap-2">
+                    <button onClick={handleClear} className="flex-1 py-2.5 rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 font-medium">Clear</button>
+                    <button onClick={handleConfirm} className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium flex items-center justify-center gap-2">
+                        <Check size={16} /> Confirm
+                    </button>
                 </div>
             </motion.div>
         </div>
