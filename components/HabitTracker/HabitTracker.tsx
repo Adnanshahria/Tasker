@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { Plus, Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getHabits, saveHabit, updateHabit, deleteHabit, LocalHabit } from '../../services/dataService';
-import { getSettings } from '../../services/settings';
+import { getHabits, saveHabit, updateHabit, deleteHabit, getSettings, LocalHabit, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
 
 import ConfirmModal from '../ui/ConfirmModal';
 import Toolbar from './Toolbar';
@@ -18,7 +17,8 @@ const HabitTracker: React.FC = () => {
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const [lang, setLang] = useState<'en' | 'bn'>('bn');
+    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS_BN);
+    const [loading, setLoading] = useState(true);
     const now = new Date();
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -28,19 +28,60 @@ const HabitTracker: React.FC = () => {
     const daysInMonth = eachDayOfInterval({ start: startOfMonth(selectedDate), end: endOfMonth(selectedDate) });
     const yearOptions = Array.from({ length: 11 }, (_, i) => now.getFullYear() - 5 + i);
 
-    const loadData = () => { if (currentUser) { setHabits(getHabits(currentUser.uid)); setLang(getSettings(currentUser.uid).language || 'bn'); } };
-    useEffect(() => { loadData(); }, [currentUser]);
-
-    const t = T[lang];
-
-    const handleAdd = () => {
-        if (!newTitle.trim() || !currentUser) return;
-        saveHabit({ userId: currentUser.uid, title: newTitle, description: newDesc, completedDates: [], streak: 0, createdAt: Date.now() });
-        setNewTitle(''); setNewDesc(''); setShowAddModal(false); loadData();
+    const loadData = async () => {
+        if (!currentUser) return;
+        setLoading(true);
+        try {
+            const [habitsData, settingsData] = await Promise.all([
+                getHabits(currentUser.uid),
+                getSettings(currentUser.uid)
+            ]);
+            setHabits(habitsData);
+            setSettings(settingsData);
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+        setLoading(false);
     };
 
-    const handleToggle = (habit: LocalHabit, date: Date) => { updateHabit(habit.id, { completedDates: toggleHabitDate(habit, date) }); loadData(); };
-    const handleDelete = (id: string) => { deleteHabit(id); loadData(); setDeleteConfirm(null); };
+    useEffect(() => { loadData(); }, [currentUser]);
+
+    const lang = settings.language || 'bn';
+    const t = T[lang];
+
+    const handleAdd = async () => {
+        if (!newTitle.trim() || !currentUser) return;
+        try {
+            await saveHabit({ userId: currentUser.uid, title: newTitle, description: newDesc, completedDates: [], streak: 0, createdAt: Date.now() });
+            setNewTitle(''); setNewDesc(''); setShowAddModal(false);
+            await loadData();
+        } catch (error) {
+            console.error('Error adding habit:', error);
+        }
+    };
+
+    const handleToggle = async (habit: LocalHabit, date: Date) => {
+        try {
+            await updateHabit(habit.id, { completedDates: toggleHabitDate(habit, date) });
+            await loadData();
+        } catch (error) {
+            console.error('Error toggling habit:', error);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteHabit(id);
+            await loadData();
+            setDeleteConfirm(null);
+        } catch (error) {
+            console.error('Error deleting habit:', error);
+        }
+    };
+
+    if (loading) {
+        return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div></div>;
+    }
 
     return (
         <div className="h-full flex flex-col space-y-4 font-sans">

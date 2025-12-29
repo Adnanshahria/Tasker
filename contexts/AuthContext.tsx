@@ -15,7 +15,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  guestLogin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -24,39 +23,19 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   signup: async () => { },
   logout: async () => { },
-  guestLogin: () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-const LOCAL_STORAGE_KEY = 'tasker_guest_user';
-
-// Guest user type for local-only usage
-interface GuestUser {
-  uid: string;
-  email: null;
-  displayName: string;
-  isGuest: true;
-}
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | GuestUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for guest user first
-    const guestUser = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (guestUser) {
-      setCurrentUser(JSON.parse(guestUser));
-      setLoading(false);
-      return;
-    }
-
-    // Listen for Firebase auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
       if (user) {
-        setCurrentUser(user);
-        // Store user data in Firestore
+        // Create/update user document in Firestore
         try {
           const userDoc = doc(db, 'users', user.uid);
           const docSnap = await getDoc(userDoc);
@@ -68,10 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
           }
         } catch (e) {
-          console.log('Firestore sync skipped:', e);
+          console.log('Firestore sync error:', e);
         }
-      } else {
-        setCurrentUser(null);
       }
       setLoading(false);
     });
@@ -80,43 +57,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signup = async (email: string, password: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', userCredential.user.uid), {
-      email: email,
-      displayName: email.split('@')[0],
-      createdAt: Date.now(),
-    });
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email: email,
+        displayName: email.split('@')[0],
+        createdAt: Date.now(),
+      });
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('সঠিক ইমেইল দিন');
+      }
+      throw new Error('অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে');
+    }
   };
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        throw new Error('ভুল ইমেইল বা পাসওয়ার্ড');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('সঠিক ইমেইল দিন');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('অনেক চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন');
+      }
+      throw new Error('লগইন করতে সমস্যা হয়েছে');
+    }
   };
 
   const logout = async () => {
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
     await signOut(auth);
     setCurrentUser(null);
   };
 
-  const guestLogin = () => {
-    const guestUser: GuestUser = {
-      uid: 'guest_' + Math.random().toString(36).substring(2, 15),
-      email: null,
-      displayName: 'Guest',
-      isGuest: true,
-    };
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(guestUser));
-    setCurrentUser(guestUser as any);
-  };
-
   const value = {
-    currentUser: currentUser as any,
+    currentUser,
     loading,
     login,
     signup,
     logout,
-    guestLogin,
   };
 
   return (

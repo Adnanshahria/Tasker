@@ -1,100 +1,179 @@
-// Local Storage Data Service
-// Replaces Firebase Firestore with localStorage for fully offline operation
+// Firestore-based Data Service
+import { db } from '../firebase';
+import {
+    collection,
+    doc,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    setDoc,
+    getDoc
+} from 'firebase/firestore';
 
-const ASSIGNMENTS_KEY = 'zenith_assignments';
-const HABITS_KEY = 'zenith_habits';
-
+// Types
 export interface LocalAssignment {
     id: string;
     userId: string;
     title: string;
-    description?: string; // Optional description
+    description?: string;
     subject: string;
-    dueDate: number; // Unix timestamp (milliseconds)
-    startTime?: string; // HH:mm format (24-hour)
-    endTime?: string; // HH:mm format (24-hour)
+    dueDate: number;
+    startTime?: string;
+    endTime?: string;
     status: string;
     priority: string;
     type: string;
     weight?: number;
     score?: number;
     totalPoints?: number;
+    createdAt?: number;
 }
 
 export interface LocalHabit {
     id: string;
     userId: string;
     title: string;
-    description?: string; // Optional description
+    description?: string;
     completedDates: string[];
     streak?: number;
     createdAt?: number;
 }
 
-const generateId = () => 'id_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+export interface UserSettings {
+    subjects: string[];
+    types: string[];
+    statuses: string[];
+    priorities: string[];
+    language: 'en' | 'bn';
+}
 
-// --- Assignments ---
-export const getAssignments = (userId: string): LocalAssignment[] => {
-    const data = localStorage.getItem(ASSIGNMENTS_KEY);
-    const all: LocalAssignment[] = data ? JSON.parse(data) : [];
-    return all.filter(a => a.userId === userId).sort((a, b) => a.dueDate - b.dueDate);
+// Default Settings
+export const DEFAULT_SETTINGS_BN: UserSettings = {
+    subjects: ['পদার্থবিজ্ঞান', 'রসায়ন', 'গণিত', 'জীববিজ্ঞান', 'ICT', 'ইংরেজি', 'বাংলা'],
+    types: ['প্রজেক্ট', 'অ্যাসাইনমেন্ট', 'কুইজ', 'পরীক্ষা', 'Lab', 'প্রেজেন্টেশন'],
+    statuses: ['Not Started', 'চলছে', 'Completed'],
+    priorities: ['Low', 'Medium', 'Urgent', 'জরুরি'],
+    language: 'bn'
 };
 
-export const saveAssignment = (assignment: Omit<LocalAssignment, 'id'>): LocalAssignment => {
-    const data = localStorage.getItem(ASSIGNMENTS_KEY);
-    const all: LocalAssignment[] = data ? JSON.parse(data) : [];
-    const newAssignment = { ...assignment, id: generateId() };
-    all.push(newAssignment);
-    localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(all));
-    return newAssignment;
-};
-
-export const updateAssignment = (id: string, updates: Partial<LocalAssignment>): void => {
-    const data = localStorage.getItem(ASSIGNMENTS_KEY);
-    const all: LocalAssignment[] = data ? JSON.parse(data) : [];
-    const index = all.findIndex(a => a.id === id);
-    if (index !== -1) {
-        all[index] = { ...all[index], ...updates };
-        localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(all));
+// ==================== ASSIGNMENTS ====================
+export const getAssignments = async (userId: string): Promise<LocalAssignment[]> => {
+    try {
+        const q = query(
+            collection(db, 'assignments'),
+            where('userId', '==', userId),
+            orderBy('dueDate', 'asc')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LocalAssignment));
+    } catch (error) {
+        console.error('Error fetching assignments:', error);
+        return [];
     }
 };
 
-export const deleteAssignment = (id: string): void => {
-    const data = localStorage.getItem(ASSIGNMENTS_KEY);
-    let all: LocalAssignment[] = data ? JSON.parse(data) : [];
-    all = all.filter(a => a.id !== id);
-    localStorage.setItem(ASSIGNMENTS_KEY, JSON.stringify(all));
-};
-
-// --- Habits ---
-export const getHabits = (userId: string): LocalHabit[] => {
-    const data = localStorage.getItem(HABITS_KEY);
-    const all: LocalHabit[] = data ? JSON.parse(data) : [];
-    return all.filter(h => h.userId === userId);
-};
-
-export const saveHabit = (habit: Omit<LocalHabit, 'id'>): LocalHabit => {
-    const data = localStorage.getItem(HABITS_KEY);
-    const all: LocalHabit[] = data ? JSON.parse(data) : [];
-    const newHabit = { ...habit, id: generateId() };
-    all.push(newHabit);
-    localStorage.setItem(HABITS_KEY, JSON.stringify(all));
-    return newHabit;
-};
-
-export const updateHabit = (id: string, updates: Partial<LocalHabit>): void => {
-    const data = localStorage.getItem(HABITS_KEY);
-    const all: LocalHabit[] = data ? JSON.parse(data) : [];
-    const index = all.findIndex(h => h.id === id);
-    if (index !== -1) {
-        all[index] = { ...all[index], ...updates };
-        localStorage.setItem(HABITS_KEY, JSON.stringify(all));
+export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise<string> => {
+    try {
+        const docRef = await addDoc(collection(db, 'assignments'), {
+            ...data,
+            createdAt: Date.now()
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error('Error saving assignment:', error);
+        throw error;
     }
 };
 
-export const deleteHabit = (id: string): void => {
-    const data = localStorage.getItem(HABITS_KEY);
-    let all: LocalHabit[] = data ? JSON.parse(data) : [];
-    all = all.filter(h => h.id !== id);
-    localStorage.setItem(HABITS_KEY, JSON.stringify(all));
+export const updateAssignment = async (id: string, data: Partial<LocalAssignment>): Promise<void> => {
+    try {
+        await updateDoc(doc(db, 'assignments', id), data);
+    } catch (error) {
+        console.error('Error updating assignment:', error);
+        throw error;
+    }
+};
+
+export const deleteAssignment = async (id: string): Promise<void> => {
+    try {
+        await deleteDoc(doc(db, 'assignments', id));
+    } catch (error) {
+        console.error('Error deleting assignment:', error);
+        throw error;
+    }
+};
+
+// ==================== HABITS ====================
+export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
+    try {
+        const q = query(
+            collection(db, 'habits'),
+            where('userId', '==', userId)
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LocalHabit));
+    } catch (error) {
+        console.error('Error fetching habits:', error);
+        return [];
+    }
+};
+
+export const saveHabit = async (data: Omit<LocalHabit, 'id'>): Promise<string> => {
+    try {
+        const docRef = await addDoc(collection(db, 'habits'), {
+            ...data,
+            createdAt: Date.now()
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error('Error saving habit:', error);
+        throw error;
+    }
+};
+
+export const updateHabit = async (id: string, data: Partial<LocalHabit>): Promise<void> => {
+    try {
+        await updateDoc(doc(db, 'habits', id), data);
+    } catch (error) {
+        console.error('Error updating habit:', error);
+        throw error;
+    }
+};
+
+export const deleteHabit = async (id: string): Promise<void> => {
+    try {
+        await deleteDoc(doc(db, 'habits', id));
+    } catch (error) {
+        console.error('Error deleting habit:', error);
+        throw error;
+    }
+};
+
+// ==================== SETTINGS ====================
+export const getSettings = async (userId: string): Promise<UserSettings> => {
+    try {
+        const docRef = doc(db, 'settings', userId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data() as UserSettings;
+        }
+        // Return default settings if not found
+        return DEFAULT_SETTINGS_BN;
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        return DEFAULT_SETTINGS_BN;
+    }
+};
+
+export const saveSettings = async (userId: string, settings: UserSettings): Promise<void> => {
+    try {
+        await setDoc(doc(db, 'settings', userId), settings);
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        throw error;
+    }
 };

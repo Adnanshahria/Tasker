@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,7 +12,7 @@ const Auth: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, signup, guestLogin } = useAuth();
+  const { login, signup } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,11 +29,6 @@ const Auth: React.FC = () => {
       setError(err.message || 'Something went wrong');
     }
     setLoading(false);
-  };
-
-  const handleGuest = () => {
-    guestLogin();
-    navigate('/');
   };
 
   return (
@@ -79,10 +74,11 @@ const Auth: React.FC = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-3 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                placeholder="••••••••"
+                placeholder="কমপক্ষে ৬ অক্ষর"
               />
               <button
                 type="button"
@@ -96,32 +92,19 @@ const Auth: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-indigo-500/20"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
           >
-            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
+            {loading && <Loader2 size={20} className="animate-spin" />}
+            {loading ? 'অপেক্ষা করুন...' : isLogin ? 'সাইন ইন' : 'অ্যাকাউন্ট তৈরি করুন'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <div className="relative mb-4">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700"></div></div>
-            <div className="relative flex justify-center text-sm"><span className="px-2 bg-slate-900 text-slate-500">Or continue with</span></div>
-          </div>
-          <button
-            type="button"
-            onClick={handleGuest}
-            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-3 rounded-lg transition-all mb-4"
-          >
-            Guest Login (Local Only)
-          </button>
-        </div>
-
-        <div className="mt-2 text-center">
           <button
             onClick={() => setIsLogin(!isLogin)}
             className="text-slate-400 hover:text-white text-sm transition-colors"
           >
-            {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+            {isLogin ? 'অ্যাকাউন্ট নেই? সাইন আপ করুন' : 'আগে থেকে অ্যাকাউন্ট আছে? সাইন ইন করুন'}
           </button>
         </div>
       </motion.div>

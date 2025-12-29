@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAssignments, saveAssignment, updateAssignment, deleteAssignment, LocalAssignment } from '../../services/dataService';
-import { getSettings } from '../../services/settings';
+import { getAssignments, saveAssignment, updateAssignment, deleteAssignment, getSettings, LocalAssignment, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
 
 import AssignmentModal from '../AssignmentModal';
 import ConfirmModal from '../ui/ConfirmModal';
@@ -18,61 +17,90 @@ const AssignmentTracker: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [subjectFilter, setSubjectFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [lang, setLang] = useState<'en' | 'bn'>('bn');
-    const [subjects, setSubjects] = useState<string[]>([]);
-    const [types, setTypes] = useState<string[]>([]);
-    const [statuses, setStatuses] = useState<string[]>([]);
-    const [priorities, setPriorities] = useState<string[]>([]);
+    const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS_BN);
+    const [loading, setLoading] = useState(true);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [form, setForm] = useState(createInitialFormState());
 
-    const loadData = () => {
+    const loadData = async () => {
         if (!currentUser) return;
-        setAssignments(getAssignments(currentUser.uid));
-        const s = getSettings(currentUser.uid);
-        setSubjects(s.subjects); setTypes(s.types); setStatuses(s.statuses); setPriorities(s.priorities);
-        setLang(s.language || 'bn');
-        setForm(f => ({ ...f, type: s.types[0] || '', priority: s.priorities[1] || s.priorities[0] || '', status: s.statuses[0] || '' }));
+        setLoading(true);
+        try {
+            const [assignmentsData, settingsData] = await Promise.all([
+                getAssignments(currentUser.uid),
+                getSettings(currentUser.uid)
+            ]);
+            setAssignments(assignmentsData);
+            setSettings(settingsData);
+            setForm(f => ({ ...f, type: settingsData.types[0] || '', priority: settingsData.priorities[1] || '', status: settingsData.statuses[0] || '' }));
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+        setLoading(false);
     };
 
     useEffect(() => { loadData(); }, [currentUser]);
 
+    const lang = settings.language || 'bn';
     const t = T[lang];
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentUser) return;
         const data = { userId: currentUser.uid, title: form.title, description: form.description, subject: form.subject, dueDate: new Date(form.date).getTime(), priority: form.priority, status: form.status, type: form.type, startTime: form.startTime, endTime: form.endTime };
-        if (editingId) updateAssignment(editingId, data); else saveAssignment(data);
-        loadData(); closeModal();
+        try {
+            if (editingId) await updateAssignment(editingId, data);
+            else await saveAssignment(data);
+            await loadData();
+            closeModal();
+        } catch (error) {
+            console.error('Error saving:', error);
+        }
     };
 
-    const handleDelete = (id: string) => { deleteAssignment(id); loadData(); setDeleteConfirm(null); };
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteAssignment(id);
+            await loadData();
+            setDeleteConfirm(null);
+        } catch (error) {
+            console.error('Error deleting:', error);
+        }
+    };
 
-    const toggleStatus = (item: LocalAssignment) => {
-        const idx = statuses.indexOf(item.status);
-        updateAssignment(item.id, { status: statuses[(idx + 1) % statuses.length] });
-        loadData();
+    const toggleStatus = async (item: LocalAssignment) => {
+        const idx = settings.statuses.indexOf(item.status);
+        try {
+            await updateAssignment(item.id, { status: settings.statuses[(idx + 1) % settings.statuses.length] });
+            await loadData();
+        } catch (error) {
+            console.error('Error toggling status:', error);
+        }
     };
 
     const openEdit = (a: LocalAssignment) => {
         setForm({ title: a.title, description: a.description || '', subject: a.subject, date: format(new Date(a.dueDate), 'yyyy-MM-dd'), priority: a.priority, status: a.status, type: a.type || '', startTime: a.startTime || '', endTime: a.endTime || '' });
-        setEditingId(a.id); setIsModalOpen(true);
+        setEditingId(a.id);
+        setIsModalOpen(true);
     };
 
     const closeModal = () => { setForm(createInitialFormState()); setEditingId(null); setIsModalOpen(false); };
 
     const filtered = assignments.filter(a => {
         const matchSub = subjectFilter === 'All' || a.subject === subjectFilter;
-        const matchStat = statusFilter === 'All' || (statusFilter === 'Pending' ? a.status !== statuses[statuses.length - 1] : a.status === statusFilter);
+        const matchStat = statusFilter === 'All' || (statusFilter === 'Pending' ? a.status !== settings.statuses[settings.statuses.length - 1] : a.status === statusFilter);
         return matchSub && matchStat;
     });
+
+    if (loading) {
+        return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div></div>;
+    }
 
     return (
         <div className="h-full flex flex-col space-y-4">
             <Toolbar title={t.title} subjectFilter={subjectFilter} statusFilter={statusFilter} subjects={[...new Set(assignments.map(a => a.subject))]} onSubjectChange={setSubjectFilter} onStatusChange={setStatusFilter} onAddClick={() => setIsModalOpen(true)} t={t} />
             <Table assignments={filtered} t={t} lang={lang} onEdit={openEdit} onDelete={setDeleteConfirm} onToggleStatus={toggleStatus} onAddClick={() => setIsModalOpen(true)} />
-            <AssignmentModal isOpen={isModalOpen} editingId={editingId} title={form.title} description={form.description} subject={form.subject} date={form.date} type={form.type} priority={form.priority} status={form.status} startTime={form.startTime} endTime={form.endTime} setTitle={v => setForm(f => ({ ...f, title: v }))} setDescription={v => setForm(f => ({ ...f, description: v }))} setSubject={v => setForm(f => ({ ...f, subject: v }))} setDate={v => setForm(f => ({ ...f, date: v }))} setType={v => setForm(f => ({ ...f, type: v }))} setPriority={v => setForm(f => ({ ...f, priority: v }))} setStatus={v => setForm(f => ({ ...f, status: v }))} setStartTime={v => setForm(f => ({ ...f, startTime: v }))} setEndTime={v => setForm(f => ({ ...f, endTime: v }))} onSubmit={handleSubmit} onClose={closeModal} subjects={subjects} types={types} statuses={statuses} priorities={priorities} lang={lang} />
+            <AssignmentModal isOpen={isModalOpen} editingId={editingId} title={form.title} description={form.description} subject={form.subject} date={form.date} type={form.type} priority={form.priority} status={form.status} startTime={form.startTime} endTime={form.endTime} setTitle={v => setForm(f => ({ ...f, title: v }))} setDescription={v => setForm(f => ({ ...f, description: v }))} setSubject={v => setForm(f => ({ ...f, subject: v }))} setDate={v => setForm(f => ({ ...f, date: v }))} setType={v => setForm(f => ({ ...f, type: v }))} setPriority={v => setForm(f => ({ ...f, priority: v }))} setStatus={v => setForm(f => ({ ...f, status: v }))} setStartTime={v => setForm(f => ({ ...f, startTime: v }))} setEndTime={v => setForm(f => ({ ...f, endTime: v }))} onSubmit={handleSubmit} onClose={closeModal} subjects={settings.subjects} types={settings.types} statuses={settings.statuses} priorities={settings.priorities} lang={lang} />
             <ConfirmModal isOpen={!!deleteConfirm} title={t.deleteTitle} message={t.deleteMsg} confirmText={t.delete} cancelText={t.cancel} onConfirm={() => deleteConfirm && handleDelete(deleteConfirm)} onCancel={() => setDeleteConfirm(null)} />
         </div>
     );

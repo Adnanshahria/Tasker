@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS_BN, DEFAULT_SETTINGS_EN } from '../../services/settings';
+import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS_BN } from '../../services/dataService';
 
 import ConfirmModal from '../ui/ConfirmModal';
 import LanguageToggle from './LanguageToggle';
@@ -10,24 +10,61 @@ import { T, CATEGORY_CONFIG } from './translations';
 
 type Category = 'subjects' | 'types' | 'statuses' | 'priorities';
 
+const DEFAULT_EN: UserSettings = {
+    subjects: ['Physics', 'Chemistry', 'Math', 'Biology', 'ICT', 'English', 'Bangla'],
+    types: ['Project', 'Assignment', 'Quiz', 'Exam', 'Lab', 'Presentation'],
+    statuses: ['Not Started', 'In Progress', 'Completed'],
+    priorities: ['Low', 'Medium', 'High', 'Urgent'],
+    language: 'en'
+};
+
 const Settings: React.FC = () => {
     const { currentUser } = useAuth();
     const [settings, setSettings] = useState<UserSettings | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [editingItem, setEditingItem] = useState<{ category: Category; index: number; value: string } | null>(null);
     const [newItem, setNewItem] = useState<{ category: Category; value: string } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-    useEffect(() => { if (currentUser) setSettings(getSettings(currentUser.uid)); }, [currentUser]);
+    const loadSettings = async () => {
+        if (!currentUser) return;
+        setLoading(true);
+        try {
+            const data = await getSettings(currentUser.uid);
+            setSettings(data);
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            setSettings(DEFAULT_SETTINGS_BN);
+        }
+        setLoading(false);
+    };
 
-    const handleSave = (s: UserSettings) => { if (currentUser) { setSettings(s); saveSettings(currentUser.uid, s); } };
+    useEffect(() => { loadSettings(); }, [currentUser]);
+
+    const handleSave = async (s: UserSettings) => {
+        if (!currentUser) return;
+        setSaving(true);
+        try {
+            await saveSettings(currentUser.uid, s);
+            setSettings(s);
+        } catch (error) {
+            console.error('Error saving settings:', error);
+        }
+        setSaving(false);
+    };
 
     const handleLanguageChange = (l: 'en' | 'bn') => settings && handleSave({ ...settings, language: l });
     const handleAdd = (cat: Category) => { if (!newItem?.value.trim() || !settings || settings[cat].includes(newItem.value.trim())) return; handleSave({ ...settings, [cat]: [...settings[cat], newItem.value.trim()] }); setNewItem(null); };
     const handleDelete = (cat: Category, idx: number) => settings && handleSave({ ...settings, [cat]: settings[cat].filter((_, i) => i !== idx) });
     const handleRename = () => { if (!editingItem?.value.trim() || !settings) return; const u = { ...settings }; u[editingItem.category][editingItem.index] = editingItem.value.trim(); handleSave(u); setEditingItem(null); };
-    const handleReset = () => { if (!currentUser || !settings) return; handleSave(settings.language === 'en' ? DEFAULT_SETTINGS_EN : DEFAULT_SETTINGS_BN); setShowResetConfirm(false); };
+    const handleReset = () => { if (!currentUser || !settings) return; handleSave(settings.language === 'en' ? DEFAULT_EN : DEFAULT_SETTINGS_BN); setShowResetConfirm(false); };
 
-    if (!settings) return <div className="text-slate-500">Loading...</div>;
+    if (loading) {
+        return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div></div>;
+    }
+
+    if (!settings) return <div className="text-slate-500">Error loading settings</div>;
 
     const lang = settings.language || 'bn';
     const t = T[lang];
@@ -40,9 +77,12 @@ const Settings: React.FC = () => {
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.settingsTitle}</h1>
                     <p className="text-slate-400 text-sm">{t.customizeDesc}</p>
                 </div>
-                <button onClick={() => setShowResetConfirm(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-400 hover:text-white hover:border-indigo-500/50 text-sm transition-all">
-                    <RotateCcw size={14} /> {t.resetToDefault}
-                </button>
+                <div className="flex items-center gap-2">
+                    {saving && <Loader2 size={16} className="animate-spin text-indigo-400" />}
+                    <button onClick={() => setShowResetConfirm(true)} className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-slate-400 hover:text-white hover:border-indigo-500/50 text-sm transition-all">
+                        <RotateCcw size={14} /> {t.resetToDefault}
+                    </button>
+                </div>
             </div>
             <LanguageToggle lang={lang} label={t.language} englishLabel={t.english} banglaLabel={t.bangla} onLanguageChange={handleLanguageChange} />
             {(['subjects', 'types', 'statuses', 'priorities'] as Category[]).map(cat => (

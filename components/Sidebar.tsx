@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Sprout, LogOut, X, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSettings } from '../services/settings';
+import { getSettings, DEFAULT_SETTINGS_BN } from '../services/dataService';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,14 +20,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const [lang, setLang] = useState<'en' | 'bn'>('bn');
 
   useEffect(() => {
-    if (currentUser) {
-      const settings = getSettings(currentUser.uid);
-      setLang(settings.language || 'bn');
-    }
+    const loadLang = async () => {
+      if (currentUser) {
+        try {
+          const settings = await getSettings(currentUser.uid);
+          setLang(settings.language || 'bn');
+        } catch (e) {
+          console.log('Error loading settings for sidebar');
+        }
+      }
+    };
+    loadLang();
   }, [currentUser]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/auth');
   };
 
@@ -52,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         flex flex-col
       `}>
-        {/* Header - Tasker Branding */}
+        {/* Header */}
         <div className="p-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -73,10 +80,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               to={item.path}
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => `
-                flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                flex items-center gap-3 px-4 py-3 rounded-xl transition-all
                 ${isActive
-                  ? `bg-${item.color}-500/10 text-${item.color}-400 border border-${item.color}-500/20 shadow-lg shadow-${item.color}-500/5`
-                  : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-indigo-600/20 to-purple-600/10 text-white border border-indigo-500/30'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }
               `}
             >
@@ -88,7 +95,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
         {/* Footer */}
         <div className="p-4 border-t border-white/5">
-          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/5 rounded-xl transition-colors">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-red-500/10 transition-all"
+          >
             <LogOut size={20} />
             <span className="font-medium">{t.logout}</span>
           </button>
