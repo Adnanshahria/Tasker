@@ -124,7 +124,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                     </button>
                 </div>
 
-                {/* Time Display */}
+                {/* Time Display - 12-hour format */}
                 <div className="flex items-center justify-center gap-2 mb-4">
                     <button
                         onClick={() => setMode('hours')}
@@ -133,7 +133,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                 : 'text-slate-500 hover:text-slate-300'
                             }`}
                     >
-                        {hours.toString().padStart(2, '0')}
+                        {(hours % 12 === 0 ? 12 : hours % 12).toString().padStart(2, '0')}
                     </button>
                     <span className="text-4xl font-bold text-slate-500">:</span>
                     <button
@@ -187,8 +187,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                 key={hour12}
                                 onClick={() => handleHourClick(hour12)}
                                 className={`absolute w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold transition-all z-10 ${isSelected
-                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
+                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
+                                    : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
                                     }`}
                                 style={{
                                     left: `${x}px`,
@@ -205,8 +205,8 @@ const TimePicker: React.FC<TimePickerProps> = ({ isOpen, value, onChange, onClos
                                 key={minute}
                                 onClick={() => handleMinuteClick(minute)}
                                 className={`absolute w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold transition-all z-10 ${isSelected
-                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
+                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white scale-110 shadow-lg'
+                                    : 'text-slate-300 hover:text-white hover:bg-slate-600/70'
                                     }`}
                                 style={{
                                     left: `${x}px`,
