@@ -135,7 +135,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error.message.includes('Email not confirmed')) {
         throw new Error('Please confirm your email address first.');
       }
-      throw new Error('Invalid email or password');
+      // Supabase generally returns "Invalid login credentials" for both to prevent user enumeration.
+      // However, we'll pass through distinct messages if they exist.
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Wrong email or password');
+      }
+      throw error; // Let the actual error message bubble up (e.g., "User not found" if enabled)
     }
   };
 
