@@ -67,6 +67,7 @@ export interface LocalHabit {
     description?: string;
     completedDates: string[];
     streak?: number;
+    order?: number;
     createdAt?: number;
 }
 
@@ -320,9 +321,50 @@ export const getHabits = async (userId: string): Promise<LocalHabit[]> => {
         description: h.description,
         completedDates: h.completedDates,
         streak: h.streak,
+        order: h.order,
         createdAt: h.createdAt,
-    }));
+    })).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
 };
+
+// Reorder habits - updates order field for all habits
+export const reorderHabits = async (userId: string, orderedIds: string[]): Promise<void> => {
+    if (!userId) return;
+
+    const localData = getLocalHabits(userId);
+    const now = Date.now();
+
+    // Update order for each habit
+    const updatedHabits = localData.map(habit => {
+        const newOrder = orderedIds.indexOf(habit.id);
+        return {
+            ...habit,
+            order: newOrder >= 0 ? newOrder : 9999,
+            updatedAt: now,
+            syncStatus: 'pending' as const,
+        };
+    });
+
+    // Save all updated habits
+    saveLocalHabits(userId, updatedHabits);
+    console.log('[Data] Habits reordered locally');
+
+    // Queue each habit update for sync
+    updatedHabits.forEach(habit => {
+        addPendingOperation({
+            type: 'update',
+            collection: 'habits',
+            docId: habit.id,
+            data: habit,
+            userId,
+        });
+    });
+
+    // Try immediate sync if online
+    if (isOnline()) {
+        processPendingOperations();
+    }
+};
+
 
 // Background sync function for habits
 const syncHabitsInBackground = async (userId: string, localData: StoredHabit[]) => {

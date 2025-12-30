@@ -97,6 +97,13 @@ const AssignmentTracker: React.FC = () => {
         const matchSub = subjectFilter === 'All' || a.subject === subjectFilter;
         const matchStat = statusFilter === 'All' || (statusFilter === 'Pending' ? a.status !== settings.statuses[settings.statuses.length - 1] : a.status === statusFilter);
         return matchSub && matchStat;
+    }).sort((a, b) => {
+        // Sort by startTime - earliest first, items without startTime go to the end
+        if (!a.startTime && !b.startTime) return 0;
+        if (!a.startTime) return 1; // a goes after b
+        if (!b.startTime) return -1; // b goes after a
+        // Compare times (format is HH:MM)
+        return a.startTime.localeCompare(b.startTime);
     });
 
     if (loading) {

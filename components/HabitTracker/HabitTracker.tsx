@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Check } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getHabits, saveHabit, updateHabit, deleteHabit, getSettings, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
+import { getHabits, saveHabit, updateHabit, deleteHabit, reorderHabits, getSettings, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
 
 import ConfirmModal from '../ui/ConfirmModal';
 import Toolbar from './Toolbar';
@@ -85,6 +85,21 @@ const HabitTracker: React.FC = () => {
         }
     };
 
+    const handleReorder = async (orderedIds: string[]) => {
+        if (!currentUser) return;
+        // Optimistic update - reorder in UI immediately
+        const reorderedHabits = orderedIds
+            .map(id => habits.find(h => h.id === id))
+            .filter((h): h is LocalHabit => h !== undefined);
+        setHabits(reorderedHabits);
+        try {
+            await reorderHabits(currentUser.uid, orderedIds);
+        } catch (error) {
+            console.error('Error reordering habits:', error);
+            await loadData(); // Revert on error
+        }
+    };
+
     if (loading) {
         return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div></div>;
     }
@@ -94,7 +109,7 @@ const HabitTracker: React.FC = () => {
             <Toolbar title={t.title} addLabel={t.addHabit} selectedMonth={selectedMonth} selectedYear={selectedYear} showPicker={showMonthPicker} yearOptions={yearOptions} onPickerToggle={() => setShowMonthPicker(!showMonthPicker)} onMonthSelect={m => { setSelectedMonth(m); setShowMonthPicker(false); }} onYearSelect={setSelectedYear} onAddClick={() => setShowAddModal(true)} />
             <div className="flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xl">
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
-                    <Table habits={habits} daysInMonth={daysInMonth} t={t} lang={lang} onToggle={handleToggle} onDelete={setDeleteConfirm} />
+                    <Table habits={habits} daysInMonth={daysInMonth} t={t} lang={lang} onToggle={handleToggle} onDelete={setDeleteConfirm} onReorder={handleReorder} />
                     {habits.length === 0 && <EmptyState t={t} />}
                 </div>
             </div>
