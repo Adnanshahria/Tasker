@@ -10,6 +10,7 @@ const BottomNav = lazy(() => import('./components/BottomNav'));
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const AssignmentTracker = lazy(() => import('./components/AssignmentTracker'));
 const HabitTracker = lazy(() => import('./components/HabitTracker'));
+const FocusTimer = lazy(() => import('./components/FocusTimer'));
 const Settings = lazy(() => import('./components/Settings'));
 const Auth = lazy(() => import('./components/Auth'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
@@ -99,6 +100,7 @@ const App: React.FC = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
           <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
           <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

@@ -6,14 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0f172a" />
   <meta name="description" content="Ogrogoti - Track assignments, habits and boost productivity" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <!-- Preconnect to external domains for faster loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
-  <link rel="preconnect" href="https://esm.sh" />
 
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
@@ -96,32 +95,38 @@
       }
     }
   </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
-    "firebase/": "https://esm.sh/firebase@^12.7.0/",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "date-fns": "https://esm.sh/date-fns@^4.1.0"
-  }
-}
-</script>
+  <!-- Note: Imports are handled by Vite from node_modules -->
 </head>
 
 <body>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
   <script>
-    // Register Service Worker for PWA
+    // Register Service Worker for PWA (only in production)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => { });
-      });
+      // Skip SW registration in development (Vite dev server)
+      const isDev = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+      if (isDev) {
+        // Unregister any existing service workers in dev mode
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => {
+            registration.unregister();
+            console.log('[SW] Unregistered service worker for dev mode');
+          });
+        });
+        // Clear caches
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+          });
+        }
+      } else {
+        // Production: register service worker
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => { });
+        });
+      }
     }
   </script>
 </body>

@@ -1,17 +1,14 @@
 // Enhanced Service Worker for Offline-First PWA
 // Caches static assets and provides offline fallback
 
-const CACHE_NAME = 'ogrogoti-v4';
-const STATIC_CACHE = 'ogrogoti-static-v4';
-const DYNAMIC_CACHE = 'ogrogoti-dynamic-v4';
+const CACHE_NAME = 'ogrogoti-v5';
+const STATIC_CACHE = 'ogrogoti-static-v5';
+const DYNAMIC_CACHE = 'ogrogoti-dynamic-v5';
 
-// Static assets to cache on install
+// Static assets to cache on install (only essential ones)
 const urlsToCache = [
     '/',
-    '/index.html',
-    '/manifest.json',
-    '/icons/icon-192.svg',
-    '/icons/icon-512.svg'
+    '/index.html'
 ];
 
 // Install event - cache static assets
@@ -19,12 +16,25 @@ self.addEventListener('install', (event) => {
     console.log('[SW] Installing service worker...');
     event.waitUntil(
         caches.open(STATIC_CACHE)
-            .then((cache) => {
+            .then(async (cache) => {
                 console.log('[SW] Caching static assets');
-                return cache.addAll(urlsToCache);
+                // Cache each URL individually, ignore failures
+                for (const url of urlsToCache) {
+                    try {
+                        await cache.add(url);
+                    } catch (error) {
+                        console.warn('[SW] Failed to cache:', url, error);
+                        // Continue with other URLs
+                    }
+                }
             })
             .then(() => {
                 // Force waiting service worker to become active
+                return self.skipWaiting();
+            })
+            .catch((error) => {
+                console.warn('[SW] Install failed:', error);
+                // Still skip waiting even on error
                 return self.skipWaiting();
             })
     );
@@ -72,6 +82,20 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip WebSocket and HMR requests (dev mode)
+    if (url.pathname.includes('__vite') ||
+        url.pathname.includes('@vite') ||
+        url.pathname.includes('@react-refresh') ||
+        url.protocol === 'ws:' ||
+        url.protocol === 'wss:') {
+        return;
+    }
+
+    // Skip external CDN requests
+    if (url.hostname !== self.location.hostname) {
+        return;
+    }
+
     event.respondWith(
         caches.match(request)
             .then((cachedResponse) => {
@@ -96,14 +120,17 @@ self.addEventListener('fetch', (event) => {
                 return fetch(request)
                     .then((networkResponse) => {
                         // Don't cache if not a valid response
-                        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+                        if (!networkResponse || networkResponse.status !== 200) {
                             return networkResponse;
                         }
 
-                        // Cache the response for future
-                        const responseToCache = networkResponse.clone();
-                        caches.open(DYNAMIC_CACHE)
-                            .then((cache) => cache.put(request, responseToCache));
+                        // Only cache same-origin responses
+                        if (networkResponse.type === 'basic' || networkResponse.type === 'cors') {
+                            const responseToCache = networkResponse.clone();
+                            caches.open(DYNAMIC_CACHE)
+                                .then((cache) => cache.put(request, responseToCache))
+                                .catch(() => { });
+                        }
 
                         return networkResponse;
                     })

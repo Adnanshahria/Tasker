@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Sprout, Settings } from 'lucide-react';
+import { LayoutDashboard, Timer, CheckSquare, Sprout, Settings } from 'lucide-react';
 
 const BottomNav: React.FC = () => {
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Home' },
+        { to: '/focus', icon: Timer, label: 'Focus' },
         { to: '/assignments', icon: CheckSquare, label: 'Tasks' },
         { to: '/habits', icon: Sprout, label: 'Habits' },
         { to: '/settings', icon: Settings, label: 'Settings' },

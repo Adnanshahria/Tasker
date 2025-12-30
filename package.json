@@ -18,7 +18,9 @@
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.11.0",
-    "recharts": "^3.6.0"
+    "recharts": "^3.6.0",
+    "tone": "^15.0.4",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

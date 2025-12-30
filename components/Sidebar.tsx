@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Sprout, LogOut, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Timer, CheckSquare, Sprout, LogOut, X, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getSettings, DEFAULT_SETTINGS } from '../services/dataService';
 
@@ -10,8 +10,8 @@ interface SidebarProps {
 }
 
 const T = {
-  en: { dashboard: 'Dashboard', assignments: 'Assignments', habits: 'Habits', settings: 'Settings', logout: 'Sign Out' },
-  bn: { dashboard: 'ড্যাশবোর্ড', assignments: 'অ্যাসাইনমেন্ট', habits: 'অভ্যাস', settings: 'সেটিংস', logout: 'লগ আউট' }
+  en: { dashboard: 'Dashboard', focus: 'Focus', assignments: 'Assignments', habits: 'Habits', settings: 'Settings', logout: 'Sign Out' },
+  bn: { dashboard: 'ড্যাশবোর্ড', focus: 'ফোকাস', assignments: 'অ্যাসাইনমেন্ট', habits: 'অভ্যাস', settings: 'সেটিংস', logout: 'লগ আউট' }
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
@@ -42,6 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const navItems = [
     { name: t.dashboard, icon: LayoutDashboard, path: '/', color: 'indigo' },
+    { name: t.focus, icon: Timer, path: '/focus', color: 'rose' },
     { name: t.assignments, icon: CheckSquare, path: '/assignments', color: 'amber' },
     { name: t.habits, icon: Sprout, path: '/habits', color: 'emerald' },
     { name: t.settings, icon: Settings, path: '/settings', color: 'slate' },

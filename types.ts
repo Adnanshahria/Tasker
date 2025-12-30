@@ -35,3 +35,25 @@ export interface ChartDataPoint {
   name: string;
   value: number;
 }
+
+// Focus Timer Types
+export type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak';
+
+export interface FocusSession {
+  id: string;
+  userId: string;
+  startTime: number; // Unix timestamp
+  endTime: number; // Unix timestamp
+  duration: number; // minutes
+  type: TimerMode | 'manual';
+  completed: boolean;
+}
+
+export interface FocusRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  userId: string;
+  totalFocusMinutes: number;
+  totalPomos: number;
+  sessions: FocusSession[];
+}
