@@ -106,9 +106,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
-      if (data.user) {
-        handleUser(data.user);
-        // Create profile in 'users' table if you have one, or trigger does it
+
+      if (data.session) {
+        handleUser(data.session.user);
+      } else if (data.user) {
+        // User created but email confirmation required
+        throw new Error('Account created! Please check your email to confirm.');
       }
     } catch (error: any) {
       console.error('Signup error:', error);
