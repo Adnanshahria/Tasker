@@ -11,7 +11,16 @@ interface WeekChartProps {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 
 const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
-    const [weekStartsOn, setWeekStartsOn] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(1); // Default Monday
+    const [weekStartsOn, setWeekStartsOn] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(() => {
+        const saved = localStorage.getItem('weekStartsOn');
+        return saved ? (parseInt(saved) as 0 | 1 | 2 | 3 | 4 | 5 | 6) : 1;
+    });
+
+    const handleSetWeekStart = (dayIndex: 0 | 1 | 2 | 3 | 4 | 5 | 6) => {
+        setWeekStartsOn(dayIndex);
+        localStorage.setItem('weekStartsOn', dayIndex.toString());
+    };
+
     const { getWeeklyData, calculateWeeklyStats } = useFocusDashboard();
     const dailyGoal = useTimerStore((state) => state.dailyGoal);
 
@@ -62,10 +71,10 @@ const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
                     {DAYS.map((day, i) => (
                         <button
                             key={day}
-                            onClick={() => setWeekStartsOn(i as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
+                            onClick={() => handleSetWeekStart(i as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
                             className={`px-2 py-1 text-xs rounded transition-colors ${weekStartsOn === i
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-slate-400 hover:bg-slate-700'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-slate-400 hover:bg-slate-700'
                                 }`}
                         >
                             {day}

@@ -204,8 +204,8 @@ const TodayChart: React.FC<TodayChartProps> = ({ className = '' }) => {
                                     dataKey="hour"
                                     axisLine={false}
                                     tickLine={false}
-                                    tick={{ fill: '#64748b', fontSize: 9 }}
-                                    interval={5}
+                                    tick={{ fill: '#64748b', fontSize: 10 }}
+                                    interval={2}
                                 />
                                 <YAxis
                                     axisLine={false}

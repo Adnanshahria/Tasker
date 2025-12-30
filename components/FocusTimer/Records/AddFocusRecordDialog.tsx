@@ -4,6 +4,7 @@ import { X, Calendar, Clock, Minus, Plus, ChevronLeft, ChevronRight } from 'luci
 import { format, set, isFuture, getDaysInMonth, startOfMonth, getDay } from 'date-fns';
 import { useAuth } from '../../../contexts/AuthContext';
 import { logManualSession } from '../../../services/focusDataService';
+import TimePicker from './TimePicker';
 
 interface AddFocusRecordDialogProps {
     isOpen: boolean;
@@ -245,54 +246,16 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
                             <label className="flex items-center gap-2 text-sm text-slate-400 mb-2">
                                 <Clock size={14} /> Time
                             </label>
-                            <div className="flex items-center gap-2">
-                                {/* Hour */}
-                                <div className="flex-1 relative">
-                                    <select
-                                        value={hour}
-                                        onChange={(e) => setHour(parseInt(e.target.value))}
-                                        className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-center appearance-none focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
-                                            <option key={h} value={h}>{String(h).padStart(2, '0')}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <span className="text-2xl text-slate-500 font-light">:</span>
-                                {/* Minute */}
-                                <div className="flex-1 relative">
-                                    <select
-                                        value={minute}
-                                        onChange={(e) => setMinute(parseInt(e.target.value))}
-                                        className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-center appearance-none focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        {Array.from({ length: 12 }, (_, i) => i * 5).map(m => (
-                                            <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {/* AM/PM Toggle */}
-                                <div className="flex rounded-xl overflow-hidden border border-slate-600/50">
-                                    <button
-                                        onClick={() => setAmpm('am')}
-                                        className={`px-4 py-3 text-sm font-medium transition-colors ${ampm === 'am'
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-slate-700/50 text-slate-400 hover:text-white'
-                                            }`}
-                                    >
-                                        AM
-                                    </button>
-                                    <button
-                                        onClick={() => setAmpm('pm')}
-                                        className={`px-4 py-3 text-sm font-medium transition-colors ${ampm === 'pm'
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-slate-700/50 text-slate-400 hover:text-white'
-                                            }`}
-                                    >
-                                        PM
-                                    </button>
-                                </div>
-                            </div>
+                            <TimePicker
+                                hour={hour}
+                                minute={minute}
+                                ampm={ampm}
+                                onChange={(h, m, a) => {
+                                    setHour(h);
+                                    setMinute(m);
+                                    setAmpm(a);
+                                }}
+                            />
                         </div>
 
                         {/* Quick Duration Buttons */}

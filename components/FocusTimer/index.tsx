@@ -14,6 +14,7 @@ const FocusTimer: React.FC = () => {
     const { recordSession, getTodayStats, getAllTimeStats } = useSessionRecorder();
     const durations = useTimerStore((state) => state.durations);
     const setDurations = useTimerStore((state) => state.setDurations);
+    const dailyGoal = useTimerStore((state) => state.dailyGoal);
 
     const [showFloatingTimer, setShowFloatingTimer] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -151,124 +152,135 @@ const FocusTimer: React.FC = () => {
             />
 
             {/* Main View */}
-            <div className="h-full overflow-y-auto pb-24">
-                <div className="max-w-md mx-auto px-4">
+            <div className={`h-full overflow-y-auto pb-24 ${(showRecords || showFloatingTimer) ? 'hidden' : ''}`}>
+                <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-8 h-full flex flex-col md:justify-center">
                     {/* Header */}
-                    <div className="flex items-center justify-between py-3">
-                        <span className="text-lg font-semibold text-violet-400">Ogrogoti</span>
+                    <div className="flex items-center justify-between py-3 mb-4 md:mb-8">
+                        <span className="text-lg font-semibold text-violet-400 hidden md:block">Ogrogoti</span>
                         <div className="flex gap-2">
-                            <button onClick={() => setShowFloatingTimer(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs">
+                            <button onClick={() => setShowFloatingTimer(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
                                 Deep Focus
                             </button>
-                            <button onClick={() => setShowRecords(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs">
+                            <button onClick={() => setShowRecords(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
                                 Record
                             </button>
-                            <button onClick={() => setShowSettings(true)} className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400">
+                            <button onClick={() => setShowSettings(true)} className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white transition-colors">
                                 <SettingsIcon size={16} />
                             </button>
                         </div>
                     </div>
 
-                    {/* Timer Card */}
-                    <div className="bg-slate-800/30 rounded-3xl p-6 mt-2">
-                        {/* Mode Selector */}
-                        <div className="flex justify-center mb-4">
-                            <div className="flex bg-slate-800/60 rounded-full p-1">
-                                {modes.map(({ key, label }) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => !isActive && setMode(key)}
-                                        className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${mode === key ? 'bg-slate-700 text-white' : 'text-slate-400'
-                                            } ${isActive ? 'cursor-not-allowed' : ''}`}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:items-center">
+                        {/* Left Column: Timer Card */}
+                        <div className="bg-slate-800/30 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm border border-white/5">
+                            {/* Background Glow */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-violet-500/20 blur-[80px] rounded-full pointer-events-none" />
+
+                            {/* Mode Selector */}
+                            <div className="flex justify-center mb-8 relative z-10">
+                                <div className="flex bg-slate-800/60 rounded-full p-1 border border-white/5">
+                                    {modes.map(({ key, label }) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => !isActive && setMode(key)}
+                                            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${mode === key ? 'bg-slate-700 text-white shadow-lg' : 'text-slate-400 hover:text-slate-300'
+                                                } ${isActive ? 'cursor-not-allowed opacity-50' : ''}`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Circular Timer */}
-                        <div className="relative flex items-center justify-center py-4">
-                            <svg width={size} height={size} className="transform -rotate-90">
-                                <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(71, 85, 105, 0.3)" strokeWidth={strokeWidth} />
-                                <motion.circle
-                                    cx={size / 2} cy={size / 2} r={radius}
-                                    fill="none"
-                                    stroke={mode === 'pomodoro' ? '#8b5cf6' : '#10b981'}
-                                    strokeWidth={strokeWidth}
-                                    strokeLinecap="round"
-                                    strokeDasharray={circumference}
-                                    strokeDashoffset={strokeDashoffset}
-                                    initial={false}
-                                    animate={{ strokeDashoffset }}
-                                    transition={{ duration: 0.3 }}
-                                />
-                            </svg>
+                            {/* Circular Timer */}
+                            <div className="relative flex items-center justify-center py-4 z-10">
+                                <svg width={size} height={size} className="transform -rotate-90 drop-shadow-2xl">
+                                    <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(71, 85, 105, 0.2)" strokeWidth={strokeWidth} />
+                                    <motion.circle
+                                        cx={size / 2} cy={size / 2} r={radius}
+                                        fill="none"
+                                        stroke={mode === 'pomodoro' ? '#8b5cf6' : '#10b981'}
+                                        strokeWidth={strokeWidth}
+                                        strokeLinecap="round"
+                                        strokeDasharray={circumference}
+                                        strokeDashoffset={strokeDashoffset}
+                                        initial={false}
+                                        animate={{ strokeDashoffset }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                </svg>
 
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-5xl font-bold text-white tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                    {formattedTime}
-                                </span>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-6xl font-bold text-white tracking-tighter" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        {formattedTime}
+                                    </span>
+                                    <span className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-2">
+                                        {isActive ? 'Focusing' : 'Ready'}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Controls */}
-                        <div className="flex items-center justify-center gap-4 mt-2">
-                            <button onClick={() => { /* subtract time */ }} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-700/50 text-slate-400">
-                                <Minus size={20} />
+                            {/* Controls */}
+                            <div className="flex items-center justify-center gap-6 mt-8 z-10 relative">
+                                <button onClick={() => { /* subtract time */ }} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-700/30 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all">
+                                    <Minus size={20} />
+                                </button>
+
+                                <button
+                                    onClick={toggle}
+                                    className="w-20 h-20 flex items-center justify-center rounded-full bg-gradient-to-b from-slate-700 to-slate-800 border border-t-slate-600 border-b-slate-900 text-white active:scale-95 transition-all shadow-xl shadow-black/20 hover:shadow-violet-500/10"
+                                >
+                                    {isActive ? (
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                                    ) : (
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white" className="ml-1"><path d="M5 3l14 9-14 9V3z" /></svg>
+                                    )}
+                                </button>
+
+                                <button onClick={() => { /* add time */ }} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-700/30 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-all">
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+
+                            {/* End Session */}
+                            <button onClick={handleEndSession} className="w-full mt-8 py-2 text-slate-500 text-xs hover:text-red-400 transition-colors z-10 relative">
+                                End Current Session
                             </button>
-
-                            <button
-                                onClick={toggle}
-                                className="w-16 h-16 flex items-center justify-center rounded-full bg-slate-700 text-white active:scale-95 transition-transform"
-                            >
-                                {isActive ? (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" /><rect x="14" y="4" width="4" height="16" /></svg>
-                                ) : (
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21" /></svg>
-                                )}
-                            </button>
-
-                            <button onClick={() => { /* add time */ }} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-700/50 text-slate-400">
-                                <Plus size={20} />
-                            </button>
                         </div>
 
-                        {/* End Session */}
-                        <button onClick={handleEndSession} className="w-full mt-6 py-2 text-slate-400 text-sm">
-                            End Session
-                        </button>
-                    </div>
+                        {/* Right Column: Stats Cards */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-violet-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300">
+                                <div className="p-3 rounded-xl bg-violet-500/10 shadow-inner">
+                                    <Clock size={24} className="text-violet-400" />
+                                </div>
+                                <div>
+                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">TODAY'S FOCUS</span>
+                                    <p className="text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</p>
+                                </div>
+                            </div>
 
-                    {/* Stats Cards */}
-                    <div className="mt-4 space-y-3">
-                        <div className="flex items-center gap-4 p-4 bg-slate-800/40 rounded-xl border-l-4 border-violet-500">
-                            <div className="p-2.5 rounded-full bg-violet-500/20">
-                                <Clock size={18} className="text-violet-400" />
+                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-purple-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75">
+                                <div className="p-3 rounded-xl bg-purple-500/10 shadow-inner">
+                                    <Calendar size={24} className="text-purple-400" />
+                                </div>
+                                <div>
+                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">THIS WEEK</span>
+                                    <p className="text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</p>
+                                </div>
                             </div>
-                            <div>
-                                <span className="text-[11px] text-slate-500 uppercase tracking-wider">TODAY</span>
-                                <p className="text-lg font-semibold text-white -mt-0.5">{formatTime(todayStats.totalFocusMinutes)}</p>
-                            </div>
-                        </div>
 
-                        <div className="flex items-center gap-4 p-4 bg-slate-800/40 rounded-xl border-l-4 border-purple-500">
-                            <div className="p-2.5 rounded-full bg-purple-500/20">
-                                <Calendar size={18} className="text-purple-400" />
-                            </div>
-                            <div>
-                                <span className="text-[11px] text-slate-500 uppercase tracking-wider">THIS WEEK</span>
-                                <p className="text-lg font-semibold text-white -mt-0.5">{formatTime(todayStats.totalFocusMinutes)}</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 p-4 bg-slate-800/40 rounded-xl border-l-4 border-emerald-500">
-                            <div className="p-2.5 rounded-full bg-emerald-500/20">
-                                <Target size={18} className="text-emerald-400" />
-                            </div>
-                            <div>
-                                <span className="text-[11px] text-slate-500 uppercase tracking-wider">DAILY GOAL</span>
-                                <p className="text-lg font-semibold text-white -mt-0.5">{Math.round((todayStats.totalFocusMinutes / 120) * 100)}%</p>
+                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-emerald-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100">
+                                <div className="p-3 rounded-xl bg-emerald-500/10 shadow-inner">
+                                    <Target size={24} className="text-emerald-400" />
+                                </div>
+                                <div>
+                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">DAILY GOAL</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-2xl font-bold text-white">{Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100)}%</p>
+                                        <span className="text-xs text-slate-500">completed</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
