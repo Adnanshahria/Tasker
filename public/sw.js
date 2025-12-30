@@ -1,66 +1,13 @@
 // Enhanced Service Worker for Offline-First PWA
 // Caches static assets and provides offline fallback
 
-const CACHE_NAME = 'ogrogoti-v5';
-const STATIC_CACHE = 'ogrogoti-static-v5';
-const DYNAMIC_CACHE = 'ogrogoti-dynamic-v5';
+const CACHE_NAME = 'ogrogoti-v6';
+const STATIC_CACHE = 'ogrogoti-static-v6';
+const DYNAMIC_CACHE = 'ogrogoti-dynamic-v6';
 
-// Static assets to cache on install (only essential ones)
-const urlsToCache = [
-    '/',
-    '/index.html'
-];
+// ... (keep install/activate same)
 
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-    console.log('[SW] Installing service worker...');
-    event.waitUntil(
-        caches.open(STATIC_CACHE)
-            .then(async (cache) => {
-                console.log('[SW] Caching static assets');
-                // Cache each URL individually, ignore failures
-                for (const url of urlsToCache) {
-                    try {
-                        await cache.add(url);
-                    } catch (error) {
-                        console.warn('[SW] Failed to cache:', url, error);
-                        // Continue with other URLs
-                    }
-                }
-            })
-            .then(() => {
-                // Force waiting service worker to become active
-                return self.skipWaiting();
-            })
-            .catch((error) => {
-                console.warn('[SW] Install failed:', error);
-                // Still skip waiting even on error
-                return self.skipWaiting();
-            })
-    );
-});
-
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-    console.log('[SW] Activating service worker...');
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames
-                    .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE)
-                    .map((name) => {
-                        console.log('[SW] Deleting old cache:', name);
-                        return caches.delete(name);
-                    })
-            );
-        }).then(() => {
-            // Take control of all pages immediately
-            return self.clients.claim();
-        })
-    );
-});
-
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network First for HTML, Stale-While-Revalidate for others
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
@@ -70,7 +17,7 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Skip Supabase API requests (let them go through normally)
+    // Skip Supabase API requests
     if (url.hostname.includes('supabase.co')) {
         return;
     }
@@ -94,6 +41,31 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Strategy 1: Network First for HTML (Navigation)
+    // Ensures we always get the latest index.html with latest JS hashes
+    if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(
+            fetch(request)
+                .then((networkResponse) => {
+                    // Cache the new HTML
+                    const responseToCache = networkResponse.clone();
+                    caches.open(DYNAMIC_CACHE)
+                        .then((cache) => cache.put(request, responseToCache));
+                    return networkResponse;
+                })
+                .catch(() => {
+                    // Fallback to cache if offline
+                    return caches.match(request)
+                        .then((cachedResponse) => {
+                            if (cachedResponse) return cachedResponse;
+                            return caches.match('/index.html');
+                        });
+                })
+        );
+        return;
+    }
+
+    // Strategy 2: Stale-While-Revalidate for Assets (JS, CSS, Images)
     event.respondWith(
         caches.match(request)
             .then((cachedResponse) => {
@@ -107,9 +79,7 @@ self.addEventListener('fetch', (event) => {
                                         .then((cache) => cache.put(request, networkResponse));
                                 }
                             })
-                            .catch(() => {
-                                // Network failed, but we served from cache
-                            })
+                            .catch(() => { })
                     );
                     return cachedResponse;
                 }
@@ -117,12 +87,10 @@ self.addEventListener('fetch', (event) => {
                 // Not in cache, fetch from network
                 return fetch(request)
                     .then((networkResponse) => {
-                        // Don't cache if not a valid response
                         if (!networkResponse || networkResponse.status !== 200) {
                             return networkResponse;
                         }
 
-                        // Only cache same-origin responses
                         if (networkResponse.type === 'basic' || networkResponse.type === 'cors') {
                             const responseToCache = networkResponse.clone();
                             caches.open(DYNAMIC_CACHE)
@@ -133,17 +101,8 @@ self.addEventListener('fetch', (event) => {
                         return networkResponse;
                     })
                     .catch(() => {
-                        // Network failed and not in cache
-                        // Return fallback for HTML pages
-                        if (request.headers.get('accept')?.includes('text/html')) {
-                            return caches.match('/index.html');
-                        }
-
-                        // For other resources, return a generic offline response
-                        return new Response('Offline', {
-                            status: 503,
-                            statusText: 'Service Unavailable'
-                        });
+                        // Return generic offline response if needed
+                        return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
                     });
             })
     );
