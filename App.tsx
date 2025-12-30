@@ -15,6 +15,7 @@ const Settings = lazy(() => import('./components/Settings'));
 const Auth = lazy(() => import('./components/Auth'));
 const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
+const PWAUpdate = lazy(() => import('./components/PWAUpdate'));
 import TimerController from './components/FocusTimer/TimerController';
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
@@ -106,6 +107,7 @@ const App: React.FC = () => {
       <AuthProvider>
         <TimerController />
         <Suspense fallback={<LoadingSpinner />}>
+          <PWAUpdate />
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/update-password" element={<UpdatePassword />} />
