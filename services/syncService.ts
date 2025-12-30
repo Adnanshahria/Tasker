@@ -145,9 +145,8 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
             const { id, syncStatus, ...data } = op.data;
             const { data: newDoc, error } = await supabase.from('assignments').insert({
                 ...data,
-                created_at: new Date(Date.now()).toISOString(), // Supabase uses ISO strings or keep numbers if schema matches
-                // Assuming schema matches or is flexible. 
-                // Note: user_id should be mapped.
+                created_at: new Date(Date.now()).toISOString(),
+                user_id: op.userId, // Map userId to user_id
             }).select().single();
 
             if (error) throw error;
@@ -164,6 +163,7 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
                 const { id, syncStatus, ...data } = op.data;
                 const { data: newDoc, error } = await supabase.from('assignments').insert({
                     ...data,
+                    user_id: op.userId, // Map userId
                 }).select().single();
                 if (error) throw error;
                 if (newDoc) updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
@@ -188,7 +188,10 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
     switch (op.type) {
         case 'add': {
             const { id, syncStatus, ...data } = op.data;
-            const { data: newDoc, error } = await supabase.from('habits').insert(data).select().single();
+            const { data: newDoc, error } = await supabase.from('habits').insert({
+                ...data,
+                user_id: op.userId,
+            }).select().single();
             if (error) throw error;
 
             if (isTempId(op.docId) && newDoc) {
@@ -199,7 +202,10 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
         case 'update': {
             if (isTempId(op.docId)) {
                 const { id, syncStatus, ...data } = op.data;
-                const { data: newDoc, error } = await supabase.from('habits').insert(data).select().single();
+                const { data: newDoc, error } = await supabase.from('habits').insert({
+                    ...data,
+                    user_id: op.userId,
+                }).select().single();
                 if (error) throw error;
                 if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
@@ -230,21 +236,28 @@ const processSettingsOperation = async (op: PendingOperation): Promise<void> => 
 // ==================== REMOTE DATA FETCHING ====================
 
 export const fetchRemoteAssignments = async (userId: string): Promise<any[]> => {
-    const { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
+    const { data, error } = await supabase.from('assignments').select('*').eq('user_id', userId);
     if (error) {
         console.error('Error fetching assignments:', error);
         return [];
     }
-    return data || [];
+    // Map remote snake_case to local camelCase if needed
+    return (data || []).map(item => ({
+        ...item,
+        userId: item.user_id || item.userId, // fallback
+    }));
 };
 
 export const fetchRemoteHabits = async (userId: string): Promise<any[]> => {
-    const { data, error } = await supabase.from('habits').select('*').eq('userId', userId);
+    const { data, error } = await supabase.from('habits').select('*').eq('user_id', userId);
     if (error) {
         console.error('Error fetching habits:', error);
         return [];
     }
-    return data || [];
+    return (data || []).map(item => ({
+        ...item,
+        userId: item.user_id || item.userId,
+    }));
 };
 
 export const fetchRemoteSettings = async (userId: string): Promise<any | null> => {
