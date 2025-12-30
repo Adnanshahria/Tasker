@@ -10,7 +10,7 @@ import Table from './Table';
 import { T } from './translations';
 import { toggleHabitDate } from './helpers';
 import { useTimerStore } from '../../store/timerStore';
-import { getBorderClass } from '../../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 
 const HabitTracker: React.FC = () => {
     const { currentUser } = useAuth();
@@ -112,7 +112,7 @@ const HabitTracker: React.FC = () => {
     return (
         <div className="h-full flex flex-col space-y-4 font-sans">
             <Toolbar title={t.title} addLabel={t.addHabit} selectedMonth={selectedMonth} selectedYear={selectedYear} showPicker={showMonthPicker} yearOptions={yearOptions} onPickerToggle={() => setShowMonthPicker(!showMonthPicker)} onMonthSelect={m => { setSelectedMonth(m); setShowMonthPicker(false); }} onYearSelect={setSelectedYear} onAddClick={() => setShowAddModal(true)} />
-            <div className={getBorderClass(borderColor, "flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xl")}>
+            <div className={getBorderClass(borderColor, "flex-1 bg-slate-900/80 backdrop-blur-sm border rounded-2xl overflow-hidden flex flex-col shadow-xl")} style={getBorderStyle(borderColor)}>
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
                     <Table habits={habits} daysInMonth={daysInMonth} t={t} lang={lang} onToggle={handleToggle} onDelete={setDeleteConfirm} onReorder={handleReorder} />
                     {habits.length === 0 && <EmptyState t={t} />}

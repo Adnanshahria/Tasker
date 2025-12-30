@@ -19,7 +19,12 @@ export const T = {
         subjects: 'Subjects',
         types: 'Assignment Types',
         statuses: 'Statuses',
-        priorities: 'Priorities'
+        priorities: 'Priorities',
+        contactDeveloper: 'Contact Developer',
+        developerName: 'Mohammed Adnan Shahria',
+        feedbackBugReport: 'Feedback & Bug Report',
+        contactDesc: 'Get in touch with the developer',
+        feedbackDesc: 'Report bugs or send feedback'
     },
     bn: {
         settingsTitle: 'সেটিংস',
@@ -41,7 +46,12 @@ export const T = {
         subjects: 'বিষয়সমূহ',
         types: 'অ্যাসাইনমেন্টের ধরন',
         statuses: 'স্ট্যাটাস',
-        priorities: 'গুরুত্ব'
+        priorities: 'গুরুত্ব',
+        contactDeveloper: 'ডেভেলপারের সাথে যোগাযোগ',
+        developerName: 'মোহাম্মদ আদনান শাহরিয়া',
+        feedbackBugReport: 'ফিডব্যাক ও বাগ রিপোর্ট',
+        contactDesc: 'ডেভেলপারের সাথে যোগাযোগ করুন',
+        feedbackDesc: 'বাগ রিপোর্ট বা ফিডব্যাক পাঠান'
     }
 };
 

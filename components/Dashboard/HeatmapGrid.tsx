@@ -2,7 +2,7 @@ import React from 'react';
 import { HelpCircle } from 'lucide-react';
 import SectionHeader from '../ui/SectionHeader';
 import { useTimerStore } from '../../store/timerStore';
-import { getBorderClass } from '../../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 
 interface HeatmapGridProps {
     title: string;
@@ -16,7 +16,7 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({ title, data, habitsLabel, hel
     const borderColor = useTimerStore((state) => state.borderColor);
 
     return (
-        <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl p-3 md:p-5 shadow-xl")}>
+        <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border rounded-2xl p-3 md:p-5 shadow-xl")} style={getBorderStyle(borderColor)}>
             <SectionHeader title={title} helpKey={helpKey} onHelpClick={onHelpClick} />
             <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center md:justify-start pt-2 overflow-x-auto">
                 {data.map((day) => (

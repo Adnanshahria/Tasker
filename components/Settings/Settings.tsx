@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Loader2, LogOut } from 'lucide-react';
+import { RotateCcw, Loader2, LogOut, Send, MessageCircle, Mail, MessageSquare, Bug, RefreshCw, Download } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getSettings, saveSettings, UserSettings, DEFAULT_SETTINGS, DEFAULT_SETTINGS_BN } from '../../services/dataService';
@@ -21,6 +21,222 @@ const DEFAULT_EN: UserSettings = {
 
 import { useTimerStore } from '../../store/timerStore';
 
+
+// Contact Developer Section
+const ContactDeveloperSection: React.FC<{ developerName: string; contactDesc: string }> = ({ developerName, contactDesc }) => {
+    const contacts = [
+        {
+            name: 'Telegram',
+            icon: Send,
+            url: 'https://t.me/adnanshahria',
+            color: 'text-blue-400 hover:text-blue-300',
+            bg: 'bg-blue-500/10 hover:bg-blue-500/20',
+        },
+        {
+            name: 'WhatsApp',
+            icon: MessageCircle,
+            url: 'https://wa.me/8801705818105',
+            color: 'text-green-400 hover:text-green-300',
+            bg: 'bg-green-500/10 hover:bg-green-500/20',
+        },
+        {
+            name: 'Email',
+            icon: Mail,
+            url: 'mailto:adnanshahria2019@gmail.com',
+            color: 'text-purple-400 hover:text-purple-300',
+            bg: 'bg-purple-500/10 hover:bg-purple-500/20',
+        },
+    ];
+
+    return (
+        <div className="bg-slate-900/50 border border-white/5 rounded-xl p-4 md:p-6 space-y-4">
+            <div>
+                <h2 className="text-lg font-semibold text-white">{developerName}</h2>
+                <p className="text-sm text-slate-400 mt-1">{contactDesc}</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+                {contacts.map((contact) => (
+                    <a
+                        key={contact.name}
+                        href={contact.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg ${contact.bg} ${contact.color} transition-all hover:scale-105 active:scale-95`}
+                        title={contact.name}
+                    >
+                        <contact.icon size={20} />
+                        <span className="font-medium text-sm">{contact.name}</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// Feedback & Bug Report Section
+const FeedbackSection: React.FC<{ title: string; description: string }> = ({ title, description }) => {
+    const contacts = [
+        {
+            name: 'Telegram',
+            icon: Send,
+            url: 'https://t.me/adnanshahria',
+            color: 'text-blue-400 hover:text-blue-300',
+            bg: 'bg-blue-500/10 hover:bg-blue-500/20',
+        },
+        {
+            name: 'WhatsApp',
+            icon: MessageCircle,
+            url: 'https://wa.me/8801705818105',
+            color: 'text-green-400 hover:text-green-300',
+            bg: 'bg-green-500/10 hover:bg-green-500/20',
+        },
+        {
+            name: 'Email',
+            icon: Mail,
+            url: 'mailto:adnanshahria2019@gmail.com',
+            color: 'text-purple-400 hover:text-purple-300',
+            bg: 'bg-purple-500/10 hover:bg-purple-500/20',
+        },
+    ];
+
+    return (
+        <div className="bg-slate-900/50 border border-white/5 rounded-xl p-4 md:p-6 space-y-4">
+            <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                    <MessageSquare size={20} className="text-amber-400" />
+                </div>
+                <div>
+                    <h2 className="text-lg font-semibold text-white">{title}</h2>
+                    <p className="text-sm text-slate-400">{description}</p>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+                {contacts.map((contact) => (
+                    <a
+                        key={contact.name}
+                        href={contact.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg ${contact.bg} ${contact.color} transition-all hover:scale-105 active:scale-95`}
+                        title={contact.name}
+                    >
+                        <contact.icon size={20} />
+                        <span className="font-medium text-sm">{contact.name}</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// Check for Updates Section
+const CheckForUpdatesSection: React.FC<{ lang: 'en' | 'bn' }> = ({ lang }) => {
+    const [checking, setChecking] = useState(false);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
+    const [lastChecked, setLastChecked] = useState<string | null>(null);
+
+    const checkForUpdates = async () => {
+        setChecking(true);
+        try {
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.update();
+                    if (registration.waiting) {
+                        setUpdateAvailable(true);
+                    } else {
+                        setUpdateAvailable(false);
+                    }
+                }
+            }
+            setLastChecked(new Date().toLocaleTimeString());
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+        } finally {
+            setChecking(false);
+        }
+    };
+
+    const applyUpdate = () => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistration().then((registration) => {
+                if (registration?.waiting) {
+                    registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    window.location.reload();
+                }
+            });
+        }
+    };
+
+    const forceRefresh = () => {
+        window.location.reload();
+    };
+
+    return (
+        <div className="bg-slate-900/50 border border-white/5 rounded-xl p-4 md:p-6 space-y-4">
+            <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-cyan-500/10">
+                    <Download size={20} className="text-cyan-400" />
+                </div>
+                <div>
+                    <h2 className="text-lg font-semibold text-white">
+                        {lang === 'en' ? 'App Updates' : 'অ্যাপ আপডেট'}
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                        {lang === 'en' ? 'Check for the latest version' : 'সর্বশেষ ভার্সন চেক করুন'}
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+                <button
+                    onClick={checkForUpdates}
+                    disabled={checking}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 hover:text-cyan-300 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <RefreshCw size={18} className={checking ? 'animate-spin' : ''} />
+                    <span className="font-medium text-sm">
+                        {checking
+                            ? (lang === 'en' ? 'Checking...' : 'চেক করা হচ্ছে...')
+                            : (lang === 'en' ? 'Check for Updates' : 'আপডেট চেক করুন')}
+                    </span>
+                </button>
+
+                <button
+                    onClick={forceRefresh}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-400 hover:text-white transition-all hover:scale-105 active:scale-95"
+                >
+                    <RotateCcw size={18} />
+                    <span className="font-medium text-sm">
+                        {lang === 'en' ? 'Refresh App' : 'অ্যাপ রিফ্রেশ'}
+                    </span>
+                </button>
+            </div>
+
+            {updateAvailable && (
+                <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <span className="text-sm text-green-400">
+                        {lang === 'en' ? '✨ New update available!' : '✨ নতুন আপডেট উপলব্ধ!'}
+                    </span>
+                    <button
+                        onClick={applyUpdate}
+                        className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                        {lang === 'en' ? 'Update Now' : 'এখনই আপডেট'}
+                    </button>
+                </div>
+            )}
+
+            {lastChecked && !updateAvailable && (
+                <p className="text-xs text-slate-500">
+                    {lang === 'en'
+                        ? `Last checked: ${lastChecked} - You're up to date!`
+                        : `শেষ চেক: ${lastChecked} - আপনি আপডেটেড আছেন!`}
+                </p>
+            )}
+        </div>
+    );
+};
 
 const BorderColorSetting: React.FC = () => {
     const borderColor = useTimerStore((state) => state.borderColor);
@@ -136,6 +352,15 @@ const Settings: React.FC = () => {
                 <CategorySection key={cat} category={cat} items={settings[cat]} config={config[cat]} t={t} editingItem={editingItem} newItem={newItem} onStartEdit={(c, i, v) => setEditingItem({ category: c, index: i, value: v })} onSaveEdit={handleRename} onCancelEdit={() => setEditingItem(null)} onEditChange={v => editingItem && setEditingItem({ ...editingItem, value: v })} onStartNew={c => setNewItem({ category: c, value: '' })} onSaveNew={handleAdd} onCancelNew={() => setNewItem(null)} onNewChange={v => newItem && setNewItem({ ...newItem, value: v })} onDelete={handleDelete} />
             ))}
             <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 text-sm text-slate-300"><strong className="text-indigo-400">💡 {t.tip}</strong> {t.tipText}</div>
+
+            {/* Contact Developer Section */}
+            <ContactDeveloperSection developerName={t.developerName} contactDesc={t.contactDesc} />
+
+            {/* Feedback & Bug Report Section */}
+            <FeedbackSection title={t.feedbackBugReport} description={t.feedbackDesc} />
+
+            {/* Check for Updates Section */}
+            <CheckForUpdatesSection lang={lang} />
 
             {/* Logout Button - Visible on Mobile */}
             <button

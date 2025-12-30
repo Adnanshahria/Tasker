@@ -103,6 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: 'https://ogrogoti.vercel.app',
+        },
       });
 
       if (error) throw error;
@@ -149,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://ogrogoti.vercel.app', // Always redirect to production site
+        redirectTo: 'https://ogrogoti.vercel.app/#/update-password', // Redirect to production password update page with hash routing
       });
       if (error) throw error;
     } catch (error: any) {

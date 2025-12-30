@@ -4,7 +4,7 @@ import { LayoutDashboard, Timer, CheckSquare, Sprout, LogOut, X, Settings } from
 import { useAuth } from '../contexts/AuthContext';
 import { getSettings } from '../services/dataService';
 import { useTimerStore } from '../store/timerStore';
-import { getBorderClass } from '../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../utils/styleUtils';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -87,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) => {
-                  const activeClass = getBorderClass(borderColor, 'bg-slate-800/80 text-white shadow-xl');
+                  const activeClass = getBorderClass(borderColor, 'bg-slate-800/80 text-white shadow-xl border');
                   const inactiveClass = 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent';
 
                   return `
@@ -95,6 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     ${isActive ? activeClass : inactiveClass}
                     `;
                 }}
+                style={({ isActive }) => isActive ? getBorderStyle(borderColor) : undefined}
               >
                 <item.icon size={20} className="relative z-10 transition-transform duration-300 group-hover:scale-110" />
                 <span className="font-medium relative z-10">{item.name}</span>

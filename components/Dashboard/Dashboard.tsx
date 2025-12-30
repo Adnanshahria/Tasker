@@ -14,7 +14,7 @@ import QuickLinks from './QuickLinks';
 import HeatmapGrid from './HeatmapGrid';
 import { T } from './translations';
 import { useTimerStore } from '../../store/timerStore';
-import { getBorderClass } from '../../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f97316', '#ec4899', '#a855f7', '#14b8a6'];
 
@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
-                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl")}>
+                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border rounded-xl p-2 md:p-4 shadow-xl")} style={getBorderStyle(borderColor)}>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                         <SectionHeader title={t.consistency.split('(')[0].trim()} helpKey="habitConsistency" onHelpClick={setHelpKey} />
                         <DateRangeSlider
@@ -163,7 +163,7 @@ const Dashboard: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl")}>
+                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border rounded-xl p-2 md:p-4 shadow-xl")} style={getBorderStyle(borderColor)}>
                     <SectionHeader title={t.distribution} helpKey="assignmentDistribution" onHelpClick={setHelpKey} />
                     <div className="h-36 md:h-56">
                         {assignmentData.length > 0 ? (

@@ -3,7 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = "https://pfhribgqfxkxhxlicwby.supabase.co";
 const supabaseKey = "sb_publishable_czyhL46UQGtDzUjXTsjxoQ_KaUdmP_-";
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        // Set the redirect URL for email confirmations and password resets
+        flowType: 'pkce',
+    }
+});
 
 export const checkConnection = async () => {
     try {

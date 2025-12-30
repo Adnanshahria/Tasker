@@ -2,7 +2,7 @@ import React from 'react';
 import { HelpCircle } from 'lucide-react';
 
 import { useTimerStore } from '../../store/timerStore';
-import { getBorderClass } from '../../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 
 interface StatCardProps {
     icon: React.ElementType;
@@ -17,7 +17,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon: Icon, iconColor, label, value
     const borderColor = useTimerStore((state) => state.borderColor);
 
     return (
-        <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-2.5 md:p-4 flex items-center gap-2 md:gap-4 md:hover:scale-[1.02] transition-all shadow-xl group relative")}>
+        <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border rounded-xl md:rounded-2xl p-2.5 md:p-4 flex items-center gap-2 md:gap-4 md:hover:scale-[1.02] transition-all shadow-xl group relative")} style={getBorderStyle(borderColor)}>
             <div className={`p-2 md:p-3 rounded-lg md:rounded-xl ${iconColor} shadow-lg`}>
                 <Icon size={18} className="md:hidden" />
                 <Icon size={22} className="hidden md:block" />

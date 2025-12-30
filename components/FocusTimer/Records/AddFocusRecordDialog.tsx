@@ -45,7 +45,7 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
     }, [isOpen]);
 
     const handleSubmit = useCallback(async () => {
-        if (!currentUser?.uid) {
+        if (!currentUser?.id) {
             setError('You must be logged in');
             return;
         }
@@ -88,7 +88,7 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
         } finally {
             setIsSubmitting(false);
         }
-    }, [currentUser?.uid, selectedDate, hour, minute, ampm, duration, onSuccess, onClose]);
+    }, [currentUser?.id, selectedDate, hour, minute, ampm, duration, onSuccess, onClose]);
 
     const adjustDuration = (delta: number) => {
         setDuration(prev => Math.max(1, Math.min(180, prev + delta)));

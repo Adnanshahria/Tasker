@@ -5,7 +5,7 @@ import { useTimer } from '../../hooks/use-timer';
 import { useAudioAlert } from '../../hooks/use-audio-alert';
 import { useSessionRecorder } from '../../hooks/use-session-recorder';
 import { useTimerStore } from '../../store/timerStore';
-import { getBorderClass } from '../../utils/styleUtils';
+import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 import DeepFocusTimer from './DeepFocus';
 import RecordsPage from './Records';
 
@@ -267,7 +267,7 @@ const FocusTimer: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:items-center">
                         {/* Left Column: Timer Card */}
-                        <div className={getBorderClass(borderColor, "bg-slate-800/30 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm")}>
+                        <div className={getBorderClass(borderColor, "bg-slate-800/30 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm border")} style={getBorderStyle(borderColor)}>
                             {/* Background Glow */}
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-violet-500/20 blur-[80px] rounded-full pointer-events-none" />
 
@@ -365,7 +365,7 @@ const FocusTimer: React.FC = () => {
 
                         {/* Right Column: Stats Cards */}
                         <div className="space-y-4">
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300")}>
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 border")} style={getBorderStyle(borderColor)}>
                                 <div className="p-3 rounded-xl bg-violet-500/10 shadow-inner">
                                     <Clock size={24} className="text-violet-400" />
                                 </div>
@@ -375,7 +375,7 @@ const FocusTimer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75")}>
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75 border")} style={getBorderStyle(borderColor)}>
                                 <div className="p-3 rounded-xl bg-purple-500/10 shadow-inner">
                                     <Calendar size={24} className="text-purple-400" />
                                 </div>
@@ -385,7 +385,7 @@ const FocusTimer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100")}>
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100 border")} style={getBorderStyle(borderColor)}>
                                 <div className="p-3 rounded-xl bg-emerald-500/10 shadow-inner">
                                     <Target size={24} className="text-emerald-400" />
                                 </div>
