@@ -25,8 +25,21 @@ export default defineConfig(({ mode }) => {
       dedupe: ['react', 'react-dom', 'react-router-dom'],
     },
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
+      include: ['react', 'react-dom', 'react-router-dom', 'recharts', 'framer-motion'],
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            ui: ['framer-motion', 'lucide-react', '@dnd-kit/core', '@dnd-kit/sortable'],
+            charts: ['recharts'],
+            supabase: ['@supabase/supabase-js'],
+            utils: ['date-fns', 'tone']
+          }
+        }
+      }
+    }
   };
 });
 

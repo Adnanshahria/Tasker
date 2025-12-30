@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -17,7 +17,7 @@ const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
-migrateLocalStorageData();
+// Migration running logic removed from top-level
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -94,23 +94,30 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <Layout>{children}</Layout>;
 };
 
-const App: React.FC = () => (
-  <HashRouter>
-    <AuthProvider>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/update-password" element={<UpdatePassword />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
-          <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
-          <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Suspense>
-    </AuthProvider>
-  </HashRouter>
-);
+const App: React.FC = () => {
+  useEffect(() => {
+    // Run data migration asynchronously to avoid blocking initial render
+    setTimeout(() => migrateLocalStorageData(), 0);
+  }, []);
+
+  return (
+    <HashRouter>
+      <AuthProvider>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/update-password" element={<UpdatePassword />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
+            <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
+            <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Suspense>
+      </AuthProvider>
+    </HashRouter>
+  );
+};
 
 export default App;
