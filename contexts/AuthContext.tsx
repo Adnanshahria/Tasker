@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin, // Redirect to root, listener will handle it
+        redirectTo: 'https://ogrogoti.vercel.app', // Always redirect to production site
       });
       if (error) throw error;
     } catch (error: any) {
