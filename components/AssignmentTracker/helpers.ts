@@ -16,7 +16,8 @@ export const calcDuration = (start?: string, end?: string): string => {
 };
 
 // Get time status - shows time to start, time left, or overdue
-export const getTimeStatus = (item: LocalAssignment, lang: 'en' | 'bn'): { label: string; color: string; type: 'to_start' | 'left' | 'overdue' | 'upcoming' } => {
+// Returns separate time and status parts for compact 2-line display
+export const getTimeStatus = (item: LocalAssignment, lang: 'en' | 'bn'): { label: string; time: string; status: string; color: string; type: 'to_start' | 'left' | 'overdue' | 'upcoming' } => {
     const now = new Date();
     const dueDate = new Date(item.dueDate);
 
@@ -34,11 +35,15 @@ export const getTimeStatus = (item: LocalAssignment, lang: 'en' | 'bn'): { label
             const mins = minutesToStart % 60;
 
             if (hrs === 0) {
-                const label = lang === 'en' ? `${mins}m to start` : `${mins}মি. শুরু`;
-                return { label, color: 'bg-sky-500/90 text-white', type: 'to_start' };
+                const time = `${mins}m`;
+                const status = lang === 'en' ? 'to start' : 'শুরু';
+                const label = `${time} ${status}`;
+                return { label, time, status, color: 'bg-sky-500/90 text-white', type: 'to_start' };
             } else {
-                const label = lang === 'en' ? `${hrs}h ${mins}m to start` : `${hrs}ঘ ${mins}মি শুরু`;
-                return { label, color: 'bg-sky-500/80 text-white', type: 'to_start' };
+                const time = `${hrs}h ${mins}m`;
+                const status = lang === 'en' ? 'to start' : 'শুরু';
+                const label = `${time} ${status}`;
+                return { label, time, status, color: 'bg-sky-500/80 text-white', type: 'to_start' };
             }
         }
     }
@@ -62,41 +67,48 @@ export const getTimeStatus = (item: LocalAssignment, lang: 'en' | 'bn'): { label
         const hoursAgo = Math.abs(hoursDiff);
 
         if (hoursAgo < 1) {
-            const label = lang === 'en' ? `${Math.abs(minutesDiff)}m ago` : `${Math.abs(minutesDiff)}মি আগে`;
-            return { label, color: 'bg-red-500/90 text-white', type: 'overdue' };
+            const time = `${Math.abs(minutesDiff)}m`;
+            const status = lang === 'en' ? 'ago' : 'আগে';
+            const label = `${time} ${status}`;
+            return { label, time, status, color: 'bg-red-500/90 text-white', type: 'overdue' };
         } else if (hoursAgo < 24) {
-            const label = lang === 'en' ? `${hoursAgo}h ago` : `${hoursAgo}ঘ আগে`;
-            return { label, color: 'bg-red-500/90 text-white', type: 'overdue' };
+            const time = `${hoursAgo}h`;
+            const status = lang === 'en' ? 'ago' : 'আগে';
+            const label = `${time} ${status}`;
+            return { label, time, status, color: 'bg-red-500/90 text-white', type: 'overdue' };
         } else {
             const daysAgo = Math.floor(hoursAgo / 24);
-            const label = lang === 'en' ? `${daysAgo}d ago` : `${daysAgo}দিন আগে`;
-            return { label, color: 'bg-red-600/90 text-white', type: 'overdue' };
+            const time = `${daysAgo}d`;
+            const status = lang === 'en' ? 'ago' : 'আগে';
+            const label = `${time} ${status}`;
+            return { label, time, status, color: 'bg-red-600/90 text-white', type: 'overdue' };
         }
     }
 
     // Due very soon (less than 1 hour)
     if (minutesDiff <= 60) {
-        const label = lang === 'en' ? `${minutesDiff}m left` : `${minutesDiff}মি বাকি`;
-        return { label, color: 'bg-rose-500 text-white animate-pulse', type: 'left' };
+        const time = `${minutesDiff}m`;
+        const status = lang === 'en' ? 'left' : 'বাকি';
+        const label = `${time} ${status}`;
+        return { label, time, status, color: 'bg-rose-500 text-white animate-pulse', type: 'left' };
     }
 
     // Due within 24 hours
     if (minutesDiff <= 24 * 60) {
         const hrs = Math.floor(minutesDiff / 60);
         const mins = minutesDiff % 60;
-        if (mins > 0) {
-            const label = lang === 'en' ? `${hrs}h ${mins}m left` : `${hrs}ঘ ${mins}মি বাকি`;
-            return { label, color: hrs <= 3 ? 'bg-amber-500 text-white' : 'bg-yellow-500/90 text-white', type: 'left' };
-        } else {
-            const label = lang === 'en' ? `${hrs}h left` : `${hrs}ঘ বাকি`;
-            return { label, color: hrs <= 3 ? 'bg-amber-500 text-white' : 'bg-yellow-500/90 text-white', type: 'left' };
-        }
+        const time = mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+        const status = lang === 'en' ? 'left' : 'বাকি';
+        const label = `${time} ${status}`;
+        return { label, time, status, color: hrs <= 3 ? 'bg-amber-500 text-white' : 'bg-yellow-500/90 text-white', type: 'left' };
     }
 
     // More than 24 hours - show days
     const days = Math.ceil(minutesDiff / (24 * 60));
-    const label = lang === 'en' ? `${days}d left` : `${days}দিন বাকি`;
-    return { label, color: days <= 3 ? 'bg-orange-500/80 text-white' : 'bg-slate-600 text-slate-200', type: 'upcoming' };
+    const time = `${days}d`;
+    const status = lang === 'en' ? 'left' : 'বাকি';
+    const label = `${time} ${status}`;
+    return { label, time, status, color: days <= 3 ? 'bg-orange-500/80 text-white' : 'bg-slate-600 text-slate-200', type: 'upcoming' };
 };
 
 // Legacy function for compatibility

@@ -221,10 +221,11 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                 return (
                     <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-6 z-10`}>
                         <div className="flex items-center justify-between gap-1">
-                            <span className="text-white font-medium truncate max-w-[60px] md:max-w-[100px]">{item.title}</span>
+                            <span className="text-white font-medium truncate max-w-[80px] md:max-w-[120px]">{item.title}</span>
                             <div className="flex items-center gap-1 flex-shrink-0">
-                                <span className={`text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap ${timeStatus.color}`}>
-                                    {timeStatus.label}
+                                <span className={`text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded-md flex flex-col items-center leading-tight ${timeStatus.color}`}>
+                                    <span>{timeStatus.time}</span>
+                                    <span className="opacity-80 text-[6px] md:text-[7px]">{timeStatus.status}</span>
                                 </span>
                                 {item.description && (
                                     <button onClick={() => openDescModal(item)} className="p-0.5 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20" title="View description">
