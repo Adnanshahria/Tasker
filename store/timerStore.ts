@@ -60,7 +60,7 @@ export const useTimerStore = create<TimerState>()(
             // DeepFocus settings
             antiBurnIn: true,
             dailyGoal: 120, // 2 hours default
-            borderColor: 'white',
+            borderColor: 'cyan',
 
             // Actions
             start: () => {
