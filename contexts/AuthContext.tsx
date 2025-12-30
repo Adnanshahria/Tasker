@@ -132,7 +132,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) handleUser(data.user);
     } catch (error: any) {
       console.error('Login error:', error);
-      throw new Error('ভুল ইমেইল বা পাসওয়ার্ড');
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Please confirm your email address first.');
+      }
+      throw new Error('Invalid email or password');
     }
   };
 

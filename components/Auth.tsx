@@ -10,6 +10,7 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetSent, setResetSent] = useState(false);
@@ -19,6 +20,7 @@ const Auth: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
     try {
       if (isLogin) {
@@ -28,7 +30,13 @@ const Auth: React.FC = () => {
       }
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      if (err.message.includes('Account created')) {
+        setSuccessMessage(err.message);
+        // Optional: switch to login mode to let them sign in after verifying?
+        // setIsLogin(true); 
+      } else {
+        setError(err.message || 'Something went wrong');
+      }
     }
     setLoading(false);
   };
@@ -67,6 +75,12 @@ const Auth: React.FC = () => {
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg mb-4 text-sm">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-3 rounded-lg mb-4 text-sm font-medium">
+            {successMessage}
           </div>
         )}
 
