@@ -32,7 +32,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
     const { requestWakeLock, releaseWakeLock } = useWakelock();
 
     // Progress ring properties
-    const ringSize = 320;
+    const ringSize = 500;
     const ringStrokeWidth = 8;
     const ringRadius = (ringSize - ringStrokeWidth * 2) / 2;
     const ringCircumference = 2 * Math.PI * ringRadius;
@@ -170,15 +170,19 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                 animate={pixelShiftControls}
                 className="h-screen w-screen flex flex-col items-center justify-center px-6"
             >
-                {/* Main Timer Display */}
+                {/* Main Timer Display Container */}
                 <motion.div
                     animate={{ opacity: isDimmed ? 0.2 : 1, scale: isDimmed ? 0.98 : 1 }}
                     transition={{ duration: 0.8 }}
                     className="relative flex items-center justify-center"
+                    style={{
+                        width: ringSize,
+                        height: ringSize
+                    }}
                 >
                     {/* Outer glow ring */}
                     <div
-                        className="absolute rounded-full"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
                         style={{
                             width: ringSize + 60,
                             height: ringSize + 60,
@@ -191,7 +195,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                     <svg
                         width={ringSize}
                         height={ringSize}
-                        className="transform -rotate-90 absolute"
+                        className="transform -rotate-90 absolute inset-0"
                     >
                         {/* Background ring */}
                         <circle
@@ -230,10 +234,10 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                         />
                     </svg>
 
-                    {/* Timer Display */}
-                    <div className="relative z-10 flex flex-col items-center">
+                    {/* Timer Content */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
                         <motion.span
-                            className="text-7xl md:text-9xl font-extralight text-white tracking-tight"
+                            className="text-8xl md:text-9xl font-extralight text-white tracking-tight"
                             style={{
                                 fontVariantNumeric: 'tabular-nums',
                                 textShadow: `0 0 40px ${modeGlow}`
@@ -246,7 +250,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                         {/* Mode indicator */}
                         <motion.div
                             animate={{ opacity: isDimmed ? 0 : 0.6 }}
-                            className="mt-6 flex items-center gap-3"
+                            className="mt-8 flex items-center gap-3"
                         >
                             <div
                                 className="w-2 h-2 rounded-full"
