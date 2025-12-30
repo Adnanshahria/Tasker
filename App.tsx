@@ -15,6 +15,7 @@ const Settings = lazy(() => import('./components/Settings'));
 const Auth = lazy(() => import('./components/Auth'));
 const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
+import TimerController from './components/FocusTimer/TimerController';
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
 // Migration running logic removed from top-level
@@ -103,6 +104,7 @@ const App: React.FC = () => {
   return (
     <HashRouter>
       <AuthProvider>
+        <TimerController />
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             <Route path="/auth" element={<Auth />} />

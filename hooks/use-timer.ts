@@ -2,9 +2,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useTimerStore } from '../store/timerStore';
 
 export const useTimer = () => {
-    const rafRef = useRef<number | null>(null);
-    const lastTickRef = useRef<number>(0);
+    // Timer logic is now handled by TimerController.tsx
 
+    // Selectors
     const isActive = useTimerStore((state) => state.isActive);
     const timeLeft = useTimerStore((state) => state.timeLeft);
     const mode = useTimerStore((state) => state.mode);
@@ -18,55 +18,6 @@ export const useTimer = () => {
     const setMode = useTimerStore((state) => state.setMode);
     const addTime = useTimerStore((state) => state.addTime);
     const subtractTime = useTimerStore((state) => state.subtractTime);
-    const tick = useTimerStore((state) => state.tick);
-    const completeSession = useTimerStore((state) => state.completeSession);
-
-    // High-precision tick using requestAnimationFrame
-    const runTimer = useCallback((timestamp: number) => {
-        if (!lastTickRef.current) {
-            lastTickRef.current = timestamp;
-        }
-
-        const elapsed = timestamp - lastTickRef.current;
-
-        // Tick every second (1000ms)
-        if (elapsed >= 1000) {
-            const state = useTimerStore.getState();
-
-            if (state.timeLeft <= 1) {
-                // Timer completed
-                tick();
-                completeSession();
-                return; // Stop the loop
-            }
-
-            tick();
-            lastTickRef.current = timestamp - (elapsed % 1000); // Carry over remainder for precision
-        }
-
-        // Continue the loop
-        rafRef.current = requestAnimationFrame(runTimer);
-    }, [tick, completeSession]);
-
-    // Start/stop the timer loop based on isActive
-    useEffect(() => {
-        if (isActive) {
-            lastTickRef.current = 0;
-            rafRef.current = requestAnimationFrame(runTimer);
-        } else {
-            if (rafRef.current) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
-            }
-        }
-
-        return () => {
-            if (rafRef.current) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
-            }
-        };
-    }, [isActive, runTimer]);
 
     // Calculate progress percentage
     const progress = sessionDuration > 0
