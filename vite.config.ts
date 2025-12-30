@@ -4,8 +4,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  // Use '/Tasker/' for GitHub Pages, '/' for Vercel and local dev
+  const isGitHubPages = process.env.GITHUB_PAGES === 'true';
   return {
-    base: '/Tasker/',
+    base: isGitHubPages ? '/Tasker/' : '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
