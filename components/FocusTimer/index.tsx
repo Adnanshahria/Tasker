@@ -164,9 +164,6 @@ const FocusTimer: React.FC = () => {
                             <button onClick={() => setShowRecords(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
                                 Record
                             </button>
-                            <button onClick={() => setShowSettings(true)} className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white transition-colors">
-                                <SettingsIcon size={16} />
-                            </button>
                         </div>
                     </div>
 
@@ -242,10 +239,30 @@ const FocusTimer: React.FC = () => {
                                 </button>
                             </div>
 
-                            {/* End Session */}
-                            <button onClick={handleEndSession} className="w-full mt-8 py-2 text-slate-500 text-xs hover:text-red-400 transition-colors z-10 relative">
-                                End Current Session
-                            </button>
+                            {/* Action Bar (Set Time | End & Save | Cancel) */}
+                            <div className="w-full mt-8 flex items-center justify-center gap-4 text-xs font-medium text-slate-400 z-10 relative">
+                                <button
+                                    onClick={() => setShowSettings(true)}
+                                    className="flex items-center gap-1.5 hover:text-violet-400 transition-colors"
+                                >
+                                    <Clock size={14} />
+                                    Set Time
+                                </button>
+                                <span className="text-slate-700">|</span>
+                                <button
+                                    onClick={handleEndSession}
+                                    className="hover:text-emerald-400 transition-colors"
+                                >
+                                    End & Save
+                                </button>
+                                <span className="text-slate-700">|</span>
+                                <button
+                                    onClick={() => reset()}
+                                    className="hover:text-red-400 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
 
                         {/* Right Column: Stats Cards */}
