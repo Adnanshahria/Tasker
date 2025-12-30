@@ -152,6 +152,14 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
 
     // ... existing hooks ...
 
+    // Mobile Ring properties
+    const mobileRingSize = 300;
+    const mobileRingRadius = (mobileRingSize - ringStrokeWidth * 2) / 2;
+    const mobileRingCircumference = 2 * Math.PI * mobileRingRadius;
+    const mobileRingDashoffset = mobileRingCircumference * (1 - ringProgress);
+
+    // ... existing hooks ...
+
     if (!isOpen || !mounted) return null;
 
     // Use Portal to ensure it covers EVERYTHING (Header, Bottom Nav, etc.)
@@ -170,7 +178,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
         >
             {/* DESKTOP VIEW (Existing Ring Design) */}
             <div className="hidden md:flex h-full w-full flex-col items-center justify-center relative overflow-hidden">
-                {/* Ambient glow effect */}
+                {/* ... existing desktop content ... */}
                 <div
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-[150px] pointer-events-none transition-opacity duration-1000"
                     style={{
@@ -320,12 +328,43 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                             scale: isDimmed ? 0.95 : 1
                         }}
                         transition={{ duration: 0.8 }}
-                        className="flex flex-col items-center"
+                        className="flex flex-col items-center w-full"
                     >
-                        {/* Large Timer Text */}
-                        <span className="text-[5.5rem] leading-none font-medium text-white tracking-tighter tabular-nums mb-16">
-                            {formattedTime}
-                        </span>
+                        {/* Mobile Ring & Timer */}
+                        <div className="relative flex items-center justify-center mb-10" style={{ width: mobileRingSize, height: mobileRingSize }}>
+                            <svg
+                                width={mobileRingSize}
+                                height={mobileRingSize}
+                                className="transform -rotate-90 absolute inset-0 pointer-events-none"
+                            >
+                                <circle
+                                    cx={mobileRingSize / 2}
+                                    cy={mobileRingSize / 2}
+                                    r={mobileRingRadius}
+                                    fill="none"
+                                    stroke="rgba(255, 255, 255, 0.05)"
+                                    strokeWidth={ringStrokeWidth}
+                                />
+                                <motion.circle
+                                    cx={mobileRingSize / 2}
+                                    cy={mobileRingSize / 2}
+                                    r={mobileRingRadius}
+                                    fill="none"
+                                    stroke={modeColor}
+                                    strokeWidth={ringStrokeWidth}
+                                    strokeLinecap="round"
+                                    strokeDasharray={mobileRingCircumference}
+                                    strokeDashoffset={mobileRingDashoffset}
+                                    initial={false}
+                                    animate={{ strokeDashoffset: mobileRingDashoffset }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            </svg>
+
+                            <span className="text-[4rem] xs:text-[5rem] leading-none font-medium text-white tracking-tighter tabular-nums z-10">
+                                {formattedTime}
+                            </span>
+                        </div>
 
                         {/* Mobile Stats Cards */}
                         <div className={`grid grid-cols-2 gap-4 w-full max-w-xs transition-all duration-500 ${isDimmed ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
