@@ -24,49 +24,71 @@ class GlobalErrorBoundary extends Component<Props, State> {
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('Global Error Boundary caught:', error, errorInfo);
-
-        // Check for chunk loading errors
-        if (
-            error.message.includes('Failed to fetch dynamically imported module') ||
-            error.message.includes('Loading chunk') ||
-            error.name === 'ChunkLoadError'
-        ) {
-            console.log('Chunk load error detected. Performing hard reset...');
-
-            // Unregister Service Workers
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(registrations => {
-                    for (const registration of registrations) {
-                        registration.unregister();
-                    }
-                });
-            }
-
-            // Clear Cache Storage
-            if ('caches' in window) {
-                caches.keys().then(names => {
-                    names.forEach(name => caches.delete(name));
-                });
-            }
-
-            // Force reload from server
-            window.location.reload();
-        }
     }
 
     render() {
         if (this.state.hasError) {
-            // If it's a chunk error, we likely reloaded already. 
-            // But if not, show a fallback UI.
+            const isChunkError = this.state.error?.message.includes('Loading chunk') ||
+                this.state.error?.message.includes('Failed to fetch') ||
+                this.state.error?.name === 'ChunkLoadError';
+
+            // Loop protection: Check if we just reloaded to fix this
+            const lastReload = sessionStorage.getItem('last_chunk_reload');
+            const recentlyReloaded = lastReload && (Date.now() - parseInt(lastReload) < 5000);
+
+            // If it's a chunk error and we haven't just reloaded, try to fix it
+            if (isChunkError && !recentlyReloaded) {
+                console.log('Chunk load error detected. Performing hard reset...');
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+                }
+                if ('caches' in window) {
+                    caches.keys().then(names => names.forEach(name => caches.delete(name)));
+                }
+                sessionStorage.setItem('last_chunk_reload', Date.now().toString());
+                window.location.reload();
+                return null; // Render nothing while reloading
+            }
+
+            // Otherwise, show the Fallback UI (with inline styles for safety)
             return (
-                <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-950 text-white p-4 text-center">
-                    <h2 className="text-xl font-bold mb-2 text-indigo-400">Something went wrong</h2>
-                    <p className="text-slate-400 mb-6 max-w-md">
-                        Usually this happens when a new update is deployed.
+                <div style={{
+                    height: '100vh',
+                    width: '100vw',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#0f172a', // Slate-900
+                    color: '#f8fafc', // Slate-50
+                    padding: '20px',
+                    textAlign: 'center',
+                    fontFamily: 'sans-serif'
+                }}>
+                    <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '10px', color: '#818cf8' }}>
+                        Something went wrong
+                    </h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '20px', maxWidth: '400px' }}>
+                        {isChunkError ? "We couldn't load the latest version. Please check your connection." : "An unexpected error occurred."}
                     </p>
+                    <div style={{ background: '#1e293b', padding: '10px', borderRadius: '5px', marginBottom: '20px', fontFamily: 'monospace', fontSize: '12px', color: '#ef4444' }}>
+                        {this.state.error?.message || 'Unknown error'}
+                    </div>
                     <button
-                        onClick={() => window.location.reload()}
-                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-medium transition-colors shadow-lg shadow-indigo-500/20"
+                        onClick={() => {
+                            sessionStorage.removeItem('last_chunk_reload');
+                            window.location.reload();
+                        }}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#4f46e5',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 6px -1px rgba(79, 70, 229, 0.2)'
+                        }}
                     >
                         Reload App
                     </button>
