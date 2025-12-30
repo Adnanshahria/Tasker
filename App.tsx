@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { migrateLocalStorageData } from './services/migrationService';
+import GlobalErrorBoundary from './components/GlobalErrorBoundary';
 
 // Lazy load components for better initial load performance
 const Sidebar = lazy(() => import('./components/Sidebar'));
@@ -104,22 +105,24 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <AuthProvider>
-        <TimerController />
-        <Suspense fallback={<LoadingSpinner />}>
-          <PWAUpdate />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
-            <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
-            <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Suspense>
-      </AuthProvider>
+      <GlobalErrorBoundary>
+        <AuthProvider>
+          <TimerController />
+          <Suspense fallback={<LoadingSpinner />}>
+            <PWAUpdate />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
+              <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
+              <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </Suspense>
+        </AuthProvider>
+      </GlobalErrorBoundary>
     </HashRouter>
   );
 };
