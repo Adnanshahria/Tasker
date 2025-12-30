@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { User } from '@supabase/supabase-js';
 import { getCachedUser, setCachedUser, CachedUser } from '../services/localStorageService';
@@ -33,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cachedUser, setCachedUserState] = useState<CachedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for cached user first
@@ -57,9 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         // User clicked reset link - redirect to update password page
-        // Since we are inside HashRouter, we can hack the hash or assume App will route based on session?
-        // We can't use useNavigate here. But we can change window location hash as a fallback.
-        window.location.hash = '#/update-password';
+        navigate('/update-password');
       }
 
       if (session?.user) {
