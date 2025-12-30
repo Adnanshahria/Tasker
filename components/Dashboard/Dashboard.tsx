@@ -3,7 +3,7 @@ import { CheckCircle2, BookOpen, TrendingUp, Activity, BarChart2 } from 'lucide-
 import { eachDayOfInterval, subDays, format, isSameDay } from 'date-fns';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAssignments, getHabits, getSettings, LocalAssignment, LocalHabit, UserSettings, DEFAULT_SETTINGS } from '../../services/dataService';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 import StatCard from '../ui/StatCard';
 import SectionHeader from '../ui/SectionHeader';
@@ -135,13 +135,31 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="h-36 md:h-56">
                         <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={habitData}>
+                            <AreaChart data={habitData}>
+                                <defs>
+                                    <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stopColor="#6366f1" />
+                                        <stop offset="100%" stopColor="#06b6d4" />
+                                    </linearGradient>
+                                    <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
                                 <XAxis dataKey="date" stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#475569" tick={{ fill: '#94a3b8', fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={30} domain={[0, 'dataMax']} padding={{ top: 10, bottom: 10 }} />
                                 <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#f8fafc', fontSize: 12 }} />
-                                <Line type="monotone" dataKey="count" stroke="url(#lineGradient)" strokeWidth={3} connectNulls dot={{ r: 4, fill: '#818cf8', strokeWidth: 0 }} activeDot={{ r: 6, fill: '#6366f1' }} />
-                                <defs><linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor="#a855f7" /></linearGradient></defs>
-                            </LineChart>
+                                <Area
+                                    type="monotone"
+                                    dataKey="count"
+                                    stroke="url(#lineGradient)"
+                                    fill="url(#fillGradient)"
+                                    strokeWidth={3}
+                                    connectNulls
+                                    dot={false}
+                                    activeDot={{ r: 6, fill: '#6366f1', stroke: '#fff', strokeWidth: 2, shadow: '0 0 10px #6366f1' }}
+                                />
+                            </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
