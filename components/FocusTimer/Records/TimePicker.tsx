@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface TimePickerProps {
     hour: number;
@@ -8,137 +9,103 @@ interface TimePickerProps {
 }
 
 const TimePicker: React.FC<TimePickerProps> = ({ hour, minute, ampm, onChange }) => {
-    const hours = Array.from({ length: 12 }, (_, i) => i + 1);
-    const minutes = Array.from({ length: 60 }, (_, i) => i);
-    const periods = ['am', 'pm'] as const;
-
-    // Scroll refs
-    const hourRef = useRef<HTMLDivElement>(null);
-    const minuteRef = useRef<HTMLDivElement>(null);
-    const ampmRef = useRef<HTMLDivElement>(null);
-
-    // Helper to scroll to selected item
-    const scrollToItem = (container: HTMLDivElement | null, index: number) => {
-        if (!container) return;
-        const itemHeight = 40; // Height of each item
-        container.scrollTop = index * itemHeight;
+    const incrementHour = () => {
+        const newHour = hour === 12 ? 1 : hour + 1;
+        onChange(newHour, minute, ampm);
     };
 
-    // Initial scroll position
-    useEffect(() => {
-        if (hourRef.current) scrollToItem(hourRef.current, hours.indexOf(hour));
-    }, [hour]);
+    const decrementHour = () => {
+        const newHour = hour === 1 ? 12 : hour - 1;
+        onChange(newHour, minute, ampm);
+    };
 
-    useEffect(() => {
-        if (minuteRef.current) scrollToItem(minuteRef.current, minutes.indexOf(minute));
-    }, [minute]);
+    const incrementMinute = () => {
+        const newMinute = minute >= 55 ? 0 : minute + 5;
+        onChange(hour, newMinute, ampm);
+    };
 
-    useEffect(() => {
-        if (ampmRef.current) scrollToItem(ampmRef.current, periods.indexOf(ampm));
-    }, [ampm]);
+    const decrementMinute = () => {
+        const newMinute = minute <= 0 ? 55 : minute - 5;
+        onChange(hour, newMinute, ampm);
+    };
 
-    const Column = ({
-        items,
+    const toggleAmPm = () => {
+        onChange(hour, minute, ampm === 'am' ? 'pm' : 'am');
+    };
+
+    const SpinButton = ({
         value,
-        onSelect,
-        formatItem = (i: any) => i
+        onIncrement,
+        onDecrement,
+        label
     }: {
-        items: any[],
-        value: any,
-        onSelect: (val: any) => void,
-        formatItem?: (val: any) => React.ReactNode
+        value: string;
+        onIncrement: () => void;
+        onDecrement: () => void;
+        label: string;
     }) => (
-        <div className="flex-1 h-40 relative overflow-hidden bg-slate-800/50 rounded-xl border border-slate-700/50">
-            {/* Selection Highlight */}
-            <div className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 bg-blue-600/20 border-y border-blue-500/30 pointer-events-none z-10" />
-
-            {/* Scrollable list */}
-            <div
-                className="h-full overflow-y-auto snap-y snap-mandatory no-scrollbar py-[60px]"
-                onScroll={(e) => {
-                    const container = e.target as HTMLDivElement;
-                    const itemHeight = 40;
-                    const index = Math.round(container.scrollTop / itemHeight);
-                    const selectedItem = items[index];
-                    if (selectedItem !== undefined && selectedItem !== value) {
-                        // Debounce or check if we want to update dynamically
-                        // For now, let's just highlight. 
-                        // To make it fully interactive scroll, we'd need more complex logic.
-                        // Simpler approach: On click only? Or nice scroll?
-                        // Let's rely on click for reliability first, scroll for view.
-                    }
-                }}
-            >
-                {items.map((item) => (
-                    <button
-                        key={item}
-                        onClick={() => onSelect(item)}
-                        className={`w-full h-10 flex items-center justify-center snap-center transition-colors ${item === value ? 'text-white font-bold scale-110' : 'text-slate-500 hover:text-slate-300'
-                            }`}
-                    >
-                        {formatItem(item)}
-                    </button>
-                ))}
+        <div className="flex flex-col items-center">
+            <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">{label}</span>
+            <div className="relative flex flex-col items-center bg-slate-800/80 rounded-2xl border border-slate-700/50 overflow-hidden">
+                <button
+                    onClick={onIncrement}
+                    className="w-full p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all active:scale-95"
+                >
+                    <ChevronUp size={20} className="mx-auto" />
+                </button>
+                <div className="px-6 py-3 text-3xl font-bold text-white tabular-nums bg-gradient-to-b from-slate-700/30 to-slate-800/30 border-y border-slate-600/30">
+                    {value}
+                </div>
+                <button
+                    onClick={onDecrement}
+                    className="w-full p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all active:scale-95"
+                >
+                    <ChevronDown size={20} className="mx-auto" />
+                </button>
             </div>
         </div>
     );
 
     return (
-        <div className="flex items-center gap-2">
-            {/* Hour Column */}
-            <div className="flex-1 h-40 relative overflow-hidden bg-slate-800/50 rounded-xl border border-slate-700/50">
-                <div className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 bg-blue-600/20 border-y border-blue-500/30 pointer-events-none z-0" />
-                <div className="h-full overflow-y-auto no-scrollbar py-[60px] text-center">
-                    {hours.map((h) => (
-                        <button
-                            key={h}
-                            onClick={() => onChange(h, minute, ampm)}
-                            className={`w-full h-10 flex items-center justify-center transition-all ${h === hour
-                                ? 'text-blue-400 font-bold text-xl'
-                                : 'text-slate-500 hover:text-slate-300'
-                                }`}
-                        >
-                            {String(h).padStart(2, '0')}
-                        </button>
-                    ))}
-                </div>
-            </div>
+        <div className="flex items-center justify-center gap-2">
+            {/* Hour */}
+            <SpinButton
+                value={String(hour).padStart(2, '0')}
+                onIncrement={incrementHour}
+                onDecrement={decrementHour}
+                label="Hour"
+            />
 
-            <span className="text-2xl text-slate-600 font-light">:</span>
+            {/* Separator */}
+            <div className="text-3xl font-bold text-slate-500 mt-5">:</div>
 
-            {/* Minute Column */}
-            <div className="flex-1 h-40 relative overflow-hidden bg-slate-800/50 rounded-xl border border-slate-700/50">
-                <div className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 bg-blue-600/20 border-y border-blue-500/30 pointer-events-none z-0" />
-                <div className="h-full overflow-y-auto no-scrollbar py-[60px] text-center">
-                    {minutes.map((m) => (
-                        <button
-                            key={m}
-                            onClick={() => onChange(hour, m, ampm)}
-                            className={`w-full h-10 flex items-center justify-center transition-all ${m === minute
-                                ? 'text-blue-400 font-bold text-xl'
-                                : 'text-slate-500 hover:text-slate-300'
-                                }`}
-                        >
-                            {String(m).padStart(2, '0')}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            {/* Minute */}
+            <SpinButton
+                value={String(minute).padStart(2, '0')}
+                onIncrement={incrementMinute}
+                onDecrement={decrementMinute}
+                label="Min"
+            />
 
-            {/* AM/PM Toggle (Vertical List) */}
-            <div className="w-20 h-40 relative overflow-hidden bg-slate-800/50 rounded-xl border border-slate-700/50">
-                <div className="absolute top-1/2 left-0 right-0 h-10 -translate-y-1/2 bg-blue-600/20 border-y border-blue-500/30 pointer-events-none z-0" />
-                <div className="h-full flex flex-col items-center justify-center gap-2">
+            {/* AM/PM Toggle */}
+            <div className="flex flex-col items-center ml-2">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Period</span>
+                <div className="flex flex-col bg-slate-800/80 rounded-2xl border border-slate-700/50 overflow-hidden">
                     <button
-                        onClick={() => onChange(hour, minute, 'am')}
-                        className={`w-full h-10 flex items-center justify-center transition-all ${ampm === 'am' ? 'text-blue-400 font-bold text-lg' : 'text-slate-500'
+                        onClick={() => ampm !== 'am' && onChange(hour, minute, 'am')}
+                        className={`px-4 py-3 text-sm font-bold transition-all ${ampm === 'am'
+                                ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-inner'
+                                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
                             }`}
                     >
                         AM
                     </button>
+                    <div className="h-px bg-slate-700/50" />
                     <button
-                        onClick={() => onChange(hour, minute, 'pm')}
-                        className={`w-full h-10 flex items-center justify-center transition-all ${ampm === 'pm' ? 'text-blue-400 font-bold text-lg' : 'text-slate-500'
+                        onClick={() => ampm !== 'pm' && onChange(hour, minute, 'pm')}
+                        className={`px-4 py-3 text-sm font-bold transition-all ${ampm === 'pm'
+                                ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white shadow-inner'
+                                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-700/50'
                             }`}
                     >
                         PM

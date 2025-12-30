@@ -21,7 +21,7 @@ export interface DailyData {
 
 export const useFocusDashboard = () => {
     const { currentUser } = useAuth();
-    const userId = currentUser?.uid;
+    const userId = currentUser?.id;
 
     // Get today's focus stats
     const todayStats = useMemo(() => {

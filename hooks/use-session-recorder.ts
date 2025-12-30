@@ -21,10 +21,10 @@ export const useSessionRecorder = () => {
 
     // Sync with Firestore on mount if online
     useEffect(() => {
-        if (currentUser?.uid) {
+        if (currentUser?.id) {
             syncAllFocusRecords(currentUser.id);
         }
-    }, [currentUser?.uid]);
+    }, [currentUser?.id]);
 
     // Track session start
     useEffect(() => {
@@ -36,7 +36,7 @@ export const useSessionRecorder = () => {
 
     // Record a completed session
     const recordSession = useCallback((completed: boolean = true) => {
-        if (!sessionStartRef.current || !currentUser?.uid) return;
+        if (!sessionStartRef.current || !currentUser?.id) return;
 
         const endTime = Date.now();
         const startTime = sessionStartRef.current;
@@ -53,29 +53,29 @@ export const useSessionRecorder = () => {
         });
 
         sessionStartRef.current = null;
-    }, [currentUser?.uid]);
+    }, [currentUser?.id]);
 
     // Get today's stats (from localStorage, synced with Firestore)
     const getTodayStats = useCallback(() => {
-        if (!currentUser?.uid) {
+        if (!currentUser?.id) {
             return { totalFocusMinutes: 0, totalPomos: 0, sessions: [] };
         }
         return getTodayFocusStats(currentUser.id);
-    }, [currentUser?.uid]);
+    }, [currentUser?.id]);
 
     // Get records for date range
     const getRecordsForRange = useCallback((startDate: string, endDate: string) => {
-        if (!currentUser?.uid) return [];
+        if (!currentUser?.id) return [];
         return getFocusRecordsForRange(currentUser.id, startDate, endDate);
-    }, [currentUser?.uid]);
+    }, [currentUser?.id]);
 
     // Get all-time stats
     const getAllTimeStats = useCallback(() => {
-        if (!currentUser?.uid) {
+        if (!currentUser?.id) {
             return { totalFocusMinutes: 0, totalPomos: 0, totalDays: 0 };
         }
         return getAllTimeFocusStats(currentUser.id);
-    }, [currentUser?.uid]);
+    }, [currentUser?.id]);
 
     return {
         recordSession,

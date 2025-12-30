@@ -25,7 +25,7 @@ const MonthChart: React.FC<MonthChartProps> = ({ className = '' }) => {
 
     // Get monthly data for selected month
     const { data: monthlyData, stats } = useMemo(() => {
-        if (!currentUser?.uid) return { data: [], stats: { totalMinutes: 0, dailyAverage: 0, daysWithData: 0 } };
+        if (!currentUser?.id) return { data: [], stats: { totalMinutes: 0, dailyAverage: 0, daysWithData: 0 } };
 
         const monthStart = startOfMonth(selectedMonth);
         const monthEnd = endOfMonth(selectedMonth);
@@ -61,7 +61,7 @@ const MonthChart: React.FC<MonthChartProps> = ({ className = '' }) => {
             data,
             stats: { totalMinutes, dailyAverage, daysWithData }
         };
-    }, [currentUser?.uid, selectedMonth]);
+    }, [currentUser?.id, selectedMonth]);
 
     const monthLabel = format(selectedMonth, 'MMMM yyyy');
     const hasData = monthlyData.some(d => d.minutes > 0);
