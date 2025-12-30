@@ -11,7 +11,7 @@ interface State {
 
 class GlobalErrorBoundary extends Component<Props, State> {
     public state: State = { hasError: false, error: null };
-    public override props: Props;
+    public props: Props;
 
     constructor(props: Props) {
         super(props);
@@ -31,8 +31,25 @@ class GlobalErrorBoundary extends Component<Props, State> {
             error.message.includes('Loading chunk') ||
             error.name === 'ChunkLoadError'
         ) {
-            console.log('Chunk load error detected. Reloading...');
-            // Force reload to get fresh assets
+            console.log('Chunk load error detected. Performing hard reset...');
+
+            // Unregister Service Workers
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (const registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+
+            // Clear Cache Storage
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+
+            // Force reload from server
             window.location.reload();
         }
     }
