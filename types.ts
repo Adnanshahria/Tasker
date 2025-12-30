@@ -1,4 +1,4 @@
-import { Timestamp } from 'firebase/firestore';
+
 
 export interface User {
   uid: string;
@@ -14,7 +14,7 @@ export interface Assignment {
   userId: string;
   title: string;
   subject: string;
-  dueDate: Timestamp;
+  dueDate: number;
   status: AssignmentStatus;
   priority: AssignmentPriority;
   type: string; // e.g., 'Exam', 'Quiz', 'Project' (User definable)

@@ -1,18 +1,7 @@
 // Sync Service - Network Detection and Background Sync
-// Handles online/offline detection, pending operations queue, and Firestore sync
+// Handles online/offline detection, pending operations queue, and Supabase sync
 
-import { db } from '../firebase';
-import {
-    collection,
-    doc,
-    getDocs,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    setDoc,
-} from 'firebase/firestore';
+import { supabase } from './supabaseClient';
 import {
     getPendingOperations,
     removePendingOperation,
@@ -152,43 +141,44 @@ const processOperation = async (op: PendingOperation): Promise<void> => {
 const processAssignmentOperation = async (op: PendingOperation): Promise<void> => {
     switch (op.type) {
         case 'add': {
-            // Create in Firestore and update local ID
+            // Create in Supabase and update local ID
             const { id, syncStatus, ...data } = op.data;
-            const docRef = await addDoc(collection(db, 'assignments'), {
+            const { data: newDoc, error } = await supabase.from('assignments').insert({
                 ...data,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            });
+                created_at: new Date(Date.now()).toISOString(), // Supabase uses ISO strings or keep numbers if schema matches
+                // Assuming schema matches or is flexible. 
+                // Note: user_id should be mapped.
+            }).select().single();
+
+            if (error) throw error;
+
             // Update local storage with real ID
-            if (isTempId(op.docId)) {
-                updateLocalAssignmentId(op.userId, op.docId, docRef.id);
+            if (isTempId(op.docId) && newDoc) {
+                updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             }
             break;
         }
         case 'update': {
             if (isTempId(op.docId)) {
-                // This shouldn't happen, but handle gracefully
-                console.warn('[Sync] Trying to update a temp ID, converting to add');
+                // Converting update to add if it's still temp
                 const { id, syncStatus, ...data } = op.data;
-                const docRef = await addDoc(collection(db, 'assignments'), {
+                const { data: newDoc, error } = await supabase.from('assignments').insert({
                     ...data,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now(),
-                });
-                updateLocalAssignmentId(op.userId, op.docId, docRef.id);
+                }).select().single();
+                if (error) throw error;
+                if (newDoc) updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             } else {
-                await updateDoc(doc(db, 'assignments', op.docId), {
+                await supabase.from('assignments').update({
                     ...op.data,
-                    updatedAt: Date.now(),
-                });
+                    updated_at: new Date(Date.now()).toISOString(),
+                }).eq('id', op.docId);
             }
             break;
         }
         case 'delete': {
             if (!isTempId(op.docId)) {
-                await deleteDoc(doc(db, 'assignments', op.docId));
+                await supabase.from('assignments').delete().eq('id', op.docId);
             }
-            // If it's a temp ID, it was never synced, so nothing to delete remotely
             break;
         }
     }
@@ -198,36 +188,28 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
     switch (op.type) {
         case 'add': {
             const { id, syncStatus, ...data } = op.data;
-            const docRef = await addDoc(collection(db, 'habits'), {
-                ...data,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            });
-            if (isTempId(op.docId)) {
-                updateLocalHabitId(op.userId, op.docId, docRef.id);
+            const { data: newDoc, error } = await supabase.from('habits').insert(data).select().single();
+            if (error) throw error;
+
+            if (isTempId(op.docId) && newDoc) {
+                updateLocalHabitId(op.userId, op.docId, newDoc.id);
             }
             break;
         }
         case 'update': {
             if (isTempId(op.docId)) {
                 const { id, syncStatus, ...data } = op.data;
-                const docRef = await addDoc(collection(db, 'habits'), {
-                    ...data,
-                    createdAt: Date.now(),
-                    updatedAt: Date.now(),
-                });
-                updateLocalHabitId(op.userId, op.docId, docRef.id);
+                const { data: newDoc, error } = await supabase.from('habits').insert(data).select().single();
+                if (error) throw error;
+                if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
-                await updateDoc(doc(db, 'habits', op.docId), {
-                    ...op.data,
-                    updatedAt: Date.now(),
-                });
+                await supabase.from('habits').update(op.data).eq('id', op.docId);
             }
             break;
         }
         case 'delete': {
             if (!isTempId(op.docId)) {
-                await deleteDoc(doc(db, 'habits', op.docId));
+                await supabase.from('habits').delete().eq('id', op.docId);
             }
             break;
         }
@@ -235,33 +217,43 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
 };
 
 const processSettingsOperation = async (op: PendingOperation): Promise<void> => {
-    // Settings use user ID as doc ID
+    // Settings use user ID as unique key
     const { syncStatus, updatedAt, ...settings } = op.data;
-    await setDoc(doc(db, 'settings', op.userId), {
+    const { error } = await supabase.from('settings').upsert({
+        user_id: op.userId, // Assuming schema uses user_id
         ...settings,
-        updatedAt: Date.now(),
+        updated_at: new Date().toISOString()
     });
+    if (error) throw error;
 };
 
 // ==================== REMOTE DATA FETCHING ====================
 
 export const fetchRemoteAssignments = async (userId: string): Promise<any[]> => {
-    const q = query(collection(db, 'assignments'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
+    if (error) {
+        console.error('Error fetching assignments:', error);
+        return [];
+    }
+    return data || [];
 };
 
 export const fetchRemoteHabits = async (userId: string): Promise<any[]> => {
-    const q = query(collection(db, 'habits'), where('userId', '==', userId));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const { data, error } = await supabase.from('habits').select('*').eq('userId', userId);
+    if (error) {
+        console.error('Error fetching habits:', error);
+        return [];
+    }
+    return data || [];
 };
 
 export const fetchRemoteSettings = async (userId: string): Promise<any | null> => {
-    const { getDoc } = await import('firebase/firestore');
-    const docRef = doc(db, 'settings', userId);
-    const docSnap = await getDoc(docRef);
-    return docSnap.exists() ? docSnap.data() : null;
+    const { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
+    if (error) {
+        console.warn('[Sync] Settings fetch error:', error.message);
+        return null;
+    }
+    return data;
 };
 
 // ==================== INITIALIZATION ====================

@@ -13,6 +13,7 @@ const HabitTracker = lazy(() => import('./components/HabitTracker'));
 const FocusTimer = lazy(() => import('./components/FocusTimer'));
 const Settings = lazy(() => import('./components/Settings'));
 const Auth = lazy(() => import('./components/Auth'));
+const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
@@ -41,7 +42,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-900 text-slate-100 font-sans selection:bg-indigo-500/30">
+    <div className="flex h-screen overflow-hidden bg-black text-slate-100 font-sans selection:bg-indigo-500/30">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Suspense fallback={<div className="w-64 bg-slate-900"></div>}>
@@ -99,6 +100,7 @@ const App: React.FC = () => (
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
           <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />

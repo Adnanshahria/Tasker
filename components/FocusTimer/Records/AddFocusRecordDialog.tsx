@@ -78,7 +78,7 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
                 return;
             }
 
-            await logManualSession(currentUser.uid, dateWithTime, duration);
+            await logManualSession(currentUser.id, dateWithTime, duration);
 
             onSuccess?.();
             onClose();

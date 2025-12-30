@@ -1,13 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '../firebase';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { supabase } from '../services/supabaseClient';
+import { User } from '@supabase/supabase-js';
 import { getCachedUser, setCachedUser, CachedUser } from '../services/localStorageService';
 import { isOnline } from '../services/syncService';
 
@@ -19,6 +12,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -29,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => { },
   signup: async () => { },
   logout: async () => { },
+  resetPassword: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -40,149 +35,136 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   useEffect(() => {
-    // Check for cached user first (for offline support)
+    // Check for cached user first
     const cached = getCachedUser();
     if (cached) {
       setCachedUserState(cached);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        setIsOfflineMode(false);
-
-        // Cache user for offline access
-        setCachedUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || user.email?.split('@')[0] || null,
-          cachedAt: Date.now(),
-        });
-        setCachedUserState({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || user.email?.split('@')[0] || null,
-          cachedAt: Date.now(),
-        });
-
-        // Create/update user document in Firestore (if online)
-        if (isOnline()) {
-          try {
-            const userDoc = doc(db, 'users', user.uid);
-            const docSnap = await getDoc(userDoc);
-            if (!docSnap.exists()) {
-              await setDoc(userDoc, {
-                email: user.email,
-                displayName: user.displayName || user.email?.split('@')[0],
-                createdAt: Date.now(),
-              });
-            }
-          } catch (e) {
-            console.log('Firestore sync error:', e);
-          }
-        }
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        handleUser(session.user);
       } else {
         setCurrentUser(null);
+        setLoading(false);
+        if (cached && !isOnline()) {
+          setIsOfflineMode(true);
+        }
+      }
+    });
 
-        // If offline and we have cached user, allow offline mode
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked reset link - redirect to update password page
+        // Since we are inside HashRouter, we can hack the hash or assume App will route based on session?
+        // We can't use useNavigate here. But we can change window location hash as a fallback.
+        window.location.hash = '#/update-password';
+      }
+
+      if (session?.user) {
+        handleUser(session.user);
+      } else {
+        setCurrentUser(null);
         if (!isOnline() && cached) {
-          console.log('[Auth] Offline mode with cached user');
           setIsOfflineMode(true);
           setCachedUserState(cached);
         } else {
           setCachedUserState(null);
           setIsOfflineMode(false);
         }
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => subscription.unsubscribe();
   }, []);
 
+  const handleUser = (user: User) => {
+    setCurrentUser(user);
+    setIsOfflineMode(false);
+
+    const userData: CachedUser = {
+      uid: user.id,
+      email: user.email || null,
+      displayName: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+      cachedAt: Date.now(),
+    };
+
+    setCachedUser(userData);
+    setCachedUserState(userData);
+    setLoading(false);
+  };
+
   const signup = async (email: string, password: string) => {
-    if (!isOnline()) {
-      throw new Error('ইন্টারনেট সংযোগ প্রয়োজন');
-    }
+    if (!isOnline()) throw new Error('ইন্টারনেট সংযোগ প্রয়োজন');
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        email: email,
-        displayName: email.split('@')[0],
-        createdAt: Date.now(),
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
       });
 
-      // Cache user for offline access
-      setCachedUser({
-        uid: userCredential.user.uid,
-        email: email,
-        displayName: email.split('@')[0],
-        cachedAt: Date.now(),
-      });
+      if (error) throw error;
+      if (data.user) {
+        handleUser(data.user);
+        // Create profile in 'users' table if you have one, or trigger does it
+      }
     } catch (error: any) {
       console.error('Signup error:', error);
-      if (error.code === 'auth/email-already-in-use') {
-        throw new Error('এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে');
-      } else if (error.code === 'auth/weak-password') {
-        throw new Error('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে');
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('সঠিক ইমেইল দিন');
-      } else if (error.code === 'auth/network-request-failed') {
-        throw new Error('ইন্টারনেট সংযোগ নেই');
-      }
-      throw new Error('অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে');
+      throw new Error(error.message || 'অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে');
     }
   };
 
   const login = async (email: string, password: string) => {
-    if (!isOnline()) {
-      throw new Error('লগইনের জন্য ইন্টারনেট সংযোগ প্রয়োজন');
-    }
+    if (!isOnline()) throw new Error('লগইনের জন্য ইন্টারনেট সংযোগ প্রয়োজন');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-
-      // Cache user for offline access
-      setCachedUser({
-        uid: userCredential.user.uid,
-        email: email,
-        displayName: userCredential.user.displayName || email.split('@')[0],
-        cachedAt: Date.now(),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      if (error) throw error;
+      if (data.user) handleUser(data.user);
     } catch (error: any) {
       console.error('Login error:', error);
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-        throw new Error('ভুল ইমেইল বা পাসওয়ার্ড');
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('সঠিক ইমেইল দিন');
-      } else if (error.code === 'auth/too-many-requests') {
-        throw new Error('অনেক চেষ্টা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন');
-      } else if (error.code === 'auth/network-request-failed') {
-        throw new Error('ইন্টারনেট সংযোগ নেই');
-      }
-      throw new Error('লগইন করতে সমস্যা হয়েছে');
+      throw new Error('ভুল ইমেইল বা পাসওয়ার্ড');
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    if (!isOnline()) throw new Error('ইন্টারনেট সংযোগ প্রয়োজন');
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin, // Redirect to root, listener will handle it
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      throw new Error(error.message || 'পাসওয়ার্ড রিসেট করতে সমস্যা হয়েছে');
     }
   };
 
   const logout = async () => {
-    // Clear cached user on logout
     setCachedUser(null);
     setCachedUserState(null);
     setIsOfflineMode(false);
 
     if (isOnline()) {
-      await signOut(auth);
+      await supabase.auth.signOut();
     }
     setCurrentUser(null);
   };
 
-  // Effective user - use cached user if offline and no current user
   const effectiveUser = currentUser || (isOfflineMode ? {
-    uid: cachedUser?.uid || '',
-    email: cachedUser?.email || null,
-    displayName: cachedUser?.displayName || null,
+    id: cachedUser?.uid || '',
+    email: cachedUser?.email || undefined,
+    user_metadata: { full_name: cachedUser?.displayName },
+    app_metadata: {},
+    aud: '',
+    created_at: ''
   } as User : null);
 
   const value = {
@@ -193,6 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
+    resetPassword,
   };
 
   return (

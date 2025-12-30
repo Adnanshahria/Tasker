@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon } from 'lucide-react';
+import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon, Check } from 'lucide-react';
 import { useTimer } from '../../hooks/use-timer';
 import { useAudioAlert } from '../../hooks/use-audio-alert';
 import { useSessionRecorder } from '../../hooks/use-session-recorder';
 import { useTimerStore } from '../../store/timerStore';
+import { getBorderClass } from '../../utils/styleUtils';
 import DeepFocusTimer from './DeepFocus';
 import RecordsPage from './Records';
 
@@ -15,6 +16,8 @@ const FocusTimer: React.FC = () => {
     const durations = useTimerStore((state) => state.durations);
     const setDurations = useTimerStore((state) => state.setDurations);
     const dailyGoal = useTimerStore((state) => state.dailyGoal);
+    const borderColor = useTimerStore((state) => state.borderColor);
+    const setBorderColor = useTimerStore((state) => state.setBorderColor);
 
     const [showFloatingTimer, setShowFloatingTimer] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -91,6 +94,7 @@ const FocusTimer: React.FC = () => {
         { key: 'longBreak', label: 'Long Break' },
     ] as const;
 
+
     return (
         <>
             {/* Settings Modal */}
@@ -100,41 +104,135 @@ const FocusTimer: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
                         onClick={() => setShowSettings(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.95 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0.95 }}
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-xs bg-slate-800 rounded-2xl p-5"
+                            className="w-full max-w-[340px] bg-[#1e293b] rounded-3xl p-6 shadow-2xl border border-white/5"
                         >
-                            <h2 className="text-lg font-semibold text-white mb-4">Timer Settings</h2>
+                            <h2 className="text-xl font-bold text-white mb-6">Timer Settings</h2>
 
-                            {[
-                                { label: 'Focus', value: tempPomodoro, setValue: setTempPomodoro, step: 5, max: 120 },
-                                { label: 'Short Break', value: tempShortBreak, setValue: setTempShortBreak, step: 1, max: 30 },
-                                { label: 'Long Break', value: tempLongBreak, setValue: setTempLongBreak, step: 5, max: 60 },
-                            ].map(({ label, value, setValue, step, max }) => (
-                                <div key={label} className="mb-4">
-                                    <div className="flex justify-between mb-2">
-                                        <span className="text-sm text-slate-400">{label}</span>
-                                        <span className="text-sm text-white font-medium">{value} min</span>
+                            <div className="space-y-6">
+                                {/* Border Color Picker */}
+                                <div>
+                                    <div className="flex justify-between mb-3">
+                                        <span className="text-sm font-medium text-slate-400">Border Color</span>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => setValue(Math.max(1, value - step))} className="p-2 rounded-lg bg-slate-700"><Minus size={16} className="text-slate-300" /></button>
-                                        <div className="flex-1 h-1.5 bg-slate-700 rounded-full">
-                                            <div className="h-1.5 bg-blue-500 rounded-full transition-all" style={{ width: `${(value / max) * 100}%` }} />
-                                        </div>
-                                        <button onClick={() => setValue(Math.min(max, value + step))} className="p-2 rounded-lg bg-slate-700"><Plus size={16} className="text-slate-300" /></button>
+                                    <div className="flex flex-wrap gap-2">
+                                        {[
+                                            { id: 'none', color: 'bg-slate-700', label: 'None' },
+                                            { id: 'blue', color: 'bg-blue-500', label: 'Blue' },
+                                            { id: 'red', color: 'bg-red-500', label: 'Red' },
+                                            { id: 'white', color: 'bg-white', label: 'White' },
+                                            { id: 'yellow', color: 'bg-yellow-500', label: 'Yellow' },
+                                            { id: 'cyan', color: 'bg-cyan-500', label: 'Cyan' },
+                                            { id: 'purple', color: 'bg-purple-500', label: 'Purple' },
+                                            { id: 'green', color: 'bg-green-500', label: 'Green' },
+                                            { id: 'orange', color: 'bg-orange-500', label: 'Orange' },
+                                            { id: 'pink', color: 'bg-pink-500', label: 'Pink' },
+                                        ].map((item) => (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => setBorderColor(item.id as any)}
+                                                className={`w-8 h-8 rounded-full ${item.color} flex items-center justify-center transition-transform hover:scale-110 relative group`}
+                                                title={item.label}
+                                            >
+                                                {borderColor === item.id && (
+                                                    <Check size={14} className={['white', 'yellow', 'cyan', 'green', 'orange', 'pink'].includes(item.id) ? 'text-black' : 'text-white'} />
+                                                )}
+                                                {borderColor === item.id && (
+                                                    <div className={`absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-[#1e293b] ${item.id === 'none' ? 'ring-slate-500' : item.color.replace('bg-', 'ring-')}`} />
+                                                )}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
 
-                            <div className="flex gap-3 mt-6">
-                                <button onClick={() => setShowSettings(false)} className="flex-1 py-2.5 rounded-xl bg-slate-700 text-slate-300">Cancel</button>
-                                <button onClick={handleSaveSettings} className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white">Save</button>
+                                <div className="h-px bg-white/10" />
+
+                                {[
+                                    { label: 'Focus', value: tempPomodoro, setValue: setTempPomodoro, step: 5, max: 360 }, // Max 6 hours
+                                    { label: 'Short Break', value: tempShortBreak, setValue: setTempShortBreak, step: 1, max: 30 },
+                                    { label: 'Long Break', value: tempLongBreak, setValue: setTempLongBreak, step: 5, max: 60 },
+                                ].map(({ label, value, setValue, step, max }) => (
+                                    <div key={label}>
+                                        <div className="flex justify-between mb-3">
+                                            <span className="text-sm font-medium text-slate-400">{label}</span>
+                                            <span className="text-sm font-bold text-white tabular-nums">{value} min</span>
+                                        </div>
+
+                                        {/* Presets for Focus only */}
+                                        {label === 'Focus' && (
+                                            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+                                                {[30, 60, 90, 120, 150, 180, 240, 300, 360].map((preset) => (
+                                                    <button
+                                                        key={preset}
+                                                        onClick={() => setValue(preset)}
+                                                        className={`
+                                                            flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all
+                                                            ${value === preset
+                                                                ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
+                                                                : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {`${Math.floor(preset / 60)}h ${preset % 60}m`}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => setValue(Math.max(1, value - step))}
+                                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                            >
+                                                <Minus size={18} />
+                                            </button>
+
+                                            <div className="flex-1 px-2">
+                                                <input
+                                                    type="range"
+                                                    min={step}
+                                                    max={max}
+                                                    step={step}
+                                                    value={value}
+                                                    onChange={(e) => setValue(Number(e.target.value))}
+                                                    className="w-full h-2 bg-slate-700/50 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
+                                                    style={{
+                                                        backgroundImage: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(value / max) * 100}%, rgba(51, 65, 85, 0.5) ${(value / max) * 100}%, rgba(51, 65, 85, 0.5) 100%)`
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <button
+                                                onClick={() => setValue(Math.min(max, value + step))}
+                                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                            >
+                                                <Plus size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-3 mt-8">
+                                <button
+                                    onClick={() => setShowSettings(false)}
+                                    className="flex-1 py-3.5 rounded-xl bg-slate-700/50 text-slate-300 font-medium hover:bg-slate-700 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveSettings}
+                                    className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
+                                >
+                                    Save
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>
@@ -169,7 +267,7 @@ const FocusTimer: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:items-center">
                         {/* Left Column: Timer Card */}
-                        <div className="bg-slate-800/30 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm border border-white/5">
+                        <div className={getBorderClass(borderColor, "bg-slate-800/30 rounded-3xl p-6 relative overflow-hidden backdrop-blur-sm")}>
                             {/* Background Glow */}
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-violet-500/20 blur-[80px] rounded-full pointer-events-none" />
 
@@ -267,7 +365,7 @@ const FocusTimer: React.FC = () => {
 
                         {/* Right Column: Stats Cards */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-violet-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300">
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300")}>
                                 <div className="p-3 rounded-xl bg-violet-500/10 shadow-inner">
                                     <Clock size={24} className="text-violet-400" />
                                 </div>
@@ -277,7 +375,7 @@ const FocusTimer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-purple-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75">
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75")}>
                                 <div className="p-3 rounded-xl bg-purple-500/10 shadow-inner">
                                     <Calendar size={24} className="text-purple-400" />
                                 </div>
@@ -287,7 +385,7 @@ const FocusTimer: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl border-l-[6px] border-emerald-500 backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100">
+                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100")}>
                                 <div className="p-3 rounded-xl bg-emerald-500/10 shadow-inner">
                                     <Target size={24} className="text-emerald-400" />
                                 </div>

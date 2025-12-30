@@ -19,6 +19,47 @@ const DEFAULT_EN: UserSettings = {
     language: 'en'
 };
 
+import { useTimerStore } from '../../store/timerStore';
+
+
+const BorderColorSetting: React.FC = () => {
+    const borderColor = useTimerStore((state) => state.borderColor);
+    const setBorderColor = useTimerStore((state) => state.setBorderColor);
+
+    return (
+        <div className="bg-slate-900/50 border border-white/5 rounded-xl p-4 md:p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-white">Border Glow Color</h2>
+            <div className="flex flex-wrap gap-3">
+                {([
+                    { id: 'none', color: 'bg-slate-700 ring-slate-500', label: 'None' },
+                    { id: 'white', color: 'bg-white ring-white', label: 'White' },
+                    { id: 'blue', color: 'bg-blue-500 ring-blue-500', label: 'Blue' },
+                    { id: 'red', color: 'bg-red-500 ring-red-500', label: 'Red' },
+                    { id: 'yellow', color: 'bg-yellow-500 ring-yellow-500', label: 'Yellow' },
+                    { id: 'cyan', color: 'bg-cyan-500 ring-cyan-500', label: 'Cyan' },
+                    { id: 'purple', color: 'bg-purple-500 ring-purple-500', label: 'Purple' },
+                    { id: 'green', color: 'bg-green-500 ring-green-500', label: 'Green' },
+                    { id: 'orange', color: 'bg-orange-500 ring-orange-500', label: 'Orange' },
+                    { id: 'pink', color: 'bg-pink-500 ring-pink-500', label: 'Pink' },
+                ] as const).map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => setBorderColor(item.id as any)}
+                        className={`
+                            px-4 py-2 rounded-lg font-medium text-sm transition-all capitalize
+                            ${borderColor === item.id
+                                ? `${item.id === 'white' ? 'bg-indigo-600 text-white' : item.color.split(' ')[0] + ' text-white'} shadow-lg ring-2 ring-offset-2 ring-offset-slate-900 ${item.color.split(' ')[1]}`
+                                : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'}
+                        `}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const Settings: React.FC = () => {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
@@ -33,7 +74,7 @@ const Settings: React.FC = () => {
         if (!currentUser) return;
         setLoading(true);
         try {
-            const data = await getSettings(currentUser.uid);
+            const data = await getSettings(currentUser.id);
             setSettings(data);
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -48,7 +89,7 @@ const Settings: React.FC = () => {
         if (!currentUser) return;
         setSaving(true);
         try {
-            await saveSettings(currentUser.uid, s);
+            await saveSettings(currentUser.id, s);
             setSettings(s);
         } catch (error) {
             console.error('Error saving settings:', error);
@@ -87,6 +128,10 @@ const Settings: React.FC = () => {
                 </div>
             </div>
             <LanguageToggle lang={lang} label={t.language} englishLabel={t.english} banglaLabel={t.bangla} onLanguageChange={handleLanguageChange} />
+
+            {/* Border Color Setting */}
+            <BorderColorSetting />
+
             {(['subjects', 'types', 'statuses', 'priorities'] as Category[]).map(cat => (
                 <CategorySection key={cat} category={cat} items={settings[cat]} config={config[cat]} t={t} editingItem={editingItem} newItem={newItem} onStartEdit={(c, i, v) => setEditingItem({ category: c, index: i, value: v })} onSaveEdit={handleRename} onCancelEdit={() => setEditingItem(null)} onEditChange={v => editingItem && setEditingItem({ ...editingItem, value: v })} onStartNew={c => setNewItem({ category: c, value: '' })} onSaveNew={handleAdd} onCancelNew={() => setNewItem(null)} onNewChange={v => newItem && setNewItem({ ...newItem, value: v })} onDelete={handleDelete} />
             ))}

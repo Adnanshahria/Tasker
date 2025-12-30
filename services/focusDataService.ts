@@ -1,16 +1,7 @@
-// Focus Timer Data Service - Offline-First with Firebase Sync
+// Focus Timer Data Service - Offline-First with Supabase Sync
 // Follows the same pattern as dataService.ts for assignments/habits
 
-import { db } from '../firebase';
-import {
-    collection,
-    doc,
-    getDocs,
-    setDoc,
-    query,
-    where,
-    Timestamp,
-} from 'firebase/firestore';
+import { supabase } from './supabaseClient';
 import { FocusSession, FocusRecord } from '../types';
 import { isOnline } from './syncService';
 
@@ -236,14 +227,20 @@ const syncFocusRecordToFirestore = async (
     record: FocusRecord
 ) => {
     try {
-        const docRef = doc(db, 'focusRecords', `${userId}_${date}`);
-        await setDoc(docRef, {
-            ...record,
-            updatedAt: Timestamp.now(),
-        }, { merge: true });
-        console.log('[Focus] Record synced to Firestore:', date);
+        const { error } = await supabase.from('focus_records').upsert({
+            id: `${userId}_${date}`, // ID construction
+            user_id: userId,
+            date: date,
+            total_focus_minutes: record.totalFocusMinutes,
+            total_pomos: record.totalPomos,
+            sessions: record.sessions,
+            updated_at: new Date().toISOString()
+        });
+
+        if (error) throw error;
+        console.log('[Focus] Record synced to Supabase:', date);
     } catch (error) {
-        console.warn('[Focus] Failed to sync to Firestore:', error);
+        console.warn('[Focus] Failed to sync to Supabase:', error);
         // Will retry on next session save or when coming online
     }
 };
@@ -255,25 +252,20 @@ export const fetchRemoteFocusRecords = async (userId: string): Promise<FocusReco
     if (!userId || !isOnline()) return [];
 
     try {
-        const q = query(
-            collection(db, 'focusRecords'),
-            where('userId', '==', userId)
-        );
-        const snapshot = await getDocs(q);
+        const { data, error } = await supabase.from('focus_records').select('*').eq('user_id', userId);
 
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                date: data.date,
-                userId: data.userId,
-                totalFocusMinutes: data.totalFocusMinutes || 0,
-                totalPomos: data.totalPomos || 0,
-                sessions: data.sessions || [],
-            };
-        });
+        if (error) throw error;
+
+        return (data || []).map(row => ({
+            id: row.id,
+            date: row.date,
+            userId: row.user_id,
+            totalFocusMinutes: row.total_focus_minutes || 0,
+            totalPomos: row.total_pomos || 0,
+            sessions: row.sessions || [],
+        }));
     } catch (error) {
-        console.warn('[Focus] Failed to fetch from Firestore:', error);
+        console.warn('[Focus] Failed to fetch from Supabase:', error);
         return [];
     }
 };

@@ -9,6 +9,8 @@ import Toolbar from './Toolbar';
 import Table from './Table';
 import { T } from './translations';
 import { toggleHabitDate } from './helpers';
+import { useTimerStore } from '../../store/timerStore';
+import { getBorderClass } from '../../utils/styleUtils';
 
 const HabitTracker: React.FC = () => {
     const { currentUser } = useAuth();
@@ -23,6 +25,7 @@ const HabitTracker: React.FC = () => {
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
     const [showMonthPicker, setShowMonthPicker] = useState(false);
+    const borderColor = useTimerStore((state) => state.borderColor);
 
     const selectedDate = new Date(selectedYear, selectedMonth, 1);
     const daysInMonth = eachDayOfInterval({ start: startOfMonth(selectedDate), end: endOfMonth(selectedDate) });
@@ -32,8 +35,8 @@ const HabitTracker: React.FC = () => {
         if (!currentUser) return;
         try {
             const [habitsData, settingsData] = await Promise.all([
-                getHabits(currentUser.uid),
-                getSettings(currentUser.uid)
+                getHabits(currentUser.id),
+                getSettings(currentUser.id)
             ]);
             setHabits(habitsData);
             setSettings(settingsData);
@@ -51,7 +54,7 @@ const HabitTracker: React.FC = () => {
     const handleAdd = async () => {
         if (!newTitle.trim() || !currentUser) return;
         try {
-            await saveHabit({ userId: currentUser.uid, title: newTitle, description: newDesc, completedDates: [], streak: 0, createdAt: Date.now() });
+            await saveHabit({ userId: currentUser.id, title: newTitle, description: newDesc, completedDates: [], streak: 0, createdAt: Date.now() });
             setNewTitle(''); setNewDesc(''); setShowAddModal(false);
             await loadData();
         } catch (error) {
@@ -65,7 +68,7 @@ const HabitTracker: React.FC = () => {
         // Optimistic update - update UI immediately
         setHabits(prev => prev.map(h => h.id === habit.id ? { ...h, completedDates: newCompletedDates } : h));
         try {
-            await updateHabit(habit.id, { userId: currentUser.uid, completedDates: newCompletedDates });
+            await updateHabit(habit.id, { userId: currentUser.id, completedDates: newCompletedDates });
         } catch (error) {
             console.error('Error toggling habit:', error);
             // Revert on error
@@ -93,7 +96,7 @@ const HabitTracker: React.FC = () => {
             .filter((h): h is LocalHabit => h !== undefined);
         setHabits(reorderedHabits);
         try {
-            await reorderHabits(currentUser.uid, orderedIds);
+            await reorderHabits(currentUser.id, orderedIds);
         } catch (error) {
             console.error('Error reordering habits:', error);
             await loadData(); // Revert on error
@@ -104,10 +107,12 @@ const HabitTracker: React.FC = () => {
         return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div></div>;
     }
 
+
+
     return (
         <div className="h-full flex flex-col space-y-4 font-sans">
             <Toolbar title={t.title} addLabel={t.addHabit} selectedMonth={selectedMonth} selectedYear={selectedYear} showPicker={showMonthPicker} yearOptions={yearOptions} onPickerToggle={() => setShowMonthPicker(!showMonthPicker)} onMonthSelect={m => { setSelectedMonth(m); setShowMonthPicker(false); }} onYearSelect={setSelectedYear} onAddClick={() => setShowAddModal(true)} />
-            <div className="flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xl">
+            <div className={getBorderClass(borderColor, "flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden flex flex-col shadow-xl")}>
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
                     <Table habits={habits} daysInMonth={daysInMonth} t={t} lang={lang} onToggle={handleToggle} onDelete={setDeleteConfirm} onReorder={handleReorder} />
                     {habits.length === 0 && <EmptyState t={t} />}

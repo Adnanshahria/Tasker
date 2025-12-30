@@ -70,10 +70,8 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Skip Firebase API requests (let them go through normally)
-    if (url.hostname.includes('firebase') ||
-        url.hostname.includes('googleapis') ||
-        url.hostname.includes('firestore')) {
+    // Skip Supabase API requests (let them go through normally)
+    if (url.hostname.includes('supabase.co')) {
         return;
     }
 

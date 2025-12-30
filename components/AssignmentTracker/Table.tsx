@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LocalAssignment } from '../../services/dataService';
 import { calcDuration, getTimeStatus } from './helpers';
 import { getPriorityStyle, getStatusStyle, getTypeStyle } from './styles';
+import { useTimerStore } from '../../store/timerStore';
+import { getBorderClass } from '../../utils/styleUtils';
 
 interface TableProps {
     assignments: LocalAssignment[];
@@ -328,9 +330,11 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
         );
     };
 
+    const borderColor = useTimerStore((state) => state.borderColor);
+
     return (
         <>
-            <div className="flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-xl relative">
+            <div className={getBorderClass(borderColor, "flex-1 bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden flex flex-col shadow-xl relative")}>
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
                     <table className="w-full text-left border-separate border-spacing-0 text-[10px] md:text-xs min-w-[700px]">
                         <thead className="sticky top-0 z-10">

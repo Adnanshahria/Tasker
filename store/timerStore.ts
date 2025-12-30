@@ -28,6 +28,7 @@ interface TimerState {
     // DeepFocus settings
     antiBurnIn: boolean;
     dailyGoal: number; // in minutes
+    borderColor: 'blue' | 'red' | 'white' | 'none' | 'yellow' | 'cyan' | 'purple' | 'green' | 'orange' | 'pink';
 
     // Actions
     start: () => void;
@@ -41,6 +42,7 @@ interface TimerState {
     setDurations: (durations: Partial<TimerState['durations']>) => void;
     setAntiBurnIn: (enabled: boolean) => void;
     setDailyGoal: (minutes: number) => void;
+    setBorderColor: (color: TimerState['borderColor']) => void;
 }
 
 export const useTimerStore = create<TimerState>()(
@@ -58,6 +60,7 @@ export const useTimerStore = create<TimerState>()(
             // DeepFocus settings
             antiBurnIn: true,
             dailyGoal: 120, // 2 hours default
+            borderColor: 'white',
 
             // Actions
             start: () => {
@@ -159,6 +162,10 @@ export const useTimerStore = create<TimerState>()(
             setDailyGoal: (minutes: number) => {
                 set({ dailyGoal: Math.max(1, minutes) });
             },
+
+            setBorderColor: (color) => {
+                set({ borderColor: color });
+            },
         }),
         {
             name: 'ogrogoti-timer-storage',
@@ -168,6 +175,7 @@ export const useTimerStore = create<TimerState>()(
                 durations: state.durations,
                 antiBurnIn: state.antiBurnIn,
                 dailyGoal: state.dailyGoal,
+                borderColor: state.borderColor,
                 // Don't persist isActive, timeLeft, sessionStartTime for clean restart
             }),
         }

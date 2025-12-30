@@ -55,7 +55,7 @@ const NetworkStatus: React.FC = () => {
     useEffect(() => {
         // Get language from settings
         if (currentUser) {
-            const settings = getLocalSettings(currentUser.uid);
+            const settings = getLocalSettings(currentUser.id);
             if (settings?.language) {
                 setLang(settings.language);
             }
@@ -79,7 +79,7 @@ const NetworkStatus: React.FC = () => {
             setPendingCount(getPendingOperations().length);
             // Also refresh language
             if (currentUser) {
-                const settings = getLocalSettings(currentUser.uid);
+                const settings = getLocalSettings(currentUser.id);
                 if (settings?.language) {
                     setLang(settings.language);
                 }

@@ -26,8 +26,8 @@ const AssignmentTracker: React.FC = () => {
         if (!currentUser) return;
         try {
             const [assignmentsData, settingsData] = await Promise.all([
-                getAssignments(currentUser.uid),
-                getSettings(currentUser.uid)
+                getAssignments(currentUser.id),
+                getSettings(currentUser.id)
             ]);
             setAssignments(assignmentsData);
             setSettings(settingsData);
@@ -46,7 +46,7 @@ const AssignmentTracker: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!currentUser) return;
-        const data = { userId: currentUser.uid, title: form.title, description: form.description, subject: form.subject, dueDate: new Date(form.date).getTime(), priority: form.priority, status: form.status, type: form.type, startTime: form.startTime, endTime: form.endTime };
+        const data = { userId: currentUser.id, title: form.title, description: form.description, subject: form.subject, dueDate: new Date(form.date).getTime(), priority: form.priority, status: form.status, type: form.type, startTime: form.startTime, endTime: form.endTime };
         try {
             if (editingId) await updateAssignment(editingId, data);
             else await saveAssignment(data);

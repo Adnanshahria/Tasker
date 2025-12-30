@@ -22,7 +22,7 @@ export const useSessionRecorder = () => {
     // Sync with Firestore on mount if online
     useEffect(() => {
         if (currentUser?.uid) {
-            syncAllFocusRecords(currentUser.uid);
+            syncAllFocusRecords(currentUser.id);
         }
     }, [currentUser?.uid]);
 
@@ -44,7 +44,7 @@ export const useSessionRecorder = () => {
         const durationMinutes = durationMs / 1000 / 60;
 
         // Save session using the data service (handles localStorage + Firestore)
-        saveFocusSession(currentUser.uid, {
+        saveFocusSession(currentUser.id, {
             startTime,
             endTime,
             duration: Math.round(durationMinutes * 10) / 10, // Round to 1 decimal
@@ -60,13 +60,13 @@ export const useSessionRecorder = () => {
         if (!currentUser?.uid) {
             return { totalFocusMinutes: 0, totalPomos: 0, sessions: [] };
         }
-        return getTodayFocusStats(currentUser.uid);
+        return getTodayFocusStats(currentUser.id);
     }, [currentUser?.uid]);
 
     // Get records for date range
     const getRecordsForRange = useCallback((startDate: string, endDate: string) => {
         if (!currentUser?.uid) return [];
-        return getFocusRecordsForRange(currentUser.uid, startDate, endDate);
+        return getFocusRecordsForRange(currentUser.id, startDate, endDate);
     }, [currentUser?.uid]);
 
     // Get all-time stats
@@ -74,7 +74,7 @@ export const useSessionRecorder = () => {
         if (!currentUser?.uid) {
             return { totalFocusMinutes: 0, totalPomos: 0, totalDays: 0 };
         }
-        return getAllTimeFocusStats(currentUser.uid);
+        return getAllTimeFocusStats(currentUser.id);
     }, [currentUser?.uid]);
 
     return {

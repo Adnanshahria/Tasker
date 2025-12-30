@@ -1,19 +1,10 @@
 // Offline-First Data Service
 // Reads from localStorage first, syncs with Firestore in background
 
-import { db } from '../firebase';
-import {
-    collection,
-    doc,
-    getDocs,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    setDoc,
-    getDoc
-} from 'firebase/firestore';
+// Offline-First Data Service
+// Reads from localStorage first, syncs with Supabase in background
+
+import { supabase } from './supabaseClient';
 import {
     getLocalAssignments,
     saveLocalAssignment,
@@ -254,9 +245,9 @@ export const updateAssignment = async (id: string, data: Partial<LocalAssignment
             processPendingOperations();
         }
     } else {
-        // Fallback to direct Firestore update
+        // Fallback to direct Supabase update
         if (isOnline()) {
-            await updateDoc(doc(db, 'assignments', id), data);
+            await supabase.from('assignments').update(data).eq('id', id);
         }
     }
 };
@@ -460,9 +451,9 @@ export const updateHabit = async (id: string, data: Partial<LocalHabit>): Promis
             processPendingOperations();
         }
     } else {
-        // Fallback to direct Firestore update
+        // Fallback to direct Supabase update
         if (isOnline()) {
-            await updateDoc(doc(db, 'habits', id), data);
+            await supabase.from('habits').update(data).eq('id', id);
         }
     }
 };

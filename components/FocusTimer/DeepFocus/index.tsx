@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { ChevronLeft, Minus, Plus, Pause, Play } from 'lucide-react';
 import { useTimer } from '../../../hooks/use-timer';
@@ -142,9 +143,19 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, toggle, handleClose, handleActivity]);
 
-    if (!isOpen) return null;
+    const [mounted, setMounted] = useState(false);
 
-    return (
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
+    // ... existing hooks ...
+
+    if (!isOpen || !mounted) return null;
+
+    // Use Portal to ensure it covers EVERYTHING (Header, Bottom Nav, etc.)
+    return ReactDOM.createPortal(
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -407,7 +418,8 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
 
             {/* Shared Auto-dim hint (hidden in mobile by new layout, reused logic) */}
             {/* Note: I removed the shared Controls/Dim hint from the root level and moved them into respective Desktop/Mobile blocks to customize them. */}
-        </motion.div>
+        </motion.div>,
+        document.body
     );
 };
 

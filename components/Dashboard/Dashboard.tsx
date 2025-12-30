@@ -13,6 +13,8 @@ import HeroBanner from './HeroBanner';
 import QuickLinks from './QuickLinks';
 import HeatmapGrid from './HeatmapGrid';
 import { T } from './translations';
+import { useTimerStore } from '../../store/timerStore';
+import { getBorderClass } from '../../utils/styleUtils';
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f97316', '#ec4899', '#a855f7', '#14b8a6'];
 
@@ -31,9 +33,9 @@ const Dashboard: React.FC = () => {
         if (!currentUser) return;
         try {
             const [assignmentsData, habitsData, settingsData] = await Promise.all([
-                getAssignments(currentUser.uid),
-                getHabits(currentUser.uid),
-                getSettings(currentUser.uid)
+                getAssignments(currentUser.id),
+                getHabits(currentUser.id),
+                getSettings(currentUser.id)
             ]);
             setAssignments(assignmentsData);
             setHabits(habitsData);
@@ -92,6 +94,8 @@ const Dashboard: React.FC = () => {
 
     const peak = Math.max(...habitData.map(d => d.count), 0);
 
+    const borderColor = useTimerStore((state) => state.borderColor);
+
     if (loading) {
         return <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div></div>;
     }
@@ -109,7 +113,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-5">
-                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
+                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl")}>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-2">
                         <SectionHeader title={t.consistency.split('(')[0].trim()} helpKey="habitConsistency" onHelpClick={setHelpKey} />
                         <DateRangeSlider
@@ -141,7 +145,7 @@ const Dashboard: React.FC = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className="bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl">
+                <div className={getBorderClass(borderColor, "bg-slate-900/80 backdrop-blur-sm border border-white/10 rounded-xl p-2 md:p-4 shadow-xl")}>
                     <SectionHeader title={t.distribution} helpKey="assignmentDistribution" onHelpClick={setHelpKey} />
                     <div className="h-36 md:h-56">
                         {assignmentData.length > 0 ? (

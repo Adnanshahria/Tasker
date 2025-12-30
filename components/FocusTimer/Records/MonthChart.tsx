@@ -33,7 +33,7 @@ const MonthChart: React.FC<MonthChartProps> = ({ className = '' }) => {
         const startStr = format(monthStart, 'yyyy-MM-dd');
         const endStr = format(monthEnd, 'yyyy-MM-dd');
 
-        const records = getFocusRecordsForRange(currentUser.uid, startStr, endStr);
+        const records = getFocusRecordsForRange(currentUser.id, startStr, endStr);
         const recordMap = new Map<string, FocusRecord>();
         records.forEach(r => recordMap.set(r.date, r));
 

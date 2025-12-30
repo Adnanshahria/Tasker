@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Settings as SettingsIcon, Maximize2 } from 'lucide-react';
+import { useTimerStore } from '../../../store/timerStore';
 
 // Chart Components
 import TodayChart from './TodayChart';
@@ -27,6 +28,7 @@ const RecordsPage: React.FC<RecordsPageProps> = ({
 }) => {
     const [showAddDialog, setShowAddDialog] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const borderColor = useTimerStore((state) => state.borderColor);
 
     const handleLogSession = useCallback(() => {
         setShowAddDialog(true);
@@ -37,6 +39,15 @@ const RecordsPage: React.FC<RecordsPageProps> = ({
         setRefreshKey(k => k + 1);
     }, []);
 
+    const getBorderClass = (baseClass: string) => {
+        switch (borderColor) {
+            case 'blue': return `${baseClass} border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]`;
+            case 'red': return `${baseClass} border-2 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]`;
+            case 'white': return `${baseClass} border-2 border-white/80 shadow-[0_0_15px_rgba(255,255,255,0.3)]`;
+            default: return `${baseClass}`;
+        }
+    };
+
     return (
         <>
             <AnimatePresence>
@@ -45,7 +56,7 @@ const RecordsPage: React.FC<RecordsPageProps> = ({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-slate-900 md:absolute md:inset-0 md:z-10"
+                        className="fixed inset-0 z-50 bg-black md:absolute md:inset-0 md:z-10"
                     >
                         <div className="h-full overflow-y-auto pb-24 md:pb-8">
                             <div className="max-w-md mx-auto px-4 py-4 md:max-w-7xl md:px-8">
@@ -63,23 +74,29 @@ const RecordsPage: React.FC<RecordsPageProps> = ({
                                 </div>
 
                                 {/* Chart Cards Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6" key={refreshKey}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" key={refreshKey}>
                                     {/* Today's Activity - Spans 2 cols on large screens if we want, or just 1 */}
-                                    <div className="lg:col-span-2">
+                                    <div className={`lg:col-span-2 rounded-2xl overflow-hidden ${getBorderClass('')}`}>
                                         <TodayChart />
                                     </div>
 
                                     {/* Overall Activity */}
-                                    <OverallChart />
+                                    <div className={`rounded-2xl overflow-hidden ${getBorderClass('')}`}>
+                                        <OverallChart />
+                                    </div>
 
                                     {/* Weekly Activity */}
-                                    <WeekChart />
+                                    <div className={`rounded-2xl overflow-hidden ${getBorderClass('')}`}>
+                                        <WeekChart />
+                                    </div>
 
                                     {/* Monthly Activity */}
-                                    <MonthChart />
+                                    <div className={`rounded-2xl overflow-hidden ${getBorderClass('')}`}>
+                                        <MonthChart />
+                                    </div>
 
                                     {/* Recent Activity - Full width on mobile/tablet, span 2 on lg */}
-                                    <div className="md:col-span-2 lg:col-span-1">
+                                    <div className={`md:col-span-2 lg:col-span-1 rounded-2xl overflow-hidden ${getBorderClass('')}`}>
                                         <RecentActivityCard onLogSession={handleLogSession} />
                                     </div>
                                 </div>
