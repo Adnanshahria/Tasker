@@ -167,16 +167,17 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
     switch (op.type) {
         case 'add': {
             // Create in Supabase and update local ID
-            // Strip userId, user_id, syncStatus from payload
+            // Strip userId, user_id, syncStatus from payload to avoid schema errors
             const { id, syncStatus, userId, user_id, ...data } = op.data;
             const { data: newDoc, error } = await supabase.from('assignments').insert({
                 ...data,
                 created_at: new Date(Date.now()).toISOString(),
-                user_id: op.userId, // Map userId to user_id
+                user_id: op.userId, // Map userId to user_id explicitly
             }).select().single();
 
             if (error) throw error;
-            // ...
+
+            // Update local storage with real ID
             if (isTempId(op.docId) && newDoc) {
                 updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             }
@@ -193,14 +194,22 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
                 if (error) throw error;
                 if (newDoc) updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             } else {
+                // Remove userId/user_id/id/createdAt from update payload
+                const { userId, user_id, id, syncStatus, createdAt, created_at, ...cleanData } = op.data;
+
                 await supabase.from('assignments').update({
-                    ...op.data,
+                    ...cleanData,
                     updated_at: new Date(Date.now()).toISOString(),
                 }).eq('id', op.docId);
             }
             break;
         }
-        // ... (delete case)
+        case 'delete': {
+            if (!isTempId(op.docId)) {
+                await supabase.from('assignments').delete().eq('id', op.docId);
+            }
+            break;
+        }
     }
 };
 
