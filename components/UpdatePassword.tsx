@@ -16,6 +16,9 @@ const UpdatePassword: React.FC = () => {
     const { currentUser, loading: authLoading } = useAuth(); // Get auth state
 
     React.useEffect(() => {
+        // Clear the recovery lock so the user isn't stuck here forever
+        sessionStorage.removeItem('auth_recovery_mode');
+
         // If auth is done loading and no user is signed in, this is an invalid access
         if (!authLoading && !currentUser) {
             navigate('/login'); // Or home, or show an error

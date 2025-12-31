@@ -37,8 +37,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Capture recovery intent immediately before Supabase potentially strips the hash
-    const isRecovery = window.location.hash.includes('type=recovery');
+    // Capture recovery intent immediately
+    // We use sessionStorage to persist this state across URL cleans/redirects
+    // This fixes the race condition where Supabase removes the hash before we can react
+    if (window.location.hash.includes('type=recovery')) {
+      sessionStorage.setItem('auth_recovery_mode', 'true');
+    }
+
+    const isRecovery = sessionStorage.getItem('auth_recovery_mode') === 'true';
 
     // Check for cached user first
     const cached = getCachedUser();
@@ -50,8 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         handleUser(session.user);
-        // Force redirect if this was a recovery link
-        if (isRecovery) navigate('/update-password');
+        // Force redirect if this was a recovery link OR we have the lock file
+        if (isRecovery || sessionStorage.getItem('auth_recovery_mode') === 'true') {
+          navigate('/update-password');
+        }
       } else {
         setCurrentUser(null);
         setLoading(false);
@@ -62,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || isRecovery) {
+      if (event === 'PASSWORD_RECOVERY' || sessionStorage.getItem('auth_recovery_mode') === 'true') {
         // User clicked reset link - redirect to update password page
         navigate('/update-password');
       }
