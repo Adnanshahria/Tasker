@@ -119,6 +119,11 @@ export const processPendingOperations = async (): Promise<void> => {
     const remainingOps = getPendingOperations();
     if (remainingOps.length > 0) {
         setSyncState('pending');
+        // If we still have pending ops and are online, try again immediately
+        if (isOnline()) {
+            // Use setTimeout to avoid stack overflow in extreme cases and let UI breathe
+            setTimeout(() => processPendingOperations(), 1000);
+        }
     } else {
         setSyncState('synced');
     }
@@ -269,6 +274,21 @@ export const fetchRemoteSettings = async (userId: string): Promise<any | null> =
     return data;
 };
 
+
+// ==================== AUTO-SYNC INTERVAL ====================
+
+const SYNC_INTERVAL_MS = 45000; // 45 seconds
+
+// Start auto-sync interval
+if (typeof window !== 'undefined') {
+    setInterval(() => {
+        if (isOnline() && !isSyncing) {
+            console.log('[Sync] Auto-sync triggered');
+            processPendingOperations();
+        }
+    }, SYNC_INTERVAL_MS);
+}
+
 // ==================== INITIALIZATION ====================
 
 export const initializeSyncService = (): void => {
@@ -291,3 +311,4 @@ export const initializeSyncService = (): void => {
 
 // Auto-initialize
 initializeSyncService();
+
