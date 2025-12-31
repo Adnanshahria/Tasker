@@ -173,10 +173,7 @@ const FocusTimer: React.FC = () => {
 
             <div className="flex-1 flex flex-col md:grid md:grid-cols-2 md:items-center justify-between max-w-md md:max-w-5xl mx-auto w-full h-full pb-20 md:pb-8 relative z-10 px-4 md:px-8 pt-2 md:pt-12 gap-6 md:gap-12">
 
-                {/* Desktop Header Placeholder */}
-                <div className="hidden md:flex absolute top-0 left-0 right-0 p-8 justify-between items-center z-20">
-                    <span className="text-lg font-semibold text-violet-400">Ogrogoti</span>
-                </div>
+
 
                 {/* Left Col (Timer) */}
                 <div className="flex flex-col items-center justify-center relative min-h-0 md:h-auto md:bg-[#151520] md:rounded-3xl md:p-8 md:border md:border-white/5 order-2 md:order-1 flex-[2] md:flex-initial">
