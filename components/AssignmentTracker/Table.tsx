@@ -221,17 +221,17 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
         switch (colId) {
             case 'taskName':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-6 z-10`}>
-                        <div className="flex items-center justify-between gap-1">
-                            <span className="text-white font-medium truncate max-w-[80px] md:max-w-[120px]">{item.title}</span>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                                <span className={`text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded-md flex flex-col items-center leading-tight ${timeStatus.color}`}>
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-8 z-10`}>
+                        <div className="flex items-center justify-between gap-2">
+                            <span className="text-white font-medium truncate max-w-[100px] md:max-w-[180px] text-xs md:text-sm">{item.title}</span>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <span className={`text-[8px] md:text-[9px] font-bold px-2 py-1 rounded-md flex flex-col items-center leading-tight ${timeStatus.color}`}>
                                     <span>{timeStatus.time}</span>
-                                    <span className="opacity-80 text-[6px] md:text-[7px]">{timeStatus.status}</span>
+                                    <span className="opacity-80 text-[7px] md:text-[8px]">{timeStatus.status}</span>
                                 </span>
                                 {item.description && (
-                                    <button onClick={() => openDescModal(item)} className="p-0.5 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20" title="View description">
-                                        <HelpCircle size={12} />
+                                    <button onClick={() => openDescModal(item)} className="p-1 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20" title="View description">
+                                        <HelpCircle size={14} />
                                     </button>
                                 )}
                             </div>
@@ -240,63 +240,63 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                 );
             case 'subject':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-blue-500/20`}>
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-medium text-[9px] md:text-[10px] border border-indigo-500/30 whitespace-nowrap">
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-blue-500/20`}>
+                        <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium text-[10px] md:text-xs border border-indigo-500/30 whitespace-nowrap">
                             {item.subject}
                         </span>
                     </td>
                 );
             case 'duration':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-lime-500/20 text-center`}>
-                        <span className="text-lime-400 font-mono text-[9px] md:text-[10px] bg-lime-500/10 px-1.5 py-0.5 rounded">
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-lime-500/20 text-center`}>
+                        <span className="text-lime-400 font-mono text-[10px] md:text-xs bg-lime-500/10 px-2 py-1 rounded">
                             {duration}
                         </span>
                     </td>
                 );
             case 'time':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-emerald-500/20`}>
-                        <span className="text-purple-400 font-mono text-[9px] md:text-[10px] whitespace-nowrap">
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-emerald-500/20`}>
+                        <span className="text-purple-400 font-mono text-[10px] md:text-xs whitespace-nowrap">
                             {item.startTime && item.endTime ? (
-                                <span className="bg-purple-500/10 px-1.5 py-0.5 rounded">{item.startTime}-{item.endTime}</span>
+                                <span className="bg-purple-500/10 px-2 py-1 rounded">{item.startTime}-{item.endTime}</span>
                             ) : <span className="text-slate-600">-</span>}
                         </span>
                     </td>
                 );
             case 'date':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-teal-500/20`}>
-                        <span className="text-cyan-400 font-mono text-[9px] md:text-[10px] bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-teal-500/20`}>
+                        <span className="text-cyan-400 font-mono text-[10px] md:text-xs bg-cyan-500/10 px-2 py-1 rounded">
                             {format(new Date(item.dueDate), 'dd MMM')}
                         </span>
                     </td>
                 );
             case 'priority':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-amber-500/20`}>
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] md:text-[10px] ${ps.pillBg} ${ps.text} shadow-sm`} style={{ boxShadow: ps.glow }}>
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-amber-500/20`}>
+                        <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] md:text-xs ${ps.pillBg} ${ps.text} shadow-sm`} style={{ boxShadow: ps.glow }}>
                             {item.priority || '-'}
                         </span>
                     </td>
                 );
             case 'status':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 border-b ${rowBorderColor} border-r border-r-rose-500/20`}>
-                        <button onClick={() => onToggleStatus(item)} className={`px-2 py-0.5 text-[9px] md:text-[10px] font-bold rounded-full border transition-all hover:scale-105 active:scale-95 ${getStatusStyle(item.status)}`}>
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-rose-500/20`}>
+                        <button onClick={() => onToggleStatus(item)} className={`px-2.5 py-1 text-[10px] md:text-xs font-bold rounded-full border transition-all hover:scale-105 active:scale-95 ${getStatusStyle(item.status)}`}>
                             {item.status}
                         </button>
                     </td>
                 );
             case 'actions':
                 return (
-                    <td key={colId} className={`py-1.5 px-1.5 md:px-2 text-center border-b ${rowBorderColor}`}>
-                        <div className="flex items-center justify-center gap-0.5">
-                            <button onClick={() => onEdit(item)} className="p-1 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-400 rounded-md transition-all hover:scale-110 active:scale-95">
-                                <Edit2 size={10} />
+                    <td key={colId} className={`py-3 px-3 md:px-4 text-center border-b ${rowBorderColor}`}>
+                        <div className="flex items-center justify-center gap-1.5">
+                            <button onClick={() => onEdit(item)} className="p-1.5 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-400 rounded-md transition-all hover:scale-110 active:scale-95">
+                                <Edit2 size={12} />
                             </button>
-                            <button onClick={() => onDelete(item.id)} className="p-1 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 rounded-md transition-all hover:scale-110 active:scale-95">
-                                <Trash2 size={10} />
+                            <button onClick={() => onDelete(item.id)} className="p-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-400 rounded-md transition-all hover:scale-110 active:scale-95">
+                                <Trash2 size={12} />
                             </button>
                         </div>
                     </td>
@@ -319,12 +319,12 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             actions: '',
         };
         const widths: Record<string, string> = {
-            taskName: 'min-w-[130px]',
-            actions: 'w-14',
+            taskName: 'min-w-[160px] md:min-w-[200px]',
+            actions: 'w-20',
         };
 
         return (
-            <th key={colId} className={`py-2 px-1.5 md:px-2 border-b-2 border-b-indigo-500/50 border-r ${borderColors[colId] || ''} ${widths[colId] || ''} ${colId === 'taskName' ? 'bg-slate-800 sticky left-6 z-20' : ''}`}>
+            <th key={colId} className={`py-3 px-3 md:px-4 border-b-2 border-b-indigo-500/50 border-r text-xs md:text-sm ${borderColors[colId] || ''} ${widths[colId] || ''} ${colId === 'taskName' ? 'bg-slate-800 sticky left-8 z-20' : ''}`}>
                 {columnLabels[colId]}
             </th>
         );
@@ -336,12 +336,12 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
         <>
             <div className={getBorderClass(borderColor, "flex-1 bg-slate-900/80 backdrop-blur-sm border rounded-xl overflow-hidden flex flex-col shadow-xl relative")} style={getBorderStyle(borderColor)}>
                 <div className="overflow-x-auto flex-1 custom-scrollbar">
-                    <table className="w-full text-left border-separate border-spacing-0 text-[10px] md:text-xs min-w-[700px]">
+                    <table className="w-full text-left border-separate border-spacing-0 text-xs md:text-sm min-w-[800px]">
                         <thead className="sticky top-0 z-10">
                             <tr className="bg-gradient-to-r from-slate-800 via-slate-800/95 to-slate-800 text-slate-300 font-semibold uppercase tracking-wider">
-                                <th className="py-2 px-1.5 md:px-2 w-8 text-center border-b-2 border-b-indigo-500/50 border-r border-r-indigo-500/30 bg-slate-800 sticky left-0 z-20">
-                                    <button onClick={() => setShowColumnEdit(true)} className="p-1 hover:bg-amber-500/20 rounded transition-colors" title="Reorder columns">
-                                        <Settings2 size={12} className="text-amber-400" />
+                                <th className="py-3 px-3 md:px-4 w-10 text-center border-b-2 border-b-indigo-500/50 border-r border-r-indigo-500/30 bg-slate-800 sticky left-0 z-20">
+                                    <button onClick={() => setShowColumnEdit(true)} className="p-1.5 hover:bg-amber-500/20 rounded transition-colors" title="Reorder columns">
+                                        <Settings2 size={14} className="text-amber-400" />
                                     </button>
                                 </th>
                                 {columnOrder.map(colId => renderHeaderCell(colId))}
@@ -362,7 +362,7 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                                             transition={{ duration: 0.2, delay: idx * 0.02 }}
                                             className={`group hover:bg-white/5 transition-all duration-150 ${isEven ? 'bg-slate-900/50' : 'bg-slate-800/30'} ${ps.rowBg}`}
                                         >
-                                            <td className={`py-1.5 px-1.5 md:px-2 text-center text-slate-500 font-mono text-[9px] border-b ${rowBorderColor} border-r border-r-indigo-500/20 bg-slate-900/80 sticky left-0 z-10`}>
+                                            <td className={`py-3 px-3 md:px-4 text-center text-slate-400 font-mono text-xs border-b ${rowBorderColor} border-r border-r-indigo-500/20 bg-slate-900/80 sticky left-0 z-10`}>
                                                 {idx + 1}
                                             </td>
                                             {columnOrder.map(colId => renderCell(colId, item, idx))}
