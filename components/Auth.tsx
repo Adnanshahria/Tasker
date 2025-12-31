@@ -17,6 +17,19 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
   const { login, signup, resetPassword } = useAuth();
 
+  // Check for errors in the URL (e.g., from Supabase redirects like "error_description=Email+link+is+invalid")
+  React.useEffect(() => {
+    // Current URL might look like: /?error=...#/auth
+    // We check window.location.search for params outside the HashRouter
+    const params = new URLSearchParams(window.location.search);
+    const errorDescription = params.get('error_description');
+    if (errorDescription) {
+      setError(decodeURIComponent(errorDescription));
+      // Optional: Clean up the URL so the error doesn't persist on refresh
+      window.history.replaceState({}, '', window.location.hash);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

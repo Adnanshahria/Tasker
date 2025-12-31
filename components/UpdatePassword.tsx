@@ -13,6 +13,23 @@ const UpdatePassword: React.FC = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
+    const { currentUser, loading: authLoading } = useAuth(); // Get auth state
+
+    React.useEffect(() => {
+        // If auth is done loading and no user is signed in, this is an invalid access
+        if (!authLoading && !currentUser) {
+            navigate('/login'); // Or home, or show an error
+        }
+    }, [authLoading, currentUser, navigate]);
+
+    // If still loading auth state, show a loader
+    if (authLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+                <Loader2 size={40} className="animate-spin text-indigo-500" />
+            </div>
+        );
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
