@@ -20,6 +20,13 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// AR: Immediate check for recovery flow before App mounts
+// This catches the hash before Router or Supabase can potentially strip it
+if (window.location.hash.includes('type=recovery')) {
+  sessionStorage.setItem('auth_recovery_mode', 'true');
+  console.log('Recovery mode detected at entry point');
+}
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
