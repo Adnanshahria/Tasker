@@ -307,8 +307,6 @@ export const syncAllFocusRecords = async (userId: string): Promise<void> => {
             if (!local) {
                 // Remote only - add to local
                 merged[remote.date] = remote;
-            } else if (remote.sessions.length > local.sessions.length) {
-                // Remote has more sessions - merge
                 merged[remote.date] = {
                     ...remote,
                     sessions: [...new Map([
@@ -316,7 +314,10 @@ export const syncAllFocusRecords = async (userId: string): Promise<void> => {
                         ...remote.sessions.map(s => [s.id, s] as [string, FocusSession]),
                     ]).values()],
                 };
-                // Recalculate aggregates
+            }
+
+            // ALWAYS Recalculate aggregates to ensure consistency and fix any past corruptions
+            if (merged[remote.date]) {
                 merged[remote.date].totalFocusMinutes = merged[remote.date].sessions
                     .filter(s => s.type === 'pomodoro' || s.type === 'manual')
                     .reduce((sum, s) => sum + s.duration, 0);
