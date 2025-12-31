@@ -19,6 +19,7 @@ const Auth = lazy(() => import('./components/Auth'));
 const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
 const PWAUpdate = lazy(() => import('./components/PWAUpdate'));
+const AuthCallback = lazy(() => import('./components/AuthCallback'));
 import TimerController from './components/FocusTimer/TimerController';
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
@@ -122,7 +123,8 @@ const App: React.FC = () => {
               <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
               <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="*" element={<Navigate to="/" />} />
+              {/* AuthCallback handles Supabase's hash-based redirects that confuse HashRouter */}
+              <Route path="*" element={<AuthCallback />} />
             </Routes>
           </Suspense>
         </AuthProvider>
