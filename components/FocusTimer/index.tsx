@@ -118,7 +118,15 @@ const FocusTimer: React.FC = () => {
     ] as const;
 
     return (
-        <div className="h-full md:h-auto overflow-hidden flex flex-col md:block relative bg-[#0B0B15]">
+        <div
+            className="h-full md:h-auto overflow-hidden flex flex-col md:block relative bg-[#0B0B15] transition-all duration-700 ease-in-out"
+            style={{
+                boxShadow: isActive ? `inset 0 0 60px ${modeColors[mode]}30` : 'none',
+                borderWidth: '2px',
+                borderColor: isActive ? `${modeColors[mode]}50` : 'transparent',
+                borderStyle: 'solid'
+            }}
+        >
 
             {/* Settings Modal */}
             <AnimatePresence>
