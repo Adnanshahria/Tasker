@@ -1,7 +1,4 @@
 // Offline-First Data Service
-// Reads from localStorage first, syncs with Firestore in background
-
-// Offline-First Data Service
 // Reads from localStorage first, syncs with Supabase in background
 
 import { supabase } from './supabaseClient';
@@ -27,6 +24,7 @@ import {
 import {
     isOnline,
     processPendingOperations,
+    triggerSync, // Imported triggerSync
     fetchRemoteAssignments,
     fetchRemoteHabits,
     fetchRemoteSettings,
@@ -208,7 +206,7 @@ export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise
 
     // 3. Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 
     return id;
@@ -242,7 +240,7 @@ export const updateAssignment = async (id: string, data: Partial<LocalAssignment
 
         // 3. Try immediate sync if online
         if (isOnline()) {
-            processPendingOperations();
+            triggerSync();
         }
     } else {
         // Fallback to direct Supabase update
@@ -281,7 +279,7 @@ export const deleteAssignment = async (id: string): Promise<void> => {
 
     // 3. Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 };
 
@@ -352,7 +350,7 @@ export const reorderHabits = async (userId: string, orderedIds: string[]): Promi
 
     // Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 };
 
@@ -414,7 +412,7 @@ export const saveHabit = async (data: Omit<LocalHabit, 'id'>): Promise<string> =
 
     // 3. Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 
     return id;
@@ -448,7 +446,7 @@ export const updateHabit = async (id: string, data: Partial<LocalHabit>): Promis
 
         // 3. Try immediate sync if online
         if (isOnline()) {
-            processPendingOperations();
+            triggerSync();
         }
     } else {
         // Fallback to direct Supabase update
@@ -487,7 +485,7 @@ export const deleteHabit = async (id: string): Promise<void> => {
 
     // 3. Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 };
 
@@ -580,6 +578,6 @@ export const saveSettings = async (userId: string, settings: UserSettings): Prom
 
     // 3. Try immediate sync if online
     if (isOnline()) {
-        processPendingOperations();
+        triggerSync();
     }
 };

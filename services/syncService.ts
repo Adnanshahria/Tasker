@@ -97,6 +97,13 @@ export const processPendingOperations = async (): Promise<void> => {
     console.log(`[Sync] Processing ${pendingOps.length} pending operations...`);
 
     for (const op of pendingOps) {
+        // Double-check if this op is still valid (wasn't removed/replaced by a newer update while we were starting)
+        const currentOps = getPendingOperations();
+        if (!currentOps.find(o => o.id === op.id)) {
+            console.log(`[Sync] Skipping superseded operation:`, op.id);
+            continue;
+        }
+
         if (op.retryCount >= MAX_RETRIES) {
             console.error(`[Sync] Max retries reached for operation:`, op);
             removePendingOperation(op.id);
@@ -127,6 +134,19 @@ export const processPendingOperations = async (): Promise<void> => {
     } else {
         setSyncState('synced');
     }
+};
+
+// Debounce timer for sync trigger
+let syncDebounceTimer: NodeJS.Timeout | null = null;
+
+export const triggerSync = () => {
+    if (syncDebounceTimer) {
+        clearTimeout(syncDebounceTimer);
+    }
+    syncDebounceTimer = setTimeout(() => {
+        processPendingOperations();
+        syncDebounceTimer = null;
+    }, 2000); // Wait 2s before syncing to coalesce rapid edits
 };
 
 const processOperation = async (op: PendingOperation): Promise<void> => {
