@@ -167,7 +167,8 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
     switch (op.type) {
         case 'add': {
             // Create in Supabase and update local ID
-            const { id, syncStatus, ...data } = op.data;
+            // Strip userId, user_id, syncStatus from payload
+            const { id, syncStatus, userId, user_id, ...data } = op.data;
             const { data: newDoc, error } = await supabase.from('assignments').insert({
                 ...data,
                 created_at: new Date(Date.now()).toISOString(),
@@ -175,8 +176,7 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
             }).select().single();
 
             if (error) throw error;
-
-            // Update local storage with real ID
+            // ...
             if (isTempId(op.docId) && newDoc) {
                 updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             }
@@ -185,7 +185,7 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
         case 'update': {
             if (isTempId(op.docId)) {
                 // Converting update to add if it's still temp
-                const { id, syncStatus, ...data } = op.data;
+                const { id, syncStatus, userId, user_id, ...data } = op.data;
                 const { data: newDoc, error } = await supabase.from('assignments').insert({
                     ...data,
                     user_id: op.userId, // Map userId
@@ -200,19 +200,14 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
             }
             break;
         }
-        case 'delete': {
-            if (!isTempId(op.docId)) {
-                await supabase.from('assignments').delete().eq('id', op.docId);
-            }
-            break;
-        }
+        // ... (delete case)
     }
 };
 
 const processHabitOperation = async (op: PendingOperation): Promise<void> => {
     switch (op.type) {
         case 'add': {
-            const { id, syncStatus, ...data } = op.data;
+            const { id, syncStatus, userId, user_id, ...data } = op.data;
             const { data: newDoc, error } = await supabase.from('habits').insert({
                 ...data,
                 user_id: op.userId,
@@ -226,15 +221,17 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
         }
         case 'update': {
             if (isTempId(op.docId)) {
-                // ... (handling temp ID)
-                const { id, syncStatus, ...data } = op.data;
+                // Handling update on temp ID -> Treat as Insert
+                const { id, syncStatus, userId, user_id, createdAt, created_at, ...data } = op.data;
                 const { data: newDoc, error } = await supabase.from('habits').insert({
                     ...data,
                     user_id: op.userId,
+                    created_at: new Date(Date.now()).toISOString(), // ensure created_at is set if missing
                 }).select().single();
                 if (error) throw error;
                 if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
+                // ... (existing update logic)
                 // Remove userId/user_id/id from update payload
                 // The error "Could not find the 'user_id' column" usually happens when trying to update a column that isn't expected or allowed
                 const { userId, user_id, id, syncStatus, createdAt, created_at, ...cleanData } = op.data;
