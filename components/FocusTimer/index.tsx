@@ -113,67 +113,23 @@ const FocusTimer: React.FC = () => {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-[380px] bg-gradient-to-b from-slate-800/95 to-slate-900/98 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/10 overflow-hidden"
+                            className="w-full max-w-[380px] bg-slate-900 rounded-3xl p-6 shadow-2xl border border-white/10"
                         >
-                            {/* Header with gradient accent */}
-                            <div className="relative mb-6">
-                                <div className="absolute -top-6 -left-6 w-32 h-32 bg-violet-500/20 rounded-full blur-3xl" />
-                                <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl" />
-                                <div className="relative flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-2xl font-bold text-white">Settings</h2>
-                                        <p className="text-sm text-slate-400 mt-0.5">Customize your timer</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowSettings(false)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
-                                    >
-                                        <X size={16} />
-                                    </button>
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white">Settings</h2>
+                                    <p className="text-sm text-slate-400 mt-0.5">Customize your timer</p>
                                 </div>
+                                <button
+                                    onClick={() => setShowSettings(false)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                                >
+                                    <X size={16} />
+                                </button>
                             </div>
 
-                            <div className="space-y-5">
-                                {/* Border Color Picker - Modern grid */}
-                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Theme Color</span>
-                                    <div className="grid grid-cols-5 gap-3 mt-3">
-                                        {[
-                                            { id: 'none', color: 'bg-slate-600', gradient: 'from-slate-600 to-slate-700' },
-                                            { id: 'blue', color: 'bg-blue-500', gradient: 'from-blue-400 to-blue-600' },
-                                            { id: 'violet', color: 'bg-violet-500', gradient: 'from-violet-400 to-violet-600' },
-                                            { id: 'purple', color: 'bg-purple-500', gradient: 'from-purple-400 to-purple-600' },
-                                            { id: 'cyan', color: 'bg-cyan-500', gradient: 'from-cyan-400 to-cyan-600' },
-                                            { id: 'green', color: 'bg-emerald-500', gradient: 'from-emerald-400 to-emerald-600' },
-                                            { id: 'yellow', color: 'bg-amber-500', gradient: 'from-amber-400 to-amber-600' },
-                                            { id: 'orange', color: 'bg-orange-500', gradient: 'from-orange-400 to-orange-600' },
-                                            { id: 'red', color: 'bg-rose-500', gradient: 'from-rose-400 to-rose-600' },
-                                            { id: 'pink', color: 'bg-pink-500', gradient: 'from-pink-400 to-pink-600' },
-                                        ].map((item) => (
-                                            <motion.button
-                                                key={item.id}
-                                                onClick={() => setBorderColor(item.id as any)}
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                className={`relative aspect-square rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center transition-all ${borderColor === item.id
-                                                    ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 shadow-lg'
-                                                    : 'opacity-70 hover:opacity-100'
-                                                    }`}
-                                            >
-                                                {borderColor === item.id && (
-                                                    <motion.div
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                    >
-                                                        <Check size={16} className="text-white drop-shadow-md" />
-                                                    </motion.div>
-                                                )}
-                                            </motion.button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Duration Controls */}
+                            <div className="space-y-4">
                                 {[
                                     { label: 'Focus Duration', icon: '🎯', value: tempPomodoro, setValue: setTempPomodoro, step: 5, max: 360, color: 'violet' },
                                     { label: 'Short Break', icon: '☕', value: tempShortBreak, setValue: setTempShortBreak, step: 1, max: 30, color: 'emerald' },
