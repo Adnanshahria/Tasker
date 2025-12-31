@@ -318,10 +318,10 @@ export const syncAllFocusRecords = async (userId: string): Promise<void> => {
                 };
                 // Recalculate aggregates
                 merged[remote.date].totalFocusMinutes = merged[remote.date].sessions
-                    .filter(s => s.type === 'pomodoro')
+                    .filter(s => s.type === 'pomodoro' || s.type === 'manual')
                     .reduce((sum, s) => sum + s.duration, 0);
                 merged[remote.date].totalPomos = merged[remote.date].sessions
-                    .filter(s => s.type === 'pomodoro' && s.completed)
+                    .filter(s => (s.type === 'pomodoro' && s.completed) || (s.type === 'manual' && s.duration >= 25))
                     .length;
             }
         });
