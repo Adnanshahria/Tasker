@@ -235,12 +235,11 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
                 if (error) throw error;
                 if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
-                // Remove userId from update payload to avoid schema error (PGRST204)
-                // user_id shouldn't change during an update anyway
-                const { userId, syncStatus, ...dataToCheck } = op.data;
-                // If the data has snake_case keys that shouldn't be there, we might need more cleanup
-                // For now, assuming op.data is mostly clean except for userId
-                await supabase.from('habits').update(dataToCheck).eq('id', op.docId);
+                // Remove userId/user_id/id from update payload
+                // The error "Could not find the 'user_id' column" usually happens when trying to update a column that isn't expected or allowed
+                const { userId, user_id, id, syncStatus, createdAt, created_at, ...cleanData } = op.data;
+
+                await supabase.from('habits').update(cleanData).eq('id', op.docId);
             }
             break;
         }
