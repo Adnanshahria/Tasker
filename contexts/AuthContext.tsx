@@ -45,6 +45,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const isRecovery = sessionStorage.getItem('auth_recovery_mode') === 'true';
+    
+    // Check if there's a PKCE code in the URL that Supabase needs to exchange
+    // If so, we should NOT set loading to false until onAuthStateChange fires
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const hasAuthCode = urlParams.has('code') || hashParams.has('code');
 
     // Check for cached user first
     const cached = getCachedUser();
@@ -62,7 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         setCurrentUser(null);
-        setLoading(false);
+        // Only set loading to false if we're NOT waiting for a code exchange
+        // If hasAuthCode is true, Supabase will fire onAuthStateChange shortly
+        if (!hasAuthCode) {
+          setLoading(false);
+        }
         if (cached && !isOnline()) {
           setIsOfflineMode(true);
         }

@@ -20,6 +20,7 @@ const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
 const NetworkStatus = lazy(() => import('./components/ui/NetworkStatus'));
 const PWAUpdate = lazy(() => import('./components/PWAUpdate'));
 const AuthCallback = lazy(() => import('./components/AuthCallback'));
+const LandingPage = lazy(() => import('./components/LandingPage'));
 import TimerController from './components/FocusTimer/TimerController';
 
 // Run data migration on app load (migrates from old 'agrogoti_' to new 'ogrogoti_' keys)
@@ -102,7 +103,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   }
 
   if (loading) return <LoadingSpinner />;
-  if (!currentUser) return <Navigate to="/auth" />;
+  if (!currentUser) return <Navigate to="/welcome" />;
   return <Layout>{children}</Layout>;
 };
 
@@ -120,6 +121,7 @@ const App: React.FC = () => {
           <Suspense fallback={<LoadingSpinner />}>
             <PWAUpdate />
             <Routes>
+              <Route path="/welcome" element={<LandingPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
