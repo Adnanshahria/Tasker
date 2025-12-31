@@ -69,10 +69,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {/* Header */}
           <div className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <CheckSquare size={22} className="text-white" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">অগ্রগতি</span>
+              <img src="/logo.png" alt="Ogrogoti" className="w-10 h-10 rounded-xl shadow-lg shadow-indigo-500/20" />
+              <span className="font-bold text-xl tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Ogrogoti</span>
             </div>
             <button onClick={() => setIsOpen(false)} className="md:hidden text-slate-400 hover:text-white transition-colors">
               <X size={20} />
