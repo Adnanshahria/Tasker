@@ -165,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin, // Redirect to base URL; AuthContext listener handles the rest
+        redirectTo: `${window.location.origin}/#/update-password`, // Explicitly deep link to the update page
       });
       if (error) throw error;
     } catch (error: any) {
