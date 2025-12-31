@@ -239,7 +239,7 @@ const Dashboard: React.FC = () => {
                 <div className="lg:col-span-2">
                     <HeatmapGrid title={t.grid} data={heatmapData} habitsLabel={t.habits} helpKey="heatmapGrid" onHelpClick={setHelpKey} />
                 </div>
-                <WeekChart className="h-full" />
+                <WeekChart className="h-full" variant="dashboard" />
             </div>
             <QuickLinks t={t} onLogout={logout} />
 

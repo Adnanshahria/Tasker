@@ -1,18 +1,20 @@
 import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, Tooltip } from 'recharts';
-import { Calendar, Clock, TrendingUp, Settings, X, Check } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, Settings, X, Check, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusDashboard, formatDuration } from '../../../hooks/useFocusDashboard';
 import { useTimerStore } from '../../../store/timerStore';
+import { getBorderClass, getBorderStyle } from '../../../utils/styleUtils';
 
 interface WeekChartProps {
     className?: string;
+    variant?: 'default' | 'dashboard';
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
 const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
-const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
+const WeekChart: React.FC<WeekChartProps> = ({ className = '', variant = 'default' }) => {
     const [weekStartsOn, setWeekStartsOn] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(() => {
         const saved = localStorage.getItem('weekStartsOn');
         return saved ? (parseInt(saved) as 0 | 1 | 2 | 3 | 4 | 5 | 6) : 1;
@@ -28,6 +30,7 @@ const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
 
     const { getWeeklyData, calculateWeeklyStats } = useFocusDashboard();
     const dailyGoal = useTimerStore((state) => state.dailyGoal);
+    const borderColor = useTimerStore((state) => state.borderColor);
 
     const weeklyData = useMemo(() => getWeeklyData(weekStartsOn), [getWeeklyData, weekStartsOn]);
     const stats = useMemo(() => calculateWeeklyStats(weeklyData), [calculateWeeklyStats, weeklyData]);
@@ -38,7 +41,7 @@ const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm">
+                <div className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm shadow-xl">
                     <p className="text-slate-400">{label}</p>
                     <p className="text-white font-medium">{formatDuration(payload[0].value)}</p>
                 </div>
@@ -47,69 +50,102 @@ const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
         return null;
     };
 
+    const isDashboard = variant === 'dashboard';
+
     return (
         <>
-            <div className={`bg-slate-800/50 rounded-2xl overflow-hidden ${className}`}>
-                {/* Header with gradient */}
-                <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-3">
+            <div
+                className={isDashboard
+                    ? getBorderClass(borderColor, `bg-slate-900/80 backdrop-blur-sm border rounded-xl shadow-xl ${className}`)
+                    : `bg-slate-800/50 rounded-2xl overflow-hidden ${className}`
+                }
+                style={isDashboard ? getBorderStyle(borderColor) : undefined}
+            >
+                {/* Header */}
+                <div className={isDashboard
+                    ? "px-4 py-3 border-b border-white/5"
+                    : "bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-3"
+                }>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Calendar size={18} className="text-white" />
-                            <h3 className="text-base font-semibold text-white">Weekly Activity</h3>
+                            {isDashboard ? (
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                                    <Flame size={16} className="text-white" />
+                                </div>
+                            ) : (
+                                <Calendar size={18} className="text-white" />
+                            )}
+                            <div>
+                                <h3 className={isDashboard ? "text-sm font-semibold text-white" : "text-base font-semibold text-white"}>
+                                    Weekly Focus
+                                </h3>
+                                {isDashboard && (
+                                    <p className="text-[10px] text-slate-400">This week's activity</p>
+                                )}
+                            </div>
                         </div>
                         <button
                             onClick={() => { setTempWeekStart(weekStartsOn); setShowSettings(true); }}
-                            className="w-7 h-7 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-all"
+                            className={isDashboard
+                                ? "w-7 h-7 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                                : "w-7 h-7 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-all"
+                            }
                         >
                             <Settings size={14} />
                         </button>
                     </div>
                 </div>
 
-                <div className="p-4">
+                <div className={isDashboard ? "p-4" : "p-4"}>
                     {/* Stats Row */}
-                    <div className="flex items-center gap-4 mb-4 text-sm">
-                        <div className="flex items-center gap-1">
-                            <Clock size={12} className="text-slate-500" />
-                            <span className="text-slate-400">Total: <span className="text-white font-medium">{formatDuration(stats.totalMinutes)}</span></span>
+                    <div className={`flex items-center gap-4 mb-4 ${isDashboard ? 'text-xs' : 'text-sm'}`}>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+                            <Clock size={isDashboard ? 10 : 12} className="text-blue-400" />
+                            <span className="text-blue-400 font-medium">{formatDuration(stats.totalMinutes)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <TrendingUp size={12} className="text-slate-500" />
-                            <span className="text-slate-400">Avg: <span className="text-white font-medium">{formatDuration(stats.dailyAverage)}/day</span></span>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <TrendingUp size={isDashboard ? 10 : 12} className="text-emerald-400" />
+                            <span className="text-emerald-400 font-medium">{formatDuration(stats.dailyAverage)}/day</span>
                         </div>
                     </div>
 
                     {/* Chart */}
                     {hasData ? (
-                        <div className="h-32">
+                        <div className={isDashboard ? "h-28" : "h-32"}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <BarChart data={weeklyData} margin={{ top: 10, right: 5, left: -25, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#3b82f6" />
+                                            <stop offset="100%" stopColor="#06b6d4" />
+                                        </linearGradient>
+                                    </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(71, 85, 105, 0.3)" vertical={false} />
                                     <XAxis
                                         dataKey="displayDate"
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#64748b', fontSize: 10 }}
+                                        tick={{ fill: '#64748b', fontSize: isDashboard ? 9 : 10 }}
                                     />
                                     <YAxis
                                         axisLine={false}
                                         tickLine={false}
-                                        tick={{ fill: '#64748b', fontSize: 10 }}
+                                        tick={{ fill: '#64748b', fontSize: isDashboard ? 9 : 10 }}
                                         tickFormatter={(v) => `${Math.round(v)}m`}
                                     />
                                     <Tooltip content={<CustomTooltip />} />
-                                    <ReferenceLine y={dailyGoal} stroke="#10b981" strokeDasharray="3 3" />
+                                    <ReferenceLine y={dailyGoal} stroke="#10b981" strokeDasharray="3 3" strokeWidth={1.5} />
                                     <Bar
                                         dataKey="minutes"
-                                        fill="#3b82f6"
-                                        radius={[4, 4, 0, 0]}
-                                        maxBarSize={40}
+                                        fill="url(#barGradient)"
+                                        radius={[6, 6, 0, 0]}
+                                        maxBarSize={isDashboard ? 32 : 40}
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <div className="h-32 flex flex-col items-center justify-center">
+                        <div className={`${isDashboard ? 'h-28' : 'h-32'} flex flex-col items-center justify-center`}>
                             <div className="w-10 h-10 rounded-full bg-slate-700/50 flex items-center justify-center mb-2">
                                 <Calendar size={20} className="text-slate-500" />
                             </div>
@@ -162,8 +198,8 @@ const WeekChart: React.FC<WeekChartProps> = ({ className = '' }) => {
                                         key={day}
                                         onClick={() => setTempWeekStart(i as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${tempWeekStart === i
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-white/5 text-slate-300 hover:bg-white/10'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-white/5 text-slate-300 hover:bg-white/10'
                                             }`}
                                     >
                                         <span className="font-medium">{FULL_DAYS[i]}</span>
