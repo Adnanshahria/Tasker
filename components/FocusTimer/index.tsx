@@ -409,36 +409,36 @@ const FocusTimer: React.FC = () => {
                         </div>
 
                         {/* Right Column: Stats Cards */}
-                        <div className="space-y-4">
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 border")} style={getBorderStyle(borderColor)}>
-                                <div className="p-3 rounded-xl bg-violet-500/10 shadow-inner">
-                                    <Clock size={24} className="text-violet-400" />
+                        <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-4">
+                            <div className={getBorderClass(borderColor, "flex flex-col md:flex-row items-center md:items-center justify-center md:justify-start gap-2 md:gap-5 p-2 md:p-5 bg-slate-800/40 rounded-xl md:rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 border text-center md:text-left")} style={getBorderStyle(borderColor)}>
+                                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-violet-500/10 shadow-inner">
+                                    <Clock size={16} className="text-violet-400 md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">TODAY'S FOCUS</span>
-                                    <p className="text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</p>
+                                    <span className="text-[9px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 md:mb-1 block whitespace-nowrap">TODAY'S FOCUS</span>
+                                    <p className="text-sm md:text-2xl font-bold text-white whitespace-nowrap">{formatTime(todayStats.totalFocusMinutes)}</p>
                                 </div>
                             </div>
 
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75 border")} style={getBorderStyle(borderColor)}>
-                                <div className="p-3 rounded-xl bg-purple-500/10 shadow-inner">
-                                    <Calendar size={24} className="text-purple-400" />
+                            <div className={getBorderClass(borderColor, "flex flex-col md:flex-row items-center md:items-center justify-center md:justify-start gap-2 md:gap-5 p-2 md:p-5 bg-slate-800/40 rounded-xl md:rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-75 border text-center md:text-left")} style={getBorderStyle(borderColor)}>
+                                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-purple-500/10 shadow-inner">
+                                    <Calendar size={16} className="text-purple-400 md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">THIS WEEK</span>
-                                    <p className="text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</p>
+                                    <span className="text-[9px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 md:mb-1 block whitespace-nowrap">THIS WEEK</span>
+                                    <p className="text-sm md:text-2xl font-bold text-white whitespace-nowrap">{formatTime(todayStats.totalFocusMinutes)}</p>
                                 </div>
                             </div>
 
-                            <div className={getBorderClass(borderColor, "flex items-center gap-5 p-5 bg-slate-800/40 rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100 border")} style={getBorderStyle(borderColor)}>
-                                <div className="p-3 rounded-xl bg-emerald-500/10 shadow-inner">
-                                    <Target size={24} className="text-emerald-400" />
+                            <div className={getBorderClass(borderColor, "flex flex-col md:flex-row items-center md:items-center justify-center md:justify-start gap-2 md:gap-5 p-2 md:p-5 bg-slate-800/40 rounded-xl md:rounded-2xl backdrop-blur-sm transition-transform hover:translate-x-1 duration-300 delay-100 border text-center md:text-left")} style={getBorderStyle(borderColor)}>
+                                <div className="p-2 md:p-3 rounded-lg md:rounded-xl bg-emerald-500/10 shadow-inner">
+                                    <Target size={16} className="text-emerald-400 md:w-6 md:h-6" />
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1 block">DAILY GOAL</span>
-                                    <div className="flex items-baseline gap-2">
-                                        <p className="text-2xl font-bold text-white">{Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100)}%</p>
-                                        <span className="text-xs text-slate-500">completed</span>
+                                    <span className="text-[9px] md:text-xs text-slate-500 font-bold uppercase tracking-wider mb-0.5 md:mb-1 block whitespace-nowrap">DAILY GOAL</span>
+                                    <div className="flex flex-col md:flex-row items-center md:items-baseline gap-0 md:gap-2">
+                                        <p className="text-sm md:text-2xl font-bold text-white">{Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100)}%</p>
+                                        <span className="text-[9px] md:text-xs text-slate-500 hidden md:inline">completed</span>
                                     </div>
                                 </div>
                             </div>
