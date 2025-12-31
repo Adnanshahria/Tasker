@@ -1,18 +1,20 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon, Check } from 'lucide-react';
 import { useTimer } from '../../hooks/use-timer';
 import { useAudioAlert } from '../../hooks/use-audio-alert';
 import { useSessionRecorder } from '../../hooks/use-session-recorder';
+import { useFocusDashboard } from '../../hooks/useFocusDashboard';
 import { useTimerStore } from '../../store/timerStore';
 import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
 import DeepFocusTimer from './DeepFocus';
 import RecordsPage from './Records';
 
 const FocusTimer: React.FC = () => {
-    const { formattedTime, progress, isActive, mode, pomodorosCompleted, toggle, reset, setMode } = useTimer();
+    const { formattedTime, progress, isActive, mode, pomodorosCompleted, toggle, reset, setMode, formattedElapsedTime } = useTimer();
     const { playAlert, initAudio } = useAudioAlert();
-    const { recordSession, getTodayStats, getAllTimeStats } = useSessionRecorder();
+    const { recordSession } = useSessionRecorder();
+    const { todayStats, allTimeStats } = useFocusDashboard();
     const durations = useTimerStore((state) => state.durations);
     const setDurations = useTimerStore((state) => state.setDurations);
     const dailyGoal = useTimerStore((state) => state.dailyGoal);
@@ -22,8 +24,8 @@ const FocusTimer: React.FC = () => {
     const [showFloatingTimer, setShowFloatingTimer] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showRecords, setShowRecords] = useState(false);
-    const [todayStats, setTodayStats] = useState({ totalFocusMinutes: 0, totalPomos: 0 });
     const [prevTimeLeft, setPrevTimeLeft] = useState<number | null>(null);
+    const [showFocusedTime, setShowFocusedTime] = useState(false);
 
     const [tempPomodoro, setTempPomodoro] = useState(Math.floor(durations.pomodoro / 60));
     const [tempShortBreak, setTempShortBreak] = useState(Math.floor(durations.shortBreak / 60));
@@ -47,19 +49,12 @@ const FocusTimer: React.FC = () => {
     }, [showSettings, durations]);
 
     useEffect(() => {
-        const stats = getTodayStats();
-        setTodayStats({ totalFocusMinutes: stats.totalFocusMinutes, totalPomos: stats.totalPomos });
-    }, [getTodayStats, pomodorosCompleted]);
-
-    useEffect(() => {
         if (prevTimeLeft !== null && prevTimeLeft > 0 && timeLeft === 0) {
             playAlert();
             recordSession(true);
-            const stats = getTodayStats();
-            setTodayStats({ totalFocusMinutes: stats.totalFocusMinutes, totalPomos: stats.totalPomos });
         }
         setPrevTimeLeft(timeLeft);
-    }, [timeLeft, prevTimeLeft, playAlert, recordSession, getTodayStats]);
+    }, [timeLeft, prevTimeLeft, playAlert, recordSession]);
 
     const handleFirstInteraction = useCallback(() => {
         initAudio();
@@ -85,8 +80,14 @@ const FocusTimer: React.FC = () => {
         setShowSettings(false);
     };
 
-    const allTimeStats = getAllTimeStats();
     const formatTime = (mins: number) => `${Math.floor(mins / 60)}h ${Math.round(mins % 60)}m`;
+
+    // Calculate estimated end time
+    const endTimeText = useMemo(() => {
+        if (!isActive || timeLeft <= 0) return null;
+        const endDate = new Date(Date.now() + timeLeft * 1000);
+        return endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    }, [isActive, timeLeft]);
 
     const modes = [
         { key: 'pomodoro', label: 'Pomodoro' },
@@ -305,13 +306,56 @@ const FocusTimer: React.FC = () => {
                                     />
                                 </svg>
 
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-6xl font-bold text-white tracking-tighter" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                        {formattedTime}
-                                    </span>
+                                <div
+                                    className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group"
+                                    onClick={() => isActive && setShowFocusedTime(!showFocusedTime)}
+                                >
+                                    {/* Flip container */}
+                                    <motion.div
+                                        className="relative"
+                                        animate={{ rotateX: showFocusedTime ? 180 : 0 }}
+                                        transition={{ duration: 0.4, ease: 'easeInOut' }}
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                    >
+                                        {/* Front: Remaining Time */}
+                                        <motion.span
+                                            className="text-6xl font-bold text-white tracking-tighter block"
+                                            style={{
+                                                fontVariantNumeric: 'tabular-nums',
+                                                backfaceVisibility: 'hidden'
+                                            }}
+                                            animate={{ opacity: showFocusedTime ? 0 : 1 }}
+                                        >
+                                            {formattedTime}
+                                        </motion.span>
+
+                                        {/* Back: Focused Time */}
+                                        <motion.span
+                                            className="text-6xl font-bold text-emerald-400 tracking-tighter absolute inset-0 flex items-center justify-center"
+                                            style={{
+                                                fontVariantNumeric: 'tabular-nums',
+                                                backfaceVisibility: 'hidden',
+                                                transform: 'rotateX(180deg)'
+                                            }}
+                                            animate={{ opacity: showFocusedTime ? 1 : 0 }}
+                                        >
+                                            {formattedElapsedTime}
+                                        </motion.span>
+                                    </motion.div>
+
                                     <span className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-2">
-                                        {isActive ? 'Focusing' : 'Ready'}
+                                        {isActive ? (showFocusedTime ? 'Focused' : 'Remaining') : 'Ready'}
                                     </span>
+                                    {endTimeText && !showFocusedTime && (
+                                        <span className="text-[10px] text-slate-400 mt-1">
+                                            Ends at <span className="font-semibold text-violet-400">{endTimeText}</span>
+                                        </span>
+                                    )}
+                                    {isActive && (
+                                        <span className="text-[9px] text-slate-500/60 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            Tap to {showFocusedTime ? 'show remaining' : 'show focused'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
 

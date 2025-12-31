@@ -13,7 +13,7 @@ interface DeepFocusTimerProps {
 }
 
 const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
-    const { formattedTime, isActive, toggle, addTime, subtractTime, timeLeft } = useTimer();
+    const { formattedTime, isActive, toggle, addTime, subtractTime, timeLeft, formattedElapsedTime } = useTimer();
     const antiBurnIn = useTimerStore((state) => state.antiBurnIn);
     const dailyGoal = useTimerStore((state) => state.dailyGoal);
     const sessionDuration = useTimerStore((state) => state.sessionDuration);
@@ -26,6 +26,9 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
     const [isDimmed, setIsDimmed] = useState(false);
     const [showControls, setShowControls] = useState(true);
     const [lastActivity, setLastActivity] = useState(Date.now());
+    const [showDimWarning, setShowDimWarning] = useState(false);
+    const [dimCountdown, setDimCountdown] = useState(0); // 0-100% for pre-dim countdown
+    const [warningCountdown, setWarningCountdown] = useState(0); // 0-100% for warning countdown
 
     // Pixel shift for anti-burn-in
     const pixelShiftControls = useAnimation();
@@ -116,18 +119,47 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
         setShowControls(true);
     }, []);
 
-    // Auto-dim
+    // Auto-dim after inactivity with countdown
     useEffect(() => {
-        if (!isOpen || !isActive) return;
+        if (!isOpen || !isActive) {
+            setDimCountdown(0);
+            return;
+        }
 
         const interval = setInterval(() => {
             const inactiveTime = Date.now() - lastActivity;
-            if (inactiveTime > 5000) setShowControls(false);
-            if (inactiveTime > 15000) setIsDimmed(true);
-        }, 1000);
+
+            // Hide controls after 3s
+            if (inactiveTime > 3000) setShowControls(false);
+
+            // Pre-dim countdown (3s to 8s = 5 second countdown)
+            if (inactiveTime >= 3000 && inactiveTime < 8000) {
+                const progress = ((inactiveTime - 3000) / 5000) * 100;
+                setDimCountdown(progress);
+            } else if (inactiveTime >= 8000 && !isDimmed) {
+                setDimCountdown(0);
+                setIsDimmed(true);
+                setShowDimWarning(true);
+                setWarningCountdown(0);
+
+                // Animate warning countdown over 4 seconds
+                const warningInterval = setInterval(() => {
+                    setWarningCountdown(prev => {
+                        if (prev >= 100) {
+                            clearInterval(warningInterval);
+                            setShowDimWarning(false);
+                            return 100;
+                        }
+                        return prev + 2.5; // 100% over 4 seconds (40 steps * 100ms)
+                    });
+                }, 100);
+            } else if (inactiveTime < 3000) {
+                setDimCountdown(0);
+            }
+        }, 100);
 
         return () => clearInterval(interval);
-    }, [isOpen, isActive, lastActivity]);
+    }, [isOpen, isActive, lastActivity, isDimmed]);
 
     // Keyboard
     useEffect(() => {
@@ -176,6 +208,38 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
             onClick={handleActivity}
             onTouchStart={handleActivity}
         >
+            {/* Pre-dim Countdown Circle with "Dimming" text - Filled style */}
+            <AnimatePresence>
+                {dimCountdown > 0 && dimCountdown < 100 && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="fixed top-6 right-6 z-50 flex flex-col items-center"
+                    >
+                        <div className="relative w-16 h-16">
+                            {/* Background circle */}
+                            <div className="absolute inset-0 rounded-full bg-white/10 border border-white/20" />
+
+                            {/* Filling circle using conic gradient */}
+                            <div
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                    background: `conic-gradient(rgba(139, 92, 246, 0.8) ${dimCountdown * 3.6}deg, transparent ${dimCountdown * 3.6}deg)`,
+                                    transition: 'background 0.1s ease-out'
+                                }}
+                            />
+
+                            {/* Center circle (hole effect) */}
+                            <div className="absolute inset-2 rounded-full bg-black flex items-center justify-center">
+                                <span className="text-[9px] font-semibold text-white/90 uppercase tracking-wide">
+                                    Dimming
+                                </span>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* DESKTOP VIEW (Existing Ring Design) */}
             <div className="hidden md:flex h-full w-full flex-col items-center justify-center relative overflow-hidden">
                 {/* ... existing desktop content ... */}
@@ -193,7 +257,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                 >
                     {/* Main Timer Display Container */}
                     <motion.div
-                        animate={{ opacity: isDimmed ? 0.2 : 1, scale: isDimmed ? 0.98 : 1 }}
+                        animate={{ opacity: isDimmed ? 0.5 : 1, scale: isDimmed ? 0.98 : 1 }}
                         transition={{ duration: 0.8 }}
                         className="relative flex items-center justify-center"
                         style={{
@@ -260,14 +324,14 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                                     fontVariantNumeric: 'tabular-nums',
                                     textShadow: `0 0 40px ${modeGlow}`
                                 }}
-                                animate={{ opacity: isDimmed ? 0.3 : 1 }}
+                                animate={{ opacity: isDimmed ? 0.5 : 1 }}
                             >
                                 {formattedTime}
                             </motion.span>
 
                             <motion.div
                                 animate={{ opacity: isDimmed ? 0 : 0.6 }}
-                                className="mt-8 flex items-center gap-3"
+                                className="mt-6 flex items-center gap-3"
                             >
                                 <div
                                     className="w-2 h-2 rounded-full"
@@ -277,6 +341,18 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                                     {mode === 'pomodoro' ? 'Focus' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
                                 </span>
                             </motion.div>
+
+                            {/* Elapsed Time Display */}
+                            {isActive && (
+                                <motion.div
+                                    animate={{ opacity: isDimmed ? 0.4 : 0.8 }}
+                                    className="mt-4 px-4 py-2 rounded-full bg-white/5 border border-white/10"
+                                >
+                                    <span className="text-sm text-emerald-400">
+                                        Focused: <span className="font-semibold">{formattedElapsedTime}</span>
+                                    </span>
+                                </motion.div>
+                            )}
                         </div>
                     </motion.div>
 
@@ -307,6 +383,107 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                             <span className="text-xl font-light text-white relative">{Math.round(goalProgress)}%</span>
                         </div>
                     </motion.div>
+
+                    {/* Desktop Control Bar */}
+                    <AnimatePresence>
+                        {showControls && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                className="mt-12 flex items-center justify-center gap-6"
+                            >
+                                {/* Back Button */}
+                                <button
+                                    onClick={handleClose}
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white transition-all"
+                                >
+                                    <ChevronLeft size={24} />
+                                </button>
+
+                                {/* Subtract Time */}
+                                <button
+                                    onClick={subtractTime}
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white transition-all"
+                                >
+                                    <Minus size={24} />
+                                </button>
+
+                                {/* Play/Pause - Main Action */}
+                                <button
+                                    onClick={toggle}
+                                    className="w-20 h-20 flex items-center justify-center rounded-full bg-white text-black hover:bg-zinc-200 transition-all shadow-[0_0_60px_-10px_rgba(255,255,255,0.4)]"
+                                >
+                                    {isActive ? (
+                                        <Pause size={36} fill="currentColor" />
+                                    ) : (
+                                        <Play size={36} fill="currentColor" className="ml-1" />
+                                    )}
+                                </button>
+
+                                {/* Add Time */}
+                                <button
+                                    onClick={addTime}
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white transition-all"
+                                >
+                                    <Plus size={24} />
+                                </button>
+
+                                {/* End Session */}
+                                <button
+                                    onClick={handleClose}
+                                    className="w-14 h-14 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white transition-all"
+                                >
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Desktop Dim Warning */}
+                    <AnimatePresence>
+                        {showDimWarning && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20"
+                            >
+                                <div className="bg-gradient-to-b from-white/15 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl px-10 py-6 text-center flex flex-col items-center shadow-2xl shadow-black/50">
+                                    {/* Countdown Circle with icon */}
+                                    <div className="relative mb-4">
+                                        <svg width="70" height="70" className="transform -rotate-90">
+                                            <circle cx="35" cy="35" r="30" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                                            <circle
+                                                cx="35" cy="35" r="30"
+                                                fill="none"
+                                                stroke="url(#warningGradient)"
+                                                strokeWidth="4"
+                                                strokeLinecap="round"
+                                                strokeDasharray={188}
+                                                strokeDashoffset={188 - (warningCountdown / 100) * 188}
+                                                style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
+                                            />
+                                            <defs>
+                                                <linearGradient id="warningGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="#a78bfa" />
+                                                    <stop offset="100%" stopColor="#818cf8" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <span className="absolute inset-0 flex items-center justify-center text-2xl">🔅</span>
+                                    </div>
+                                    <p className="text-base text-white font-semibold mb-2">Screen Dimmed</p>
+                                    <p className="text-sm text-white/60 max-w-[200px] leading-relaxed">
+                                        Saving power & protecting pixels.<br />
+                                        <span className="text-violet-300/80">Screen will stay on.</span>
+                                    </p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             </div>
 
@@ -324,7 +501,7 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                 <div className="flex-1 flex flex-col items-center justify-center">
                     <motion.div
                         animate={{
-                            opacity: isDimmed ? 0.3 : 1,
+                            opacity: isDimmed ? 0.5 : 1,
                             scale: isDimmed ? 0.95 : 1
                         }}
                         transition={{ duration: 0.8 }}
@@ -364,6 +541,13 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                             <span className="text-[4rem] xs:text-[5rem] leading-none font-medium text-white tracking-tighter tabular-nums z-10">
                                 {formattedTime}
                             </span>
+
+                            {/* Elapsed Time (inside ring) */}
+                            {isActive && (
+                                <span className="absolute bottom-8 text-xs text-emerald-400 z-10">
+                                    Focused: <span className="font-semibold">{formattedElapsedTime}</span>
+                                </span>
+                            )}
                         </div>
 
                         {/* Mobile Stats Cards */}
@@ -436,6 +620,49 @@ const DeepFocusTimer: React.FC<DeepFocusTimerProps> = ({ isOpen, onClose }) => {
                             >
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                             </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Mobile Dim Warning */}
+                <AnimatePresence>
+                    {showDimWarning && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="absolute top-1/2 left-0 right-0 -translate-y-1/2 px-6 z-20"
+                        >
+                            <div className="max-w-xs mx-auto bg-gradient-to-b from-white/15 to-white/5 backdrop-blur-xl border border-white/20 rounded-3xl p-6 text-center flex flex-col items-center shadow-2xl shadow-black/50">
+                                {/* Countdown Circle with icon */}
+                                <div className="relative mb-4">
+                                    <svg width="60" height="60" className="transform -rotate-90">
+                                        <circle cx="30" cy="30" r="25" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                                        <circle
+                                            cx="30" cy="30" r="25"
+                                            fill="none"
+                                            stroke="url(#mobileWarningGrad)"
+                                            strokeWidth="4"
+                                            strokeLinecap="round"
+                                            strokeDasharray={157}
+                                            strokeDashoffset={157 - (warningCountdown / 100) * 157}
+                                            style={{ transition: 'stroke-dashoffset 0.1s ease-out' }}
+                                        />
+                                        <defs>
+                                            <linearGradient id="mobileWarningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stopColor="#a78bfa" />
+                                                <stop offset="100%" stopColor="#818cf8" />
+                                            </linearGradient>
+                                        </defs>
+                                    </svg>
+                                    <span className="absolute inset-0 flex items-center justify-center text-xl">🔅</span>
+                                </div>
+                                <p className="text-base text-white font-semibold mb-1">Screen Dimmed</p>
+                                <p className="text-xs text-white/60 leading-relaxed">
+                                    Saving power & protecting pixels.<br />
+                                    <span className="text-violet-300/80">Screen will stay on.</span>
+                                </p>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

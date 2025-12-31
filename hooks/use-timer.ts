@@ -24,6 +24,9 @@ export const useTimer = () => {
         ? ((sessionDuration - timeLeft) / sessionDuration) * 100
         : 0;
 
+    // Calculate elapsed time in seconds
+    const elapsedTime = sessionDuration - timeLeft;
+
     // Format time as MM:SS
     const formatTime = useCallback((seconds: number): string => {
         const mins = Math.floor(seconds / 60);
@@ -39,7 +42,9 @@ export const useTimer = () => {
         pomodorosCompleted,
         durations,
         progress,
+        elapsedTime,
         formattedTime: formatTime(timeLeft),
+        formattedElapsedTime: formatTime(elapsedTime),
 
         // Actions
         start,

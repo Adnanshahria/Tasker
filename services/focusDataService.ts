@@ -4,9 +4,10 @@
 import { supabase } from './supabaseClient';
 import { FocusSession, FocusRecord } from '../types';
 import { isOnline } from './syncService';
+import { triggerFocusDataRefresh } from '../utils/focusRefresh';
 
 const STORAGE_KEY = 'ogrogoti-focus-records';
-const MIN_SESSION_DURATION = 0.1; // Minimum 0.1 minutes (6 seconds) to record
+const MIN_SESSION_DURATION = 0.5; // Minimum 0.5 minutes (30 seconds) to record
 
 // ==================== LOCAL STORAGE ====================
 
@@ -27,7 +28,15 @@ const saveLocalFocusRecords = (userId: string, records: Record<string, FocusReco
     }
 };
 
-const getTodayKey = () => new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+// Get date key in local timezone (YYYY-MM-DD)
+const getDateKey = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const getTodayKey = () => getDateKey(new Date());
 
 // ==================== PUBLIC API ====================
 
@@ -83,6 +92,9 @@ export const saveFocusSession = async (
     saveLocalFocusRecords(userId, records);
     console.log('[Focus] Session saved locally:', fullSession.id);
 
+    // 2. Trigger UI refresh
+    triggerFocusDataRefresh();
+
     // 2. Sync to Firestore in background if online
     if (isOnline()) {
         syncFocusRecordToFirestore(userId, todayKey, records[todayKey]);
@@ -122,7 +134,7 @@ export const logManualSession = async (
     if (!userId) return;
     if (durationMinutes < 1) return;
 
-    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    const dateKey = getDateKey(date); // Use local date, not UTC
     const records = getLocalFocusRecords(userId);
     const startTime = date.getTime();
     const endTime = startTime + durationMinutes * 60 * 1000;
@@ -161,6 +173,9 @@ export const logManualSession = async (
     // Save locally
     saveLocalFocusRecords(userId, records);
     console.log('[Focus] Manual session logged:', session.id);
+
+    // Trigger UI refresh
+    triggerFocusDataRefresh();
 
     // Sync to Firestore if online
     if (isOnline()) {

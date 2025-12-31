@@ -94,6 +94,22 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
         setDuration(prev => Math.max(1, Math.min(180, prev + delta)));
     };
 
+    // Check if selected date/time is in the future
+    const isFutureSession = React.useMemo(() => {
+        let hour24 = hour;
+        if (ampm === 'pm' && hour < 12) hour24 += 12;
+        if (ampm === 'am' && hour === 12) hour24 = 0;
+
+        const dateWithTime = set(selectedDate, {
+            hours: hour24,
+            minutes: minute,
+            seconds: 0,
+            milliseconds: 0,
+        });
+
+        return isFuture(dateWithTime);
+    }, [selectedDate, hour, minute, ampm]);
+
     // Calendar helpers
     const daysInMonth = getDaysInMonth(calendarMonth);
     const firstDayOfMonth = getDay(startOfMonth(calendarMonth));
@@ -319,6 +335,20 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
                             </div>
                         </div>
 
+                        {/* Future Date Warning */}
+                        {isFutureSession && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-2 text-amber-400 text-sm bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3"
+                            >
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <span>⚠️ You cannot log sessions in the future. Please select a past or current time.</span>
+                            </motion.div>
+                        )}
+
                         {/* Error Message */}
                         {error && (
                             <motion.p
@@ -340,7 +370,7 @@ const AddFocusRecordDialog: React.FC<AddFocusRecordDialogProps> = ({ isOpen, onC
                             </button>
                             <button
                                 onClick={handleSubmit}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isFutureSession}
                                 className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-medium hover:from-blue-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25"
                             >
                                 {isSubmitting ? (

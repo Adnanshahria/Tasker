@@ -1,11 +1,15 @@
 // Focus Dashboard Data Hook
 // Provides processed data for Record Cards (Today, Week, Month, Overall)
 
-import { useMemo, useCallback } from 'react';
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays, addDays, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays, parseISO } from 'date-fns';
 import { useAuth } from '../contexts/AuthContext';
 import { getFocusRecordsForRange, getTodayFocusStats, getAllTimeFocusStats } from '../services/focusDataService';
 import { FocusRecord, FocusSession } from '../types';
+import { subscribeFocusRefresh } from '../utils/focusRefresh';
+
+// Re-export for backwards compatibility
+export { triggerFocusDataRefresh } from '../utils/focusRefresh';
 
 export interface HourlyData {
     hour: string;
@@ -23,17 +27,27 @@ export const useFocusDashboard = () => {
     const { currentUser } = useAuth();
     const userId = currentUser?.id;
 
-    // Get today's focus stats
+    // Local refresh state that subscribes to global refresh
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    // Subscribe to global refresh events
+    useEffect(() => {
+        const listener = () => setRefreshKey(k => k + 1);
+        const unsubscribe = subscribeFocusRefresh(listener);
+        return unsubscribe;
+    }, []);
+
+    // Get today's focus stats - refreshes when refreshKey changes
     const todayStats = useMemo(() => {
         if (!userId) return { totalFocusMinutes: 0, totalPomos: 0, sessions: [] as FocusSession[] };
         return getTodayFocusStats(userId);
-    }, [userId]);
+    }, [userId, refreshKey]);
 
     // Get all-time stats
     const allTimeStats = useMemo(() => {
         if (!userId) return { totalFocusMinutes: 0, totalPomos: 0, totalDays: 0 };
         return getAllTimeFocusStats(userId);
-    }, [userId]);
+    }, [userId, refreshKey]);
 
     // Get hourly breakdown for today
     const getTodayHourlyData = useCallback((): HourlyData[] => {
@@ -87,7 +101,7 @@ export const useFocusDashboard = () => {
         }
 
         return data;
-    }, [userId]);
+    }, [userId, refreshKey]);
 
     // Get monthly data
     const getMonthlyData = useCallback((): { data: DailyData[]; monthLabel: string } => {
@@ -123,7 +137,7 @@ export const useFocusDashboard = () => {
             data,
             monthLabel: format(now, 'MMMM yyyy'),
         };
-    }, [userId]);
+    }, [userId, refreshKey]);
 
     // Get data for custom date range
     const getRangeData = useCallback((startDate: Date, endDate: Date): DailyData[] => {
@@ -152,7 +166,7 @@ export const useFocusDashboard = () => {
         }
 
         return data;
-    }, [userId]);
+    }, [userId, refreshKey]);
 
     // Calculate weekly totals from data
     const calculateWeeklyStats = useCallback((data: DailyData[]) => {
@@ -160,6 +174,11 @@ export const useFocusDashboard = () => {
         const daysWithData = data.filter(d => d.minutes > 0).length;
         const dailyAverage = daysWithData > 0 ? Math.round(totalMinutes / daysWithData) : 0;
         return { totalMinutes, dailyAverage, daysWithData };
+    }, []);
+
+    // Manual refresh function
+    const refresh = useCallback(() => {
+        setRefreshKey(k => k + 1);
     }, []);
 
     return {
@@ -175,6 +194,7 @@ export const useFocusDashboard = () => {
 
         // Utilities
         calculateWeeklyStats,
+        refresh,
     };
 };
 
