@@ -197,6 +197,23 @@ export const logManualSession = async (
 /**
  * Get focus records for a date range
  */
+const recalculateRecordTotals = (record: FocusRecord): FocusRecord => {
+    const sessions = record.sessions || [];
+    const totalFocusMinutes = sessions
+        .filter(s => s.type === 'pomodoro' || s.type === 'manual')
+        .reduce((sum, s) => sum + s.duration, 0);
+
+    const totalPomos = sessions
+        .filter(s => (s.type === 'pomodoro' && s.completed) || (s.type === 'manual' && s.duration >= 25))
+        .length;
+
+    return {
+        ...record,
+        totalFocusMinutes,
+        totalPomos,
+    };
+};
+
 export const getFocusRecordsForRange = (
     userId: string,
     startDate: string,
@@ -209,7 +226,8 @@ export const getFocusRecordsForRange = (
 
     Object.entries(records).forEach(([date, record]) => {
         if (date >= startDate && date <= endDate) {
-            result.push(record);
+            // Return recalculated record to ensure UI consistency
+            result.push(recalculateRecordTotals(record));
         }
     });
 
@@ -231,8 +249,9 @@ export const getAllTimeFocusStats = (userId: string): {
     let totalPomos = 0;
 
     Object.values(records).forEach(record => {
-        totalFocusMinutes += record.totalFocusMinutes;
-        totalPomos += record.totalPomos;
+        const recalculated = recalculateRecordTotals(record);
+        totalFocusMinutes += recalculated.totalFocusMinutes;
+        totalPomos += recalculated.totalPomos;
     });
 
     return {
