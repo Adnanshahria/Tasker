@@ -31,22 +31,22 @@ const FocusTimer: React.FC = () => {
     const timeLeft = useTimerStore((state) => state.timeLeft);
 
     // Dynamic Ring properties based on screen size
-    const [size, setSize] = useState(240);
-    const strokeWidth = 6;
+    const [size, setSize] = useState(250);
+    const strokeWidth = 5;
     const radius = (size - strokeWidth * 2) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
     useEffect(() => {
+        // Adjust ring size for mobile/desktop
         const updateSize = () => {
-            // Adjust ring size for mobile/desktop
-            // Mobile (dvh based) vs Desktop
             if (window.innerWidth < 768) {
-                // If height is small, reduce size
+                // Mobile tuning
                 const h = window.innerHeight;
                 if (h < 700) setSize(200);
                 else setSize(250);
             } else {
+                // Desktop
                 setSize(280);
             }
         };
@@ -174,34 +174,42 @@ const FocusTimer: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            <div className="flex-1 flex flex-col justify-between max-w-md mx-auto w-full h-full pb-20 md:pb-8 relative z-10 px-4 md:px-0">
+            <div className="flex-1 flex flex-col md:grid md:grid-cols-2 md:items-center justify-between max-w-md md:max-w-5xl mx-auto w-full h-full pb-20 md:pb-8 relative z-10 px-4 md:px-8 pt-2 md:pt-12 gap-8 md:gap-12">
 
-                {/* 1. Top Section: Mode Selector */}
-                <div className="bg-slate-900/40 backdrop-blur-md rounded-2xl p-1.5 flex relative z-20 border border-white/5 shadow-lg shrink-0 mt-2">
-                    {modes.map(({ key, label }) => (
-                        <button
-                            key={key}
-                            onClick={() => !isActive && setMode(key)}
-                            className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 relative overflow-hidden ${mode === key ? 'text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
-                            {mode === key && (
-                                <motion.div
-                                    layoutId="activeMode"
-                                    className="absolute inset-0 bg-slate-800 rounded-xl"
-                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                />
-                            )}
-                            <span className="relative z-10">{label}</span>
-                        </button>
-                    ))}
+                {/* 1. Top Section / Mobile Mode Selector */}
+                {/* Desktop: Header Row */}
+                <div className="hidden md:flex absolute top-0 left-0 right-0 p-8 justify-between items-center z-20">
+                    <span className="text-lg font-semibold text-violet-400">Ogrogoti</span>
+                    {/* Mode Selector for Desktop positioned differently or in column */}
                 </div>
 
-                {/* 2. Middle Section: Timer & Controls */}
-                <div className="flex-1 flex flex-col items-center justify-center relative min-h-0">
+                {/* Left Col (Timer) */}
+                <div className="flex flex-col items-center justify-center relative min-h-0 md:h-auto md:bg-slate-800/30 md:rounded-3xl md:p-8 md:border md:border-white/5 md:backdrop-blur-sm order-2 md:order-1">
+
+                    {/* Mobile Mode Selector (Hidden on Desktop?) - Actually let's keep it generally available but styled differently */}
+                    <div className="bg-slate-900/40 backdrop-blur-md rounded-2xl p-1.5 flex relative z-20 border border-white/5 shadow-lg shrink-0 mb-6 w-full md:w-auto md:mb-8">
+                        {modes.map(({ key, label }) => (
+                            <button
+                                key={key}
+                                onClick={() => !isActive && setMode(key)}
+                                className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 relative overflow-hidden ${mode === key ? 'text-white shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
+                            >
+                                {mode === key && (
+                                    <motion.div
+                                        layoutId="activeMode"
+                                        className="absolute inset-0 bg-slate-800 rounded-xl"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{label}</span>
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Glow Effect */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-violet-500/10 blur-[80px] rounded-full pointer-events-none" />
 
-                    <div className="relative z-10 flex flex-col items-center justify-center flex-1">
+                    <div className="relative z-10 flex flex-col items-center justify-center">
                         <div className="relative">
                             <svg width={size} height={size} className="transform -rotate-90 drop-shadow-[0_0_15px_rgba(139,92,246,0.3)]">
                                 <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={strokeWidth} />
@@ -219,7 +227,10 @@ const FocusTimer: React.FC = () => {
                                 />
                             </svg>
 
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <div
+                                className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group"
+                                onClick={() => isActive && setShowFocusedTime(!showFocusedTime)}
+                            >
                                 <motion.span
                                     key={showFocusedTime ? 'focused' : 'remaining'}
                                     initial={{ opacity: 0, y: 10 }}
@@ -231,12 +242,16 @@ const FocusTimer: React.FC = () => {
                                 <span className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 mt-2">
                                     {isActive ? (showFocusedTime ? 'FOCUSED' : 'REMAINING') : 'READY'}
                                 </span>
+                                {endTimeText && !showFocusedTime && (
+                                    <span className="text-[10px] text-slate-400 mt-1 absolute bottom-16 md:bottom-20">
+                                        Ends at <span className="font-semibold text-violet-400">{endTimeText}</span>
+                                    </span>
+                                )}
                             </div>
                         </div>
 
                         {/* Controls */}
                         <div className="flex items-center gap-8 mt-6 md:mt-8">
-                            {/* Minus 1 min */}
                             <button
                                 disabled={isActive}
                                 className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
@@ -244,7 +259,6 @@ const FocusTimer: React.FC = () => {
                                 <Minus size={20} />
                             </button>
 
-                            {/* Play/Pause */}
                             <button
                                 onClick={toggle}
                                 className="w-20 h-20 flex items-center justify-center rounded-[2rem] bg-slate-100 text-slate-900 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:scale-105 active:scale-95 transition-all duration-300"
@@ -256,7 +270,6 @@ const FocusTimer: React.FC = () => {
                                 )}
                             </button>
 
-                            {/* Plus 1 min */}
                             <button
                                 disabled={isActive}
                                 className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
@@ -279,38 +292,48 @@ const FocusTimer: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 3. Bottom Section: Details Grid & Action Bar */}
-                <div className="pb-2 md:pb-0 shrink-0 space-y-3">
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-800/40 rounded-2xl p-3 border border-indigo-500/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-center h-24">
-                            <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 mb-0.5"><Clock size={14} /></div>
-                            <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">Today Focus</span>
-                            <span className="text-sm font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</span>
+                {/* Right Col / Bottom Section (Stats + Actions) */}
+                <div className="pb-2 md:pb-0 shrink-0 space-y-3 order-3 md:order-2 w-full">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-3 md:grid-cols-1 gap-3 md:gap-4">
+                        <div className="bg-slate-800/40 md:bg-slate-800/30 rounded-2xl p-3 md:p-5 border border-indigo-500/10 backdrop-blur-sm flex flex-col md:flex-row items-center md:justify-start gap-1 md:gap-4 text-center md:text-left h-24 md:h-auto hover:bg-slate-800/50 transition-colors">
+                            <div className="p-1.5 md:p-3 rounded-lg bg-indigo-500/20 text-indigo-400 mb-0.5 md:mb-0"><Clock size={14} className="md:w-6 md:h-6" /></div>
+                            <div>
+                                <span className="text-[9px] md:text-xs text-slate-400 md:text-slate-500 font-bold uppercase whitespace-nowrap block">Today Focus</span>
+                                <span className="text-sm md:text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</span>
+                            </div>
                         </div>
-                        <div className="bg-slate-800/40 rounded-2xl p-3 border border-purple-500/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-center h-24">
-                            <div className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400 mb-0.5"><Calendar size={14} /></div>
-                            <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">This Week</span>
-                            <span className="text-sm font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</span>
+                        <div className="bg-slate-800/40 md:bg-slate-800/30 rounded-2xl p-3 md:p-5 border border-purple-500/10 backdrop-blur-sm flex flex-col md:flex-row items-center md:justify-start gap-1 md:gap-4 text-center md:text-left h-24 md:h-auto hover:bg-slate-800/50 transition-colors">
+                            <div className="p-1.5 md:p-3 rounded-lg bg-purple-500/20 text-purple-400 mb-0.5 md:mb-0"><Calendar size={14} className="md:w-6 md:h-6" /></div>
+                            <div>
+                                <span className="text-[9px] md:text-xs text-slate-400 md:text-slate-500 font-bold uppercase whitespace-nowrap block">This Week</span>
+                                <span className="text-sm md:text-2xl font-bold text-white">{formatTime(todayStats.totalFocusMinutes)}</span>
+                            </div>
                         </div>
-                        <div className="bg-slate-800/40 rounded-2xl p-3 border border-emerald-500/10 backdrop-blur-sm flex flex-col items-center justify-center gap-1 text-center h-24 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-emerald-500/5" style={{ height: `${Math.min(100, Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100))}%`, bottom: 0, top: 'auto', transition: 'height 1s ease' }} />
-                            <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 mb-0.5 relative z-10"><Target size={14} /></div>
-                            <span className="text-[9px] text-slate-400 font-bold uppercase relative z-10 whitespace-nowrap">Daily Goal</span>
-                            <span className="text-sm font-bold text-white relative z-10">{Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100)}%</span>
+                        <div className="bg-slate-800/40 md:bg-slate-800/30 rounded-2xl p-3 md:p-5 border border-emerald-500/10 backdrop-blur-sm flex flex-col md:flex-row items-center md:justify-start gap-1 md:gap-4 text-center md:text-left h-24 md:h-auto hover:bg-slate-800/50 transition-colors relative overflow-hidden">
+                            <div className="absolute inset-0 bg-emerald-500/5 md:bg-transparent" style={{ height: window.innerWidth < 768 ? `${Math.min(100, Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100))}%` : '100%', bottom: 0, top: 'auto', transition: 'height 1s ease' }} />
+                            <div className="p-1.5 md:p-3 rounded-lg bg-emerald-500/20 text-emerald-400 mb-0.5 md:mb-0 relative z-10"><Target size={14} className="md:w-6 md:h-6" /></div>
+                            <div className="relative z-10">
+                                <span className="text-[9px] md:text-xs text-slate-400 md:text-slate-500 font-bold uppercase whitespace-nowrap block">Daily Goal</span>
+                                <div className="flex items-baseline gap-2 justify-center md:justify-start">
+                                    <span className="text-sm md:text-2xl font-bold text-white">{Math.round((todayStats.totalFocusMinutes / dailyGoal) * 100)}%</span>
+                                    <span className="hidden md:inline text-xs text-slate-500">completed</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {/* Bottom Action Bar */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 mt-4">
                         <button
                             onClick={() => navigate('/deepfocus')}
-                            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl py-3.5 text-xs font-bold transition-all shadow-lg active:scale-95"
+                            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl py-3.5 text-xs md:text-sm font-bold transition-all shadow-lg active:scale-95"
                         >
                             Deep Focus
                         </button>
                         <button
                             onClick={() => navigate('/records')}
-                            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl py-3.5 text-xs font-bold transition-all shadow-lg active:scale-95"
+                            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl py-3.5 text-xs md:text-sm font-bold transition-all shadow-lg active:scale-95"
                         >
                             Record
                         </button>
