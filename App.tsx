@@ -95,6 +95,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, loading } = useAuth();
+
+  // Check for recovery flow in URL hash (Supabase magic link)
+  if (window.location.hash.includes('type=recovery')) {
+    return <Navigate to="/update-password" />;
+  }
+
   if (loading) return <LoadingSpinner />;
   if (!currentUser) return <Navigate to="/auth" />;
   return <Layout>{children}</Layout>;
