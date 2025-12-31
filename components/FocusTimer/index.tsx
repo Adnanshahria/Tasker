@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon, Check, X } from 'lucide-react';
 import { useTimer } from '../../hooks/use-timer';
@@ -7,10 +8,9 @@ import { useSessionRecorder } from '../../hooks/use-session-recorder';
 import { useFocusDashboard } from '../../hooks/useFocusDashboard';
 import { useTimerStore } from '../../store/timerStore';
 import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
-import DeepFocusTimer from './DeepFocus';
-import RecordsPage from './Records';
 
 const FocusTimer: React.FC = () => {
+    const navigate = useNavigate();
     const { formattedTime, progress, isActive, mode, pomodorosCompleted, toggle, reset, setMode, formattedElapsedTime } = useTimer();
     const { playAlert, initAudio } = useAudioAlert();
     const { recordSession } = useSessionRecorder();
@@ -21,9 +21,7 @@ const FocusTimer: React.FC = () => {
     const borderColor = useTimerStore((state) => state.borderColor);
     const setBorderColor = useTimerStore((state) => state.setBorderColor);
 
-    const [showFloatingTimer, setShowFloatingTimer] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
-    const [showRecords, setShowRecords] = useState(false);
     const [prevTimeLeft, setPrevTimeLeft] = useState<number | null>(null);
     const [showFocusedTime, setShowFocusedTime] = useState(false);
 
@@ -241,27 +239,17 @@ const FocusTimer: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* Records Page */}
-            <RecordsPage
-                isOpen={showRecords}
-                onClose={() => setShowRecords(false)}
-                onOpenSettings={() => setShowSettings(true)}
-                onOpenDeepFocus={() => { setShowRecords(false); setShowFloatingTimer(true); }}
-                todayStats={todayStats}
-                allTimeStats={allTimeStats}
-            />
-
             {/* Main View */}
-            <div className={`h-full overflow-y-auto pb-24 ${(showRecords || showFloatingTimer) ? 'hidden' : ''}`}>
+            <div className="h-full overflow-y-auto pb-24">
                 <div className="max-w-md md:max-w-5xl mx-auto px-4 md:px-8 pt-8 h-full flex flex-col md:justify-center">
                     {/* Header */}
                     <div className="flex items-center justify-between py-3 mb-4 md:mb-8">
                         <span className="text-lg font-semibold text-violet-400 hidden md:block">Ogrogoti</span>
                         <div className="flex gap-2">
-                            <button onClick={() => setShowFloatingTimer(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
+                            <button onClick={() => navigate('/deepfocus')} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
                                 Deep Focus
                             </button>
-                            <button onClick={() => setShowRecords(true)} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
+                            <button onClick={() => navigate('/records')} className="px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 text-slate-300 text-xs hover:bg-slate-700/80 transition-colors">
                                 Record
                             </button>
                         </div>
@@ -446,8 +434,6 @@ const FocusTimer: React.FC = () => {
                     </div>
                 </div>
             </div>
-
-            <DeepFocusTimer isOpen={showFloatingTimer} onClose={() => setShowFloatingTimer(false)} />
         </>
     );
 };

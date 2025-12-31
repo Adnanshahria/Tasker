@@ -12,6 +12,8 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const AssignmentTracker = lazy(() => import('./components/AssignmentTracker'));
 const HabitTracker = lazy(() => import('./components/HabitTracker'));
 const FocusTimer = lazy(() => import('./components/FocusTimer'));
+const DeepFocusStandalone = lazy(() => import('./components/FocusTimer/DeepFocusStandalone'));
+const RecordsStandalone = lazy(() => import('./components/FocusTimer/RecordsStandalone'));
 const Settings = lazy(() => import('./components/Settings'));
 const Auth = lazy(() => import('./components/Auth'));
 const UpdatePassword = lazy(() => import('./components/UpdatePassword'));
@@ -115,6 +117,8 @@ const App: React.FC = () => {
               <Route path="/update-password" element={<UpdatePassword />} />
               <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/focus" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
+              <Route path="/deepfocus" element={<ProtectedRoute><DeepFocusStandalone /></ProtectedRoute>} />
+              <Route path="/records" element={<ProtectedRoute><RecordsStandalone /></ProtectedRoute>} />
               <Route path="/assignments" element={<ProtectedRoute><AssignmentTracker /></ProtectedRoute>} />
               <Route path="/habits" element={<ProtectedRoute><HabitTracker /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
