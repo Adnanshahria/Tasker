@@ -65,9 +65,7 @@ const LandingPage: React.FC = () => {
                     className="px-6 pt-8 pb-4 flex justify-center"
                 >
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                            <Zap size={20} className="text-white" />
-                        </div>
+                        <img src="/logo.png" alt="Ogrogoti" className="w-10 h-10 rounded-xl shadow-lg shadow-indigo-500/30" />
                         <span className="text-3xl font-bold">Ogrogoti</span>
                     </div>
                 </motion.header>
@@ -175,9 +173,7 @@ const LandingPage: React.FC = () => {
                     className="w-full flex justify-center py-8"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                            <Zap size={28} className="text-white" />
-                        </div>
+                        <img src="/logo.png" alt="Ogrogoti" className="w-14 h-14 rounded-xl shadow-lg shadow-indigo-500/30" />
                         <span className="text-3xl font-black">Ogrogoti</span>
                     </div>
                 </motion.header>

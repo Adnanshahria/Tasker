@@ -199,6 +199,14 @@ const Auth: React.FC = () => {
         >
           {/* Header */}
           <div className="text-center mb-12">
+            <motion.img
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              src="/logo.png"
+              alt="Ogrogoti"
+              className="w-20 h-20 rounded-2xl mx-auto mb-6 shadow-xl shadow-indigo-500/20"
+            />
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
