@@ -57,7 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      // Check both the event AND the URL hash for recovery mode
+      // Sometimes the event fires as SIGNED_IN but the URL indicates recovery
+      if (event === 'PASSWORD_RECOVERY' || window.location.hash.includes('type=recovery')) {
         // User clicked reset link - redirect to update password page
         navigate('/update-password');
       }
