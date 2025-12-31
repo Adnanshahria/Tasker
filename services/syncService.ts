@@ -272,17 +272,17 @@ const processSettingsOperation = async (op: PendingOperation): Promise<void> => 
 // ==================== REMOTE DATA FETCHING ====================
 
 export const fetchRemoteAssignments = async (userId: string): Promise<any[]> => {
-    // The error "column assignments.user_id does not exist" suggests the column is actually named "userId"
-    // or we should rely on "userId" based on the error hint.
-    // Trying 'userId' first, falling back to 'user_id' if needed isn't easy in one query, 
-    // so we'll switch to 'userId' based on the strong hint.
+    // Try 'userId' (camelCase) first as seen in some successful logs/schema hints
     let { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
 
     if (error) {
-        // Fallback: try user_id if userId failed (just in case)
-        if (error.code === '42703') { // Undefined column
-            const retry = await supabase.from('assignments').select('*').eq('user_id', userId);
+        // Fallback to 'user_id' (snake_case)
+        console.log('[Sync] assignments fetch failed with userId, trying user_id...');
+        const retry = await supabase.from('assignments').select('*').eq('user_id', userId);
+        if (!retry.error) {
             data = retry.data;
+            error = null;
+        } else {
             error = retry.error;
         }
     }
@@ -318,18 +318,25 @@ export const fetchRemoteHabits = async (userId: string): Promise<any[]> => {
 };
 
 export const fetchRemoteSettings = async (userId: string): Promise<any | null> => {
-    // Settings usually link via id or user_id/userId
-    let { data, error } = await supabase.from('settings').select('*').eq('userId', userId).maybeSingle();
+    // Settings table usually uses 'user_id' in standard Supabase setups
+    // Prioritizing user_id first for settings based on recent logs failing with userId
+    let { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
 
-    if (error && error.code === '42703') {
-        const retry = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
-        data = retry.data;
-        error = retry.error;
+    if (error) {
+        // Fallback to 'userId'
+        console.log('[Sync] settings fetch failed with user_id, trying userId...');
+        const retry = await supabase.from('settings').select('*').eq('userId', userId).maybeSingle();
+        if (!retry.error) {
+            data = retry.data;
+            error = null;
+        } else {
+            error = retry.error;
+        }
     }
 
     if (error) {
         console.warn('[Sync] Settings fetch error:', error.message);
-        return null;
+        return null; // Settings might not exist yet, which is fine
     }
     return data;
 };
