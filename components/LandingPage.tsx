@@ -68,7 +68,7 @@ const LandingPage: React.FC = () => {
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                             <Zap size={20} className="text-white" />
                         </div>
-                        <span className="text-xl font-bold">Ogrogoti</span>
+                        <span className="text-3xl font-bold">Ogrogoti</span>
                     </div>
                 </motion.header>
 
@@ -88,10 +88,9 @@ const LandingPage: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.15 }}
-                        className="text-4xl font-black leading-tight mb-3"
+                        className="text-2xl font-black leading-tight mb-3 whitespace-nowrap"
                     >
-                        <span className="text-white">Master Your</span>
-                        <br />
+                        <span className="text-white">Master Your </span>
                         <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                             Productivity
                         </span>
@@ -109,29 +108,27 @@ const LandingPage: React.FC = () => {
 
                 {/* Features */}
                 <section className="px-6 py-6 flex-1 flex flex-col justify-center">
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
                         {features.map((feature, index) => (
                             <motion.div
                                 key={feature.label}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 + index * 0.1 }}
-                                className={`p-4 rounded-2xl ${feature.bg} border ${feature.border}`}
+                                className={`p-4 rounded-2xl ${feature.bg} border ${feature.border} text-center`}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg mb-2`}>
                                         <feature.icon size={22} className="text-white" />
                                     </div>
-                                    <div className="flex-1">
-                                        <h3 className="text-base font-bold text-white">{feature.label}</h3>
-                                        <p className="text-xs text-slate-400 mb-2">{feature.desc}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {feature.highlights.map((h) => (
-                                                <span key={h} className={`text-[10px] px-2 py-0.5 rounded-full bg-white/5 ${feature.textColor}`}>
-                                                    {h}
-                                                </span>
-                                            ))}
-                                        </div>
+                                    <h3 className="text-base font-bold text-white">{feature.label}</h3>
+                                    <p className="text-xs text-slate-400 mb-2">{feature.desc}</p>
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {feature.highlights.map((h) => (
+                                            <span key={h} className={`text-[10px] px-2 py-0.5 rounded-full bg-white/5 ${feature.textColor}`}>
+                                                {h}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             </motion.div>
@@ -141,12 +138,22 @@ const LandingPage: React.FC = () => {
 
                 {/* CTA */}
                 <section className="px-6 py-8">
-                    <Link
-                        to="/auth"
-                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl font-bold shadow-xl shadow-indigo-500/25"
-                    >
-                        Get Started Free
-                        <ArrowRight size={18} />
+                    <Link to="/auth" className="block">
+                        <motion.div
+                            animate={{
+                                background: [
+                                    'linear-gradient(to right, #6366f1, #a855f7)',
+                                    'linear-gradient(to right, #a855f7, #ec4899)',
+                                    'linear-gradient(to right, #ec4899, #06b6d4)',
+                                    'linear-gradient(to right, #06b6d4, #6366f1)',
+                                ]
+                            }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-2xl font-bold text-white"
+                        >
+                            Get Started
+                            <ArrowRight size={18} />
+                        </motion.div>
                     </Link>
                     <div className="flex items-center justify-center gap-2 text-xs text-slate-500 mt-4">
                         <Download size={12} />
