@@ -223,11 +223,11 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-8 z-10`}>
                         <div className="flex items-center justify-between gap-2">
-                            <span className="text-white font-medium truncate max-w-[100px] md:max-w-[180px] text-xs md:text-sm">{item.title}</span>
+                            <span className="text-white font-semibold truncate max-w-[100px] md:max-w-[180px] text-sm md:text-base">{item.title}</span>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
-                                <span className={`text-[8px] md:text-[9px] font-bold px-2 py-1 rounded-md flex flex-col items-center leading-tight ${timeStatus.color}`}>
+                                <span className={`text-[9px] md:text-[10px] font-bold px-2 py-1 rounded-md flex flex-col items-center leading-tight ${timeStatus.color}`}>
                                     <span>{timeStatus.time}</span>
-                                    <span className="opacity-80 text-[7px] md:text-[8px]">{timeStatus.status}</span>
+                                    <span className="opacity-80 text-[8px] md:text-[9px]">{timeStatus.status}</span>
                                 </span>
                                 {item.description && (
                                     <button onClick={() => openDescModal(item)} className="p-1 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/10 rounded hover:bg-amber-500/20" title="View description">
@@ -241,7 +241,7 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'subject':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-blue-500/20`}>
-                        <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 font-medium text-[10px] md:text-xs border border-indigo-500/30 whitespace-nowrap">
+                        <span className="px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-200 font-semibold text-xs md:text-sm border border-indigo-500/30 whitespace-nowrap">
                             {item.subject}
                         </span>
                     </td>
@@ -249,7 +249,7 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'duration':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-lime-500/20 text-center`}>
-                        <span className="text-lime-400 font-mono text-[10px] md:text-xs bg-lime-500/10 px-2 py-1 rounded">
+                        <span className="text-lime-300 font-mono font-semibold text-xs md:text-sm bg-lime-500/15 px-2.5 py-1 rounded">
                             {duration}
                         </span>
                     </td>
@@ -257,17 +257,17 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'time':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-emerald-500/20`}>
-                        <span className="text-purple-400 font-mono text-[10px] md:text-xs whitespace-nowrap">
+                        <span className="text-purple-300 font-mono font-semibold text-xs md:text-sm whitespace-nowrap">
                             {item.startTime && item.endTime ? (
-                                <span className="bg-purple-500/10 px-2 py-1 rounded">{item.startTime}-{item.endTime}</span>
-                            ) : <span className="text-slate-600">-</span>}
+                                <span className="bg-purple-500/15 px-2.5 py-1 rounded">{item.startTime}-{item.endTime}</span>
+                            ) : <span className="text-slate-500">-</span>}
                         </span>
                     </td>
                 );
             case 'date':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-teal-500/20`}>
-                        <span className="text-cyan-400 font-mono text-[10px] md:text-xs bg-cyan-500/10 px-2 py-1 rounded">
+                        <span className="text-cyan-300 font-mono font-semibold text-xs md:text-sm bg-cyan-500/15 px-2.5 py-1 rounded">
                             {format(new Date(item.dueDate), 'dd MMM')}
                         </span>
                     </td>
@@ -275,7 +275,7 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'priority':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-amber-500/20`}>
-                        <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] md:text-xs ${ps.pillBg} ${ps.text} shadow-sm`} style={{ boxShadow: ps.glow }}>
+                        <span className={`px-3 py-1.5 rounded-full font-bold text-xs md:text-sm ${ps.pillBg} ${ps.text} shadow-sm`} style={{ boxShadow: ps.glow }}>
                             {item.priority || '-'}
                         </span>
                     </td>
@@ -283,7 +283,7 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'status':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-rose-500/20`}>
-                        <button onClick={() => onToggleStatus(item)} className={`px-2.5 py-1 text-[10px] md:text-xs font-bold rounded-full border transition-all hover:scale-105 active:scale-95 ${getStatusStyle(item.status)}`}>
+                        <button onClick={() => onToggleStatus(item)} className={`px-3 py-1.5 text-xs md:text-sm font-bold rounded-full border transition-all hover:scale-105 active:scale-95 ${getStatusStyle(item.status)}`}>
                             {item.status}
                         </button>
                     </td>
