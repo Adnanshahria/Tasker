@@ -167,12 +167,16 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
     switch (op.type) {
         case 'add': {
             // Create in Supabase and update local ID
-            // Strip userId, user_id, syncStatus from payload to avoid schema errors
-            const { id, syncStatus, userId, user_id, ...data } = op.data;
+            // Supabase assignments table uses camelCase column names
+            // Generate a proper UUID for the database (schema requires id as PRIMARY KEY)
+            const { id: tempId, syncStatus, ...data } = op.data;
+            const newId = crypto.randomUUID();
+
             const { data: newDoc, error } = await supabase.from('assignments').insert({
+                id: newId,
                 ...data,
-                created_at: new Date(Date.now()).toISOString(),
-                user_id: op.userId, // Map userId to user_id explicitly
+                userId: op.userId,
+                createdAt: Date.now(),
             }).select().single();
 
             if (error) throw error;
@@ -186,20 +190,24 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
         case 'update': {
             if (isTempId(op.docId)) {
                 // Converting update to add if it's still temp
-                const { id, syncStatus, userId, user_id, ...data } = op.data;
+                const { id: tempId, syncStatus, ...data } = op.data;
+                const newId = crypto.randomUUID();
+
                 const { data: newDoc, error } = await supabase.from('assignments').insert({
+                    id: newId,
                     ...data,
-                    user_id: op.userId, // Map userId
+                    userId: op.userId,
+                    createdAt: Date.now(),
                 }).select().single();
                 if (error) throw error;
                 if (newDoc) updateLocalAssignmentId(op.userId, op.docId, newDoc.id);
             } else {
-                // Remove userId/user_id/id/createdAt from update payload
-                const { userId, user_id, id, syncStatus, createdAt, created_at, ...cleanData } = op.data;
+                // Remove id/syncStatus/createdAt from update payload (keep userId for reference)
+                const { id, syncStatus, createdAt, ...cleanData } = op.data;
 
                 await supabase.from('assignments').update({
                     ...cleanData,
-                    updated_at: new Date(Date.now()).toISOString(),
+                    updatedAt: Date.now(),
                 }).eq('id', op.docId);
             }
             break;
@@ -216,10 +224,16 @@ const processAssignmentOperation = async (op: PendingOperation): Promise<void> =
 const processHabitOperation = async (op: PendingOperation): Promise<void> => {
     switch (op.type) {
         case 'add': {
-            const { id, syncStatus, userId, user_id, ...data } = op.data;
+            // Supabase habits table uses camelCase column names
+            // Generate a proper UUID for the database (schema requires id as PRIMARY KEY)
+            const { id: tempId, syncStatus, ...data } = op.data;
+            const newId = crypto.randomUUID();
+
             const { data: newDoc, error } = await supabase.from('habits').insert({
+                id: newId,
                 ...data,
-                user_id: op.userId,
+                userId: op.userId,
+                createdAt: Date.now(),
             }).select().single();
             if (error) throw error;
 
@@ -231,21 +245,25 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
         case 'update': {
             if (isTempId(op.docId)) {
                 // Handling update on temp ID -> Treat as Insert
-                const { id, syncStatus, userId, user_id, createdAt, created_at, ...data } = op.data;
+                const { id: tempId, syncStatus, createdAt, ...data } = op.data;
+                const newId = crypto.randomUUID();
+
                 const { data: newDoc, error } = await supabase.from('habits').insert({
+                    id: newId,
                     ...data,
-                    user_id: op.userId,
-                    created_at: new Date(Date.now()).toISOString(), // ensure created_at is set if missing
+                    userId: op.userId,
+                    createdAt: Date.now(),
                 }).select().single();
                 if (error) throw error;
                 if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
-                // ... (existing update logic)
-                // Remove userId/user_id/id from update payload
-                // The error "Could not find the 'user_id' column" usually happens when trying to update a column that isn't expected or allowed
-                const { userId, user_id, id, syncStatus, createdAt, created_at, ...cleanData } = op.data;
+                // Remove id/syncStatus/createdAt from update payload
+                const { id, syncStatus, createdAt, ...cleanData } = op.data;
 
-                await supabase.from('habits').update(cleanData).eq('id', op.docId);
+                await supabase.from('habits').update({
+                    ...cleanData,
+                    updatedAt: Date.now(),
+                }).eq('id', op.docId);
             }
             break;
         }
@@ -272,72 +290,75 @@ const processSettingsOperation = async (op: PendingOperation): Promise<void> => 
 // ==================== REMOTE DATA FETCHING ====================
 
 export const fetchRemoteAssignments = async (userId: string): Promise<any[]> => {
-    // Try 'userId' (camelCase) first as seen in some successful logs/schema hints
-    let { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
+    // Supabase schema uses quoted camelCase: "userId"
+    const { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
 
     if (error) {
-        // Fallback to 'user_id' (snake_case)
-        console.log('[Sync] assignments fetch failed with userId, trying user_id...');
-        const retry = await supabase.from('assignments').select('*').eq('user_id', userId);
-        if (!retry.error) {
-            data = retry.data;
-            error = null;
-        } else {
-            error = retry.error;
-        }
-    }
-
-    if (error) {
-        console.error('Error fetching assignments:', error);
+        console.error('[Sync] Error fetching assignments:', error);
         return [];
     }
-    // Map remote data to local format safely
+
+    console.log('[Sync] Fetched', (data || []).length, 'assignments from Supabase');
+
+    // Data already uses camelCase from Supabase
     return (data || []).map(item => ({
-        ...item,
-        userId: item.userId || item.user_id, // ensure we have the property expected locally
+        id: item.id,
+        userId: item.userId,
+        title: item.title,
+        description: item.description,
+        subject: item.subject,
+        dueDate: item.dueDate,
+        startTime: item.startTime,
+        endTime: item.endTime,
+        status: item.status,
+        priority: item.priority,
+        type: item.type,
+        weight: item.weight,
+        score: item.score,
+        totalPoints: item.totalPoints,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
     }));
 };
 
 export const fetchRemoteHabits = async (userId: string): Promise<any[]> => {
-    let { data, error } = await supabase.from('habits').select('*').eq('userId', userId);
-
-    if (error && error.code === '42703') {
-        const retry = await supabase.from('habits').select('*').eq('user_id', userId);
-        data = retry.data;
-        error = retry.error;
-    }
+    // Supabase schema uses quoted camelCase: "userId"
+    const { data, error } = await supabase.from('habits').select('*').eq('userId', userId);
 
     if (error) {
-        console.error('Error fetching habits:', error);
+        console.error('[Sync] Error fetching habits:', error);
         return [];
     }
+
+    console.log('[Sync] Fetched', (data || []).length, 'habits from Supabase');
+
+    // Data already uses camelCase from Supabase
     return (data || []).map(item => ({
-        ...item,
-        userId: item.userId || item.user_id,
+        id: item.id,
+        userId: item.userId,
+        title: item.title,
+        description: item.description,
+        completedDates: item.completedDates || [],
+        streak: item.streak,
+        order: item.order,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
     }));
 };
 
 export const fetchRemoteSettings = async (userId: string): Promise<any | null> => {
-    // Settings table usually uses 'user_id' in standard Supabase setups
-    // Prioritizing user_id first for settings based on recent logs failing with userId
-    let { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
-
-    if (error) {
-        // Fallback to 'userId'
-        console.log('[Sync] settings fetch failed with user_id, trying userId...');
-        const retry = await supabase.from('settings').select('*').eq('userId', userId).maybeSingle();
-        if (!retry.error) {
-            data = retry.data;
-            error = null;
-        } else {
-            error = retry.error;
-        }
-    }
+    // Use 'user_id' (snake_case) to match Supabase schema
+    const { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
 
     if (error) {
         console.warn('[Sync] Settings fetch error:', error.message);
         return null; // Settings might not exist yet, which is fine
     }
+
+    if (data) {
+        console.log('[Sync] Fetched settings from Supabase');
+    }
+
     return data;
 };
 
