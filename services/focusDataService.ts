@@ -115,10 +115,21 @@ export const getTodayFocusStats = (userId: string): {
     const records = getLocalFocusRecords(userId);
     const todayRecord = records[todayKey];
 
+    const sessions = todayRecord?.sessions || [];
+
+    // Calculate on the fly to ensure consistency with session list
+    const totalFocusMinutes = sessions
+        .filter(s => s.type === 'pomodoro' || s.type === 'manual')
+        .reduce((sum, s) => sum + s.duration, 0);
+
+    const totalPomos = sessions
+        .filter(s => (s.type === 'pomodoro' && s.completed) || (s.type === 'manual' && s.duration >= 25))
+        .length;
+
     return {
-        totalFocusMinutes: todayRecord?.totalFocusMinutes || 0,
-        totalPomos: todayRecord?.totalPomos || 0,
-        sessions: todayRecord?.sessions || [],
+        totalFocusMinutes,
+        totalPomos,
+        sessions,
     };
 };
 
