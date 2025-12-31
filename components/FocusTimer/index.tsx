@@ -176,12 +176,25 @@ const FocusTimer: React.FC = () => {
                                                 <Minus size={16} />
                                             </motion.button>
 
-                                            <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden relative">
+                                            <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden relative border border-slate-600">
                                                 <motion.div
-                                                    className={`absolute inset-y-0 left-0 bg-gradient-to-r from-${color}-500 to-${color}-400 rounded-full`}
+                                                    className={`absolute inset-y-0 left-0 rounded-full`}
+                                                    style={{
+                                                        background: color === 'violet' ? 'linear-gradient(to right, #8b5cf6, #a78bfa)' :
+                                                            color === 'emerald' ? 'linear-gradient(to right, #10b981, #34d399)' :
+                                                                'linear-gradient(to right, #3b82f6, #60a5fa)'
+                                                    }}
                                                     initial={false}
                                                     animate={{ width: `${(value / max) * 100}%` }}
                                                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                />
+                                                {/* Visible thumb */}
+                                                <motion.div
+                                                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-slate-300"
+                                                    initial={false}
+                                                    animate={{ left: `calc(${(value / max) * 100}% - 8px)` }}
+                                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                    style={{ minLeft: '0px' }}
                                                 />
                                                 <input
                                                     type="range"
