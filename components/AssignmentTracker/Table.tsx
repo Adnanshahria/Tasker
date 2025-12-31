@@ -222,19 +222,13 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
             case 'taskName':
                 return (
                     <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-purple-500/20 bg-slate-900/80 sticky left-8 z-10`}>
-                        <div className="flex items-center justify-between gap-2">
-                            <span className="text-white font-semibold truncate max-w-[100px] md:max-w-[180px] text-sm md:text-base">{item.title}</span>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                                <span className={`text-[10px] md:text-xs font-bold px-2.5 py-1.5 rounded-lg flex flex-col items-center leading-tight shadow-sm ${timeStatus.color}`}>
-                                    <span className="font-extrabold">{timeStatus.time}</span>
-                                    <span className="opacity-90 text-[9px] md:text-[10px] font-semibold">{timeStatus.status}</span>
-                                </span>
-                                {item.description && (
-                                    <button onClick={() => openDescModal(item)} className="p-1.5 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/15 rounded-lg hover:bg-amber-500/25" title="View description">
-                                        <HelpCircle size={16} />
-                                    </button>
-                                )}
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-white font-semibold truncate max-w-[120px] md:max-w-[200px] text-sm md:text-base">{item.title}</span>
+                            {item.description && (
+                                <button onClick={() => openDescModal(item)} className="p-1.5 text-amber-400 hover:text-amber-300 transition-colors flex-shrink-0 bg-amber-500/15 rounded-lg hover:bg-amber-500/25" title="View description">
+                                    <HelpCircle size={16} />
+                                </button>
+                            )}
                         </div>
                     </td>
                 );
@@ -248,10 +242,16 @@ const Table: React.FC<TableProps> = ({ assignments, t, lang, onEdit, onDelete, o
                 );
             case 'duration':
                 return (
-                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-lime-500/20 text-center`}>
-                        <span className="text-lime-300 font-mono font-semibold text-xs md:text-sm bg-lime-500/15 px-2.5 py-1 rounded">
-                            {duration}
-                        </span>
+                    <td key={colId} className={`py-3 px-3 md:px-4 border-b ${rowBorderColor} border-r border-r-lime-500/20`}>
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-lime-300 font-mono font-semibold text-xs md:text-sm bg-lime-500/15 px-2.5 py-1 rounded">
+                                {duration}
+                            </span>
+                            <span className={`text-[10px] md:text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 ${timeStatus.color}`}>
+                                <span className="font-extrabold">{timeStatus.time}</span>
+                                <span className="opacity-90 font-semibold">{timeStatus.status}</span>
+                            </span>
+                        </div>
                     </td>
                 );
             case 'time':
