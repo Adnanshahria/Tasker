@@ -1,9 +1,24 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Timer, CheckSquare, Target, ArrowRight, Zap, Download, Sparkles, Cloud } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const LandingPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { currentUser } = useAuth();
+
+    const handleGetStarted = () => {
+        // Mark welcome as shown for this session (for PWA logic)
+        sessionStorage.setItem('pwa_welcome_shown', 'true');
+        // If already logged in, go directly to dashboard
+        if (currentUser) {
+            navigate('/');
+        } else {
+            navigate('/auth');
+        }
+    };
+
     const features = [
         {
             icon: Timer,
@@ -136,7 +151,7 @@ const LandingPage: React.FC = () => {
 
                 {/* CTA */}
                 <section className="px-6 py-8">
-                    <Link to="/auth" className="block">
+                    <button onClick={handleGetStarted} className="block w-full">
                         <motion.div
                             animate={{
                                 background: [
@@ -152,7 +167,7 @@ const LandingPage: React.FC = () => {
                             Get Started
                             <ArrowRight size={18} />
                         </motion.div>
-                    </Link>
+                    </button>
                     <div className="flex items-center justify-center gap-2 text-xs text-slate-500 mt-4">
                         <Download size={12} />
                         <span>Install: Tap ⋮ → Add to Home Screen</span>
@@ -220,7 +235,7 @@ const LandingPage: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.25 }}
                             >
-                                <Link to="/auth">
+                                <button onClick={handleGetStarted}>
                                     <motion.div
                                         animate={{
                                             background: [
@@ -236,7 +251,7 @@ const LandingPage: React.FC = () => {
                                         Get Started
                                         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                                     </motion.div>
-                                </Link>
+                                </button>
                             </motion.div>
 
                             <motion.p

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { migrateLocalStorageData } from './services/migrationService';
 import GlobalErrorBoundary from './components/GlobalErrorBoundary';
+import { isPWA } from './utils/isPWA';
 
 // Lazy load components for better initial load performance
 const Sidebar = lazy(() => import('./components/Sidebar'));
@@ -100,6 +101,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   // Check for recovery flow in URL hash (Supabase magic link) OR session lock
   if (window.location.hash.includes('type=recovery') || sessionStorage.getItem('auth_recovery_mode') === 'true') {
     return <Navigate to="/update-password" />;
+  }
+
+  // PWA Mode: Always show welcome screen on app launch (once per session)
+  if (isPWA() && !sessionStorage.getItem('pwa_welcome_shown')) {
+    return <Navigate to="/welcome" />;
   }
 
   if (loading) return <LoadingSpinner />;
