@@ -15,6 +15,7 @@ import HeatmapGrid from './HeatmapGrid';
 import { T } from './translations';
 import { useTimerStore } from '../../store/timerStore';
 import { getBorderClass, getBorderStyle } from '../../utils/styleUtils';
+import WeekChart from '../FocusTimer/Records/WeekChart';
 
 const CHART_COLORS = ['#6366f1', '#22c55e', '#f97316', '#ec4899', '#a855f7', '#14b8a6'];
 
@@ -233,7 +234,13 @@ const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            <HeatmapGrid title={t.grid} data={heatmapData} habitsLabel={t.habits} helpKey="heatmapGrid" onHelpClick={setHelpKey} />
+            {/* Weekly Focus Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-5">
+                <div className="lg:col-span-2">
+                    <HeatmapGrid title={t.grid} data={heatmapData} habitsLabel={t.habits} helpKey="heatmapGrid" onHelpClick={setHelpKey} />
+                </div>
+                <WeekChart className="h-full" />
+            </div>
             <QuickLinks t={t} onLogout={logout} />
 
             <HelpModal helpKey={helpKey} lang={lang} onClose={() => setHelpKey(null)} />
