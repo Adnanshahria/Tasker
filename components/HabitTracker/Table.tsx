@@ -137,19 +137,19 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
         <>
             <table className="w-full text-left border-separate border-spacing-0">
                 <thead className="sticky top-0 z-10">
-                    <tr className="bg-gradient-to-r from-slate-800 to-slate-800/90 backdrop-blur-sm text-slate-300 text-[10px] md:text-xs font-bold border-b-2 border-emerald-500/30">
-                        <th className="w-12 p-2 md:p-3 text-center text-slate-500 bg-slate-800 border-b border-r border-slate-600/50 sticky left-0 z-20">#</th>
-                        <th className="p-2 md:p-3 border-b border-r border-slate-600/50 w-[100px] md:w-[140px] bg-slate-800 sticky left-12 z-20">{t.habitName}</th>
+                    <tr className="bg-gradient-to-r from-slate-800 to-slate-800/90 backdrop-blur-sm text-slate-300 text-xs md:text-sm font-bold border-b-2 border-emerald-500/30">
+                        <th className="w-14 p-3 md:p-4 text-center text-slate-400 bg-slate-800 border-b border-r border-slate-600/50 sticky left-0 z-20">#</th>
+                        <th className="p-3 md:p-4 border-b border-r border-slate-600/50 w-[120px] md:w-[180px] bg-slate-800 sticky left-14 z-20">{t.habitName}</th>
                         {daysInMonth.map(day => (
-                            <th key={day.toISOString()} className={`p-0.5 md:p-1 border-r border-slate-600/50 w-7 md:w-8 text-center ${isSameDay(day, new Date()) && isSameMonth(day, new Date()) ? 'bg-emerald-500/30 text-emerald-300' : ''}`}>
+                            <th key={day.toISOString()} className={`p-1 md:p-1.5 border-r border-slate-600/50 w-8 md:w-10 text-center text-xs md:text-sm ${isSameDay(day, new Date()) && isSameMonth(day, new Date()) ? 'bg-emerald-500/30 text-emerald-300' : ''}`}>
                                 {format(day, 'd')}
                             </th>
                         ))}
-                        <th className="p-1 md:p-2 border-r border-slate-600/50 w-[40px] md:w-[50px] text-center">%</th>
-                        <th className="p-1 md:p-2 w-[32px] md:w-[40px] text-center">{t.del}</th>
+                        <th className="p-2 md:p-3 border-r border-slate-600/50 w-[50px] md:w-[60px] text-center">%</th>
+                        <th className="p-2 md:p-3 w-[40px] md:w-[50px] text-center">{t.del}</th>
                     </tr>
                 </thead>
-                <tbody className="bg-slate-900/50 text-xs md:text-sm">
+                <tbody className="bg-slate-900/50 text-sm md:text-base">
                     <AnimatePresence>
                         {habits.map((habit, idx) => (
                             <motion.tr
@@ -167,29 +167,29 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
                                     ${dragOverId === habit.id ? 'border-t-2 border-t-emerald-500' : ''}`}
                             >
                                 {/* Drag Handle + Serial Number */}
-                                <td className="w-12 text-center text-[10px] md:text-xs text-slate-500 bg-slate-800 font-mono p-1 md:p-2 border-b border-r border-slate-700/50 sticky left-0 z-10">
+                                <td className="w-14 text-center text-xs md:text-sm text-slate-400 bg-slate-800 font-mono p-2 md:p-3 border-b border-r border-slate-700/50 sticky left-0 z-10">
                                     <div className="flex items-center justify-center gap-1">
                                         <span
-                                            className="cursor-grab active:cursor-grabbing p-1 hover:bg-emerald-500/20 rounded transition-colors"
+                                            className="cursor-grab active:cursor-grabbing p-1.5 hover:bg-emerald-500/20 rounded transition-colors"
                                             title="Drag to reorder"
                                         >
-                                            <GripVertical size={14} className="text-slate-400 hover:text-emerald-400 transition-colors" />
+                                            <GripVertical size={16} className="text-slate-400 hover:text-emerald-400 transition-colors" />
                                         </span>
-                                        <span className="text-slate-500">{idx + 1}</span>
+                                        <span className="text-slate-400 font-semibold">{idx + 1}</span>
                                     </div>
                                 </td>
-                                <td className="p-0 border-b border-r border-slate-700/50 bg-slate-900 sticky left-12 z-10">
-                                    <div className="px-1.5 md:px-2 py-1.5 md:py-2 flex items-center gap-1">
-                                        <span className="text-slate-200 font-medium truncate text-xs md:text-sm flex-1">{habit.title}</span>
+                                <td className="p-0 border-b border-r border-slate-700/50 bg-slate-900 sticky left-14 z-10">
+                                    <div className="px-2 md:px-3 py-2 md:py-3 flex items-center gap-2">
+                                        <span className="text-slate-100 font-semibold truncate text-sm md:text-base flex-1">{habit.title}</span>
                                         <button
                                             onClick={() => openDescModal(habit)}
-                                            className={`p-0.5 transition-colors flex-shrink-0 rounded ${habit.description
-                                                ? 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
+                                            className={`p-1 transition-colors flex-shrink-0 rounded-lg ${habit.description
+                                                ? 'text-emerald-400 hover:text-emerald-300 bg-emerald-500/15 hover:bg-emerald-500/25'
                                                 : 'text-slate-500 hover:text-slate-400 bg-slate-700/30 hover:bg-slate-700/50'
                                                 }`}
                                             title={habit.description ? "View description" : "No description"}
                                         >
-                                            <HelpCircle size={12} />
+                                            <HelpCircle size={16} />
                                         </button>
                                     </div>
                                 </td>
@@ -200,20 +200,20 @@ const Table: React.FC<TableProps> = ({ habits, daysInMonth, t, lang, onToggle, o
                                     const missed = isPastDay && !done;
                                     return (
                                         <td key={day.toISOString()} className="p-0 border-r border-slate-700/50 text-center">
-                                            <button onClick={() => onToggle(habit, day)} className={`w-full h-8 md:h-9 flex items-center justify-center transition-all ${done ? 'bg-emerald-500/30 text-emerald-400' : missed ? 'bg-red-500/10 text-red-400/60' : 'hover:bg-slate-800'}`}>
-                                                {done && <Check size={12} strokeWidth={3} className="md:hidden" />}
-                                                {done && <Check size={14} strokeWidth={3} className="hidden md:block" />}
-                                                {missed && <X size={10} strokeWidth={2} className="md:hidden" />}
-                                                {missed && <X size={12} strokeWidth={2} className="hidden md:block" />}
+                                            <button onClick={() => onToggle(habit, day)} className={`w-full h-10 md:h-12 flex items-center justify-center transition-all ${done ? 'bg-emerald-500/30 text-emerald-400' : missed ? 'bg-red-500/10 text-red-400/60' : 'hover:bg-slate-800'}`}>
+                                                {done && <Check size={14} strokeWidth={3} className="md:hidden" />}
+                                                {done && <Check size={18} strokeWidth={3} className="hidden md:block" />}
+                                                {missed && <X size={12} strokeWidth={2} className="md:hidden" />}
+                                                {missed && <X size={16} strokeWidth={2} className="hidden md:block" />}
                                             </button>
                                         </td>
                                     );
                                 })}
-                                <td className="p-1 md:p-2 border-r border-slate-700/50 text-center font-mono text-[10px] md:text-xs font-bold" style={{ color: `hsl(${calculateCompletionRate(habit, daysInMonth) * 1.2}, 70%, 50%)` }}>
+                                <td className="p-2 md:p-3 border-r border-slate-700/50 text-center font-mono text-xs md:text-sm font-bold" style={{ color: `hsl(${calculateCompletionRate(habit, daysInMonth) * 1.2}, 70%, 50%)` }}>
                                     {calculateCompletionRate(habit, daysInMonth)}%
                                 </td>
-                                <td className="p-1 md:p-2 text-center">
-                                    <button onClick={() => onDelete(habit.id)} className="p-1 md:p-1.5 hover:bg-red-500 hover:text-white rounded-lg text-slate-400 md:opacity-0 md:group-hover:opacity-100 transition-all"><Trash2 size={12} /></button>
+                                <td className="p-2 md:p-3 text-center">
+                                    <button onClick={() => onDelete(habit.id)} className="p-1.5 md:p-2 hover:bg-red-500 hover:text-white rounded-lg text-slate-400 md:opacity-0 md:group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
                                 </td>
                             </motion.tr>
                         ))}
