@@ -272,32 +272,61 @@ const processSettingsOperation = async (op: PendingOperation): Promise<void> => 
 // ==================== REMOTE DATA FETCHING ====================
 
 export const fetchRemoteAssignments = async (userId: string): Promise<any[]> => {
-    const { data, error } = await supabase.from('assignments').select('*').eq('user_id', userId);
+    // The error "column assignments.user_id does not exist" suggests the column is actually named "userId"
+    // or we should rely on "userId" based on the error hint.
+    // Trying 'userId' first, falling back to 'user_id' if needed isn't easy in one query, 
+    // so we'll switch to 'userId' based on the strong hint.
+    let { data, error } = await supabase.from('assignments').select('*').eq('userId', userId);
+
+    if (error) {
+        // Fallback: try user_id if userId failed (just in case)
+        if (error.code === '42703') { // Undefined column
+            const retry = await supabase.from('assignments').select('*').eq('user_id', userId);
+            data = retry.data;
+            error = retry.error;
+        }
+    }
+
     if (error) {
         console.error('Error fetching assignments:', error);
         return [];
     }
-    // Map remote snake_case to local camelCase if needed
+    // Map remote data to local format safely
     return (data || []).map(item => ({
         ...item,
-        userId: item.user_id || item.userId, // fallback
+        userId: item.userId || item.user_id, // ensure we have the property expected locally
     }));
 };
 
 export const fetchRemoteHabits = async (userId: string): Promise<any[]> => {
-    const { data, error } = await supabase.from('habits').select('*').eq('user_id', userId);
+    let { data, error } = await supabase.from('habits').select('*').eq('userId', userId);
+
+    if (error && error.code === '42703') {
+        const retry = await supabase.from('habits').select('*').eq('user_id', userId);
+        data = retry.data;
+        error = retry.error;
+    }
+
     if (error) {
         console.error('Error fetching habits:', error);
         return [];
     }
     return (data || []).map(item => ({
         ...item,
-        userId: item.user_id || item.userId,
+        userId: item.userId || item.user_id,
     }));
 };
 
 export const fetchRemoteSettings = async (userId: string): Promise<any | null> => {
-    const { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
+    // Settings usually link via id or user_id/userId
+    let { data, error } = await supabase.from('settings').select('*').eq('userId', userId).maybeSingle();
+
+    if (error && error.code === '42703') {
+        const retry = await supabase.from('settings').select('*').eq('user_id', userId).maybeSingle();
+        data = retry.data;
+        error = retry.error;
+    }
+
     if (error) {
         console.warn('[Sync] Settings fetch error:', error.message);
         return null;
