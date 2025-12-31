@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon, Check } from 'lucide-react';
+import { Clock, Calendar, Target, Minus, Plus, Settings as SettingsIcon, Check, X } from 'lucide-react';
 import { useTimer } from '../../hooks/use-timer';
 import { useAudioAlert } from '../../hooks/use-audio-alert';
 import { useSessionRecorder } from '../../hooks/use-session-recorder';
@@ -109,93 +109,124 @@ const FocusTimer: React.FC = () => {
                         onClick={() => setShowSettings(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-[340px] bg-[#1e293b] rounded-3xl p-6 shadow-2xl border border-white/5"
+                            className="w-full max-w-[380px] bg-gradient-to-b from-slate-800/95 to-slate-900/98 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/10 overflow-hidden"
                         >
-                            <h2 className="text-xl font-bold text-white mb-6">Timer Settings</h2>
-
-                            <div className="space-y-6">
-                                {/* Border Color Picker */}
-                                <div>
-                                    <div className="flex justify-between mb-3">
-                                        <span className="text-sm font-medium text-slate-400">Border Color</span>
+                            {/* Header with gradient accent */}
+                            <div className="relative mb-6">
+                                <div className="absolute -top-6 -left-6 w-32 h-32 bg-violet-500/20 rounded-full blur-3xl" />
+                                <div className="absolute -top-6 -right-6 w-24 h-24 bg-blue-500/20 rounded-full blur-3xl" />
+                                <div className="relative flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-white">Settings</h2>
+                                        <p className="text-sm text-slate-400 mt-0.5">Customize your timer</p>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => setShowSettings(false)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-5">
+                                {/* Border Color Picker - Modern grid */}
+                                <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Theme Color</span>
+                                    <div className="grid grid-cols-5 gap-3 mt-3">
                                         {[
-                                            { id: 'none', color: 'bg-slate-700', label: 'None' },
-                                            { id: 'blue', color: 'bg-blue-500', label: 'Blue' },
-                                            { id: 'red', color: 'bg-red-500', label: 'Red' },
-                                            { id: 'white', color: 'bg-white', label: 'White' },
-                                            { id: 'yellow', color: 'bg-yellow-500', label: 'Yellow' },
-                                            { id: 'cyan', color: 'bg-cyan-500', label: 'Cyan' },
-                                            { id: 'purple', color: 'bg-purple-500', label: 'Purple' },
-                                            { id: 'green', color: 'bg-green-500', label: 'Green' },
-                                            { id: 'orange', color: 'bg-orange-500', label: 'Orange' },
-                                            { id: 'pink', color: 'bg-pink-500', label: 'Pink' },
+                                            { id: 'none', color: 'bg-slate-600', gradient: 'from-slate-600 to-slate-700' },
+                                            { id: 'blue', color: 'bg-blue-500', gradient: 'from-blue-400 to-blue-600' },
+                                            { id: 'violet', color: 'bg-violet-500', gradient: 'from-violet-400 to-violet-600' },
+                                            { id: 'purple', color: 'bg-purple-500', gradient: 'from-purple-400 to-purple-600' },
+                                            { id: 'cyan', color: 'bg-cyan-500', gradient: 'from-cyan-400 to-cyan-600' },
+                                            { id: 'green', color: 'bg-emerald-500', gradient: 'from-emerald-400 to-emerald-600' },
+                                            { id: 'yellow', color: 'bg-amber-500', gradient: 'from-amber-400 to-amber-600' },
+                                            { id: 'orange', color: 'bg-orange-500', gradient: 'from-orange-400 to-orange-600' },
+                                            { id: 'red', color: 'bg-rose-500', gradient: 'from-rose-400 to-rose-600' },
+                                            { id: 'pink', color: 'bg-pink-500', gradient: 'from-pink-400 to-pink-600' },
                                         ].map((item) => (
-                                            <button
+                                            <motion.button
                                                 key={item.id}
                                                 onClick={() => setBorderColor(item.id as any)}
-                                                className={`w-8 h-8 rounded-full ${item.color} flex items-center justify-center transition-transform hover:scale-110 relative group`}
-                                                title={item.label}
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className={`relative aspect-square rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center transition-all ${borderColor === item.id
+                                                    ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900 shadow-lg'
+                                                    : 'opacity-70 hover:opacity-100'
+                                                    }`}
                                             >
                                                 {borderColor === item.id && (
-                                                    <Check size={14} className={['white', 'yellow', 'cyan', 'green', 'orange', 'pink'].includes(item.id) ? 'text-black' : 'text-white'} />
+                                                    <motion.div
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                    >
+                                                        <Check size={16} className="text-white drop-shadow-md" />
+                                                    </motion.div>
                                                 )}
-                                                {borderColor === item.id && (
-                                                    <div className={`absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-[#1e293b] ${item.id === 'none' ? 'ring-slate-500' : item.color.replace('bg-', 'ring-')}`} />
-                                                )}
-                                            </button>
+                                            </motion.button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-white/10" />
-
+                                {/* Duration Controls */}
                                 {[
-                                    { label: 'Focus', value: tempPomodoro, setValue: setTempPomodoro, step: 5, max: 360 }, // Max 6 hours
-                                    { label: 'Short Break', value: tempShortBreak, setValue: setTempShortBreak, step: 1, max: 30 },
-                                    { label: 'Long Break', value: tempLongBreak, setValue: setTempLongBreak, step: 5, max: 60 },
-                                ].map(({ label, value, setValue, step, max }) => (
-                                    <div key={label}>
-                                        <div className="flex justify-between mb-3">
-                                            <span className="text-sm font-medium text-slate-400">{label}</span>
-                                            <span className="text-sm font-bold text-white tabular-nums">{value} min</span>
+                                    { label: 'Focus Duration', icon: '🎯', value: tempPomodoro, setValue: setTempPomodoro, step: 5, max: 360, color: 'violet' },
+                                    { label: 'Short Break', icon: '☕', value: tempShortBreak, setValue: setTempShortBreak, step: 1, max: 30, color: 'emerald' },
+                                    { label: 'Long Break', icon: '🌴', value: tempLongBreak, setValue: setTempLongBreak, step: 5, max: 60, color: 'blue' },
+                                ].map(({ label, icon, value, setValue, step, max, color }) => (
+                                    <div key={label} className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-lg">{icon}</span>
+                                                <span className="text-sm font-medium text-slate-300">{label}</span>
+                                            </div>
+                                            <div className={`px-3 py-1 rounded-full bg-${color}-500/20 border border-${color}-500/30`}>
+                                                <span className={`text-sm font-bold text-${color}-400 tabular-nums`}>
+                                                    {value >= 60 ? `${Math.floor(value / 60)}h ${value % 60}m` : `${value} min`}
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        {/* Presets for Focus only */}
-                                        {label === 'Focus' && (
-                                            <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-                                                {[30, 60, 90, 120, 150, 180, 240, 300, 360].map((preset) => (
+                                        {/* Quick Presets for Focus */}
+                                        {label === 'Focus Duration' && (
+                                            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+                                                {[25, 45, 60, 90, 120].map((preset) => (
                                                     <button
                                                         key={preset}
                                                         onClick={() => setValue(preset)}
-                                                        className={`
-                                                            flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all
-                                                            ${value === preset
-                                                                ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/25'
-                                                                : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
-                                                            }
-                                                        `}
+                                                        className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${value === preset
+                                                            ? 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'
+                                                            : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white'
+                                                            }`}
                                                     >
-                                                        {`${Math.floor(preset / 60)}h ${preset % 60}m`}
+                                                        {preset >= 60 ? `${preset / 60}h` : `${preset}m`}
                                                     </button>
                                                 ))}
                                             </div>
                                         )}
 
-                                        <div className="flex items-center gap-3">
-                                            <button
-                                                onClick={() => setValue(Math.max(1, value - step))}
-                                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                        {/* Slider with buttons */}
+                                        <div className="flex items-center gap-2">
+                                            <motion.button
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => setValue(Math.max(step, value - step))}
+                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
                                             >
-                                                <Minus size={18} />
-                                            </button>
+                                                <Minus size={16} />
+                                            </motion.button>
 
-                                            <div className="flex-1 px-2">
+                                            <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden relative">
+                                                <motion.div
+                                                    className={`absolute inset-y-0 left-0 bg-gradient-to-r from-${color}-500 to-${color}-400 rounded-full`}
+                                                    initial={false}
+                                                    animate={{ width: `${(value / max) * 100}%` }}
+                                                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                                />
                                                 <input
                                                     type="range"
                                                     min={step}
@@ -203,37 +234,38 @@ const FocusTimer: React.FC = () => {
                                                     step={step}
                                                     value={value}
                                                     onChange={(e) => setValue(Number(e.target.value))}
-                                                    className="w-full h-2 bg-slate-700/50 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
-                                                    style={{
-                                                        backgroundImage: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(value / max) * 100}%, rgba(51, 65, 85, 0.5) ${(value / max) * 100}%, rgba(51, 65, 85, 0.5) 100%)`
-                                                    }}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                                 />
                                             </div>
 
-                                            <button
+                                            <motion.button
+                                                whileTap={{ scale: 0.9 }}
                                                 onClick={() => setValue(Math.min(max, value + step))}
-                                                className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                                                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-700/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
                                             >
-                                                <Plus size={18} />
-                                            </button>
+                                                <Plus size={16} />
+                                            </motion.button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="flex gap-3 mt-8">
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => setShowSettings(false)}
-                                    className="flex-1 py-3.5 rounded-xl bg-slate-700/50 text-slate-300 font-medium hover:bg-slate-700 transition-colors"
+                                    className="flex-1 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-slate-300 font-medium hover:bg-white/10 transition-all"
                                 >
                                     Cancel
                                 </button>
-                                <button
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={handleSaveSettings}
-                                    className="flex-1 py-3.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20"
+                                    className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-blue-600 text-white font-bold hover:from-violet-500 hover:to-blue-500 transition-all shadow-lg shadow-violet-500/25"
                                 >
-                                    Save
-                                </button>
+                                    Save Changes
+                                </motion.button>
                             </div>
                         </motion.div>
                     </motion.div>
