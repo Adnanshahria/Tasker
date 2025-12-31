@@ -37,6 +37,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Capture recovery intent immediately before Supabase potentially strips the hash
+    const isRecovery = window.location.hash.includes('type=recovery');
+
     // Check for cached user first
     const cached = getCachedUser();
     if (cached) {
@@ -47,6 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         handleUser(session.user);
+        // Force redirect if this was a recovery link
+        if (isRecovery) navigate('/update-password');
       } else {
         setCurrentUser(null);
         setLoading(false);
@@ -57,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || isRecovery) {
         // User clicked reset link - redirect to update password page
         navigate('/update-password');
       }
