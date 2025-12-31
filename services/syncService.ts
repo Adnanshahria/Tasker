@@ -146,7 +146,7 @@ export const triggerSync = () => {
     syncDebounceTimer = setTimeout(() => {
         processPendingOperations();
         syncDebounceTimer = null;
-    }, 2000); // Wait 2s before syncing to coalesce rapid edits
+    }, 1000); // Wait 1s (was 2s) before syncing to coalesce rapid edits
 };
 
 const processOperation = async (op: PendingOperation): Promise<void> => {
@@ -226,6 +226,7 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
         }
         case 'update': {
             if (isTempId(op.docId)) {
+                // ... (handling temp ID)
                 const { id, syncStatus, ...data } = op.data;
                 const { data: newDoc, error } = await supabase.from('habits').insert({
                     ...data,
@@ -234,7 +235,12 @@ const processHabitOperation = async (op: PendingOperation): Promise<void> => {
                 if (error) throw error;
                 if (newDoc) updateLocalHabitId(op.userId, op.docId, newDoc.id);
             } else {
-                await supabase.from('habits').update(op.data).eq('id', op.docId);
+                // Remove userId from update payload to avoid schema error (PGRST204)
+                // user_id shouldn't change during an update anyway
+                const { userId, syncStatus, ...dataToCheck } = op.data;
+                // If the data has snake_case keys that shouldn't be there, we might need more cleanup
+                // For now, assuming op.data is mostly clean except for userId
+                await supabase.from('habits').update(dataToCheck).eq('id', op.docId);
             }
             break;
         }

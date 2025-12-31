@@ -191,11 +191,11 @@ export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise
         syncStatus: 'pending',
     };
 
-    // 1. Save to local storage immediately
+    // 1. Save locally
     saveLocalAssignment(data.userId, assignment);
     console.log('[Data] Assignment saved locally:', id);
 
-    // 2. Queue for remote sync
+    // 2. Queue
     addPendingOperation({
         type: 'add',
         collection: 'assignments',
@@ -204,9 +204,9 @@ export const saveAssignment = async (data: Omit<LocalAssignment, 'id'>): Promise
         userId: data.userId,
     });
 
-    // 3. Try immediate sync if online
+    // 3. Sync IMMEDIATELY - Critical Action
     if (isOnline()) {
-        triggerSync();
+        processPendingOperations();
     }
 
     return id;
@@ -238,12 +238,12 @@ export const updateAssignment = async (id: string, data: Partial<LocalAssignment
             userId,
         });
 
-        // 3. Try immediate sync if online
+        // 3. Sync DEBOUNCED - High Frequency Action
         if (isOnline()) {
             triggerSync();
         }
     } else {
-        // Fallback to direct Supabase update
+        // Fallback to direct Supabase update (should rarely happen)
         if (isOnline()) {
             await supabase.from('assignments').update(data).eq('id', id);
         }
@@ -275,11 +275,11 @@ export const deleteAssignment = async (id: string): Promise<void> => {
             docId: id,
             userId,
         });
-    }
 
-    // 3. Try immediate sync if online
-    if (isOnline()) {
-        triggerSync();
+        // 3. Sync IMMEDIATELY - Critical Action
+        if (isOnline()) {
+            processPendingOperations();
+        }
     }
 };
 
@@ -410,9 +410,9 @@ export const saveHabit = async (data: Omit<LocalHabit, 'id'>): Promise<string> =
         userId: data.userId,
     });
 
-    // 3. Try immediate sync if online
+    // 3. Sync IMMEDIATELY - Critical Action
     if (isOnline()) {
-        triggerSync();
+        processPendingOperations();
     }
 
     return id;
@@ -444,7 +444,7 @@ export const updateHabit = async (id: string, data: Partial<LocalHabit>): Promis
             userId,
         });
 
-        // 3. Try immediate sync if online
+        // 3. Sync DEBOUNCED - High Frequency Action
         if (isOnline()) {
             triggerSync();
         }
@@ -481,11 +481,11 @@ export const deleteHabit = async (id: string): Promise<void> => {
             docId: id,
             userId,
         });
-    }
 
-    // 3. Try immediate sync if online
-    if (isOnline()) {
-        triggerSync();
+        // 3. Sync IMMEDIATELY - Critical Action
+        if (isOnline()) {
+            processPendingOperations();
+        }
     }
 };
 
@@ -555,6 +555,7 @@ const syncSettingsInBackground = async (userId: string, localSettings: StoredSet
 };
 
 export const saveSettings = async (userId: string, settings: UserSettings): Promise<void> => {
+    // Settings are often toggles, feels better if saved immediately
     if (!userId) throw new Error('userId is required');
 
     const storedSettings: StoredSettings = {
@@ -576,8 +577,8 @@ export const saveSettings = async (userId: string, settings: UserSettings): Prom
         userId,
     });
 
-    // 3. Try immediate sync if online
+    // 3. Sync IMMEDIATELY
     if (isOnline()) {
-        triggerSync();
+        processPendingOperations();
     }
 };
